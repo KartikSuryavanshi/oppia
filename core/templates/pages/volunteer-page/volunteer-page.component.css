@@ -133,9 +133,12 @@
 }
 
 .volunteer-page .mat-tab-label-container {
+  display: flex;
+  gap: 12px;
+  white-space: nowrap;
   -ms-overflow-style: none;
-  overflow-x: scroll;
-  padding: 4px;
+  overflow-x: auto;
+  padding: 8px;
 }
 
 .volunteer-page .mat-tab-label-container::-webkit-scrollbar {
@@ -149,7 +152,10 @@
 }
 
 .volunteer-page .mat-tab-header {
-  border-bottom: none;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #fff;
 }
 
 .volunteer-page .mat-tab-label {
@@ -182,6 +188,18 @@
 .volunteer-page .mat-tab-label-content {
   display: flex;
   gap: 8px;
+}
+
+.volunteer-page .oppia-volunteer-tab-prev-btn,
+.oppia-volunteer-tab-next-btn {
+  position: sticky;
+  top: 10px;
+  z-index: 999;
+  background-color: #fff;
+  padding: 8px;
+  height: 48px;
+  width: 48px;
+  cursor: pointer;
 }
 
 .volunteer-page .mat-tab-header-pagination-chevron {
@@ -587,7 +605,7 @@ li.oppia-volunteer-page-description-list-item {
     padding: 32px 24px;
   }
   .volunteer-page .oppia-volunteer-tabs > button {
-    position: relative;
+    position: sticky;
     width: 20px;
     z-index: 999;
   }

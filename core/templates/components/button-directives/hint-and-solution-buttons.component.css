@@ -120,7 +120,6 @@ oppia-hint-and-solution-buttons .hint-box::before {
     position: fixed;
   }
 
-
   oppia-hint-and-solution-buttons .hint-box-add-ons::before {
     margin-left: 125px;
   }
@@ -199,6 +198,7 @@ oppia-hint-and-solution-buttons .hint-box::before {
   color: #f5da57;
   font-size: 23px;
 }
+
 @media screen and (max-width: 546px) {
   oppia-hint-and-solution-buttons .hint-box {
     bottom: 110px;
@@ -209,4 +209,3 @@ oppia-hint-and-solution-buttons .hint-box::before {
     display: none;
   }
 }
-

@@ -31,7 +31,7 @@ import {LearnerGroupData} from 'domain/learner_group/learner-group.model';
 import {TranslateService} from '@ngx-translate/core';
 import {PageTitleService} from 'services/page-title.service';
 import {EditLearnerGroupPageComponent} from './edit-learner-group-page.component';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 
 class MockTranslateService {
   onLangChange: EventEmitter<string> = new EventEmitter();
@@ -46,7 +46,7 @@ describe('EditLearnerGroupPageComponent', () => {
   let fixture: ComponentFixture<EditLearnerGroupPageComponent>;
   let learnerGroupBackendApiService: LearnerGroupBackendApiService;
   let translateService: TranslateService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let pageTitleService: PageTitleService;
 
   const learnerGroupBackendDict = {
@@ -83,11 +83,11 @@ describe('EditLearnerGroupPageComponent', () => {
     );
     translateService = TestBed.inject(TranslateService);
     pageTitleService = TestBed.inject(PageTitleService);
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     fixture = TestBed.createComponent(EditLearnerGroupPageComponent);
     component = fixture.componentInstance;
 
-    spyOn(pageContextService, 'getLearnerGroupId').and.returnValue('groupId');
+    spyOn(contextService, 'getLearnerGroupId').and.returnValue('groupId');
 
     fixture.detectChanges();
   });

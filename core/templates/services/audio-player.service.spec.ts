@@ -26,7 +26,7 @@ import {
 } from '@angular/core/testing';
 import {AudioPlayerService} from './audio-player.service';
 import {AssetsBackendApiService} from './assets-backend-api.service';
-import {PageContextService} from './page-context.service';
+import {ContextService} from './context.service';
 import {EventEmitter, NO_ERRORS_SCHEMA} from '@angular/core';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import * as howler from 'howler';
@@ -35,7 +35,7 @@ import {Howl} from 'howler';
 
 describe('AudioPlayerService', () => {
   let audioPlayerService: AudioPlayerService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let assetsBackendApiService: AssetsBackendApiService;
   let successHandler: jasmine.Spy;
   let failHandler: jasmine.Spy;
@@ -43,20 +43,16 @@ describe('AudioPlayerService', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [
-        AudioPlayerService,
-        PageContextService,
-        AssetsBackendApiService,
-      ],
+      providers: [AudioPlayerService, ContextService, AssetsBackendApiService],
       schemas: [NO_ERRORS_SCHEMA],
     });
   }));
 
   beforeEach(() => {
     audioPlayerService = TestBed.inject(AudioPlayerService);
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     assetsBackendApiService = TestBed.inject(AssetsBackendApiService);
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('1');
+    spyOn(contextService, 'getExplorationId').and.returnValue('1');
     successHandler = jasmine.createSpy('success');
     failHandler = jasmine.createSpy('fail');
   });

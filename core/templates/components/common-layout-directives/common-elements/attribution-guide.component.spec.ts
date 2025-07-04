@@ -19,7 +19,7 @@
 import {TestBed, async, ComponentFixture} from '@angular/core/testing';
 
 import {AttributionGuideComponent} from './attribution-guide.component';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {UrlService} from 'services/contextual/url.service';
 import {AttributionService} from 'services/attribution.service';
@@ -74,7 +74,7 @@ class MockUrlService {
   }
 }
 
-class MockPageContextService {
+class MockContextService {
   getExplorationId() {
     return 'expId';
   }
@@ -93,7 +93,7 @@ describe('Attribution Guide Component', function () {
         {provide: AttributionService, useClass: MockAttributionService},
         {provide: BrowserCheckerService, useClass: MockBrowserCheckerService},
         {provide: UrlService, useClass: MockUrlService},
-        {provide: PageContextService, useClass: MockPageContextService},
+        {provide: ContextService, useClass: MockContextService},
         WindowDimensionsService,
       ],
       schemas: [NO_ERRORS_SCHEMA],

@@ -37,7 +37,7 @@ import {SkillMasteryModalComponent} from './skill-mastery-modal.component';
 import {UserService} from 'services/user.service';
 import {QuestionPlayerStateService} from './services/question-player-state.service';
 import {WindowRef} from 'services/contextual/window-ref.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {SiteAnalyticsService} from 'services/site-analytics.service';
 import {UrlService} from 'services/contextual/url.service';
 
@@ -112,7 +112,7 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
   componentSubscription = new Subscription();
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private explorationPlayerStateService: ExplorationPlayerStateService,
     private location: Location,
     private ngbModal: NgbModal,
@@ -564,7 +564,7 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
             this.windowRef.nativeWindow.location.hash =
               QuestionPlayerConstants.HASH_PARAM +
               encodeURIComponent(JSON.stringify(result));
-            this.pageContextService.removeCustomEntityContext();
+            this.contextService.removeCustomEntityContext();
           }
         )
       );

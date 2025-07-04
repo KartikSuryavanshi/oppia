@@ -17,7 +17,7 @@
  */
 
 import {Component, Input} from '@angular/core';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {ImageUploadHelperService} from 'services/image-upload-helper.service';
 
 @Component({
@@ -39,12 +39,12 @@ export class PreviewThumbnailComponent {
   editableThumbnailDataUrl!: string;
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private imageUploadHelperService: ImageUploadHelperService
   ) {}
 
   ngOnInit(): void {
-    let entityType = this.pageContextService.getEntityType();
+    let entityType = this.contextService.getEntityType();
     if (entityType === undefined) {
       throw new Error('No image present for preview');
     }
@@ -52,7 +52,7 @@ export class PreviewThumbnailComponent {
       this.imageUploadHelperService.getTrustedResourceUrlForThumbnailFilename(
         this.filename,
         entityType,
-        this.pageContextService.getEntityId()
+        this.contextService.getEntityId()
       );
   }
 }

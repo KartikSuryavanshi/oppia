@@ -34,7 +34,7 @@ import {TranslatedContent} from 'domain/exploration/TranslatedContentObjectFacto
 import {EntityTranslationsService} from 'services/entity-translations.services';
 import {EntityTranslation} from 'domain/translation/EntityTranslationObjectFactory';
 import {TranslationStatusService} from '../services/translation-status.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {EntityVoiceoversService} from 'services/entity-voiceovers.services';
 import {EntityVoiceovers} from 'domain/voiceover/entity-voiceovers.model';
 import {Voiceover} from 'domain/exploration/voiceover.model';
@@ -64,7 +64,7 @@ describe('State Translation Editor Component', () => {
   let translationTabActiveContentIdService: TranslationTabActiveContentIdService;
   let translationStatusService: TranslationStatusService;
   let state: State;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
 
   let mockActiveLanguageChangedEventEmitter = new EventEmitter<void>();
   let mockActiveLanguageIdChangedEventEmitter = new EventEmitter<string>();
@@ -103,7 +103,7 @@ describe('State Translation Editor Component', () => {
     explorationStatesService = TestBed.inject(ExplorationStatesService);
     stateObjectFactory = TestBed.inject(StateObjectFactory);
     translationStatusService = TestBed.inject(TranslationStatusService);
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
 
     state = stateObjectFactory.createDefaultState(
       '',
@@ -113,8 +113,8 @@ describe('State Translation Editor Component', () => {
     state.content.html = 'This is a html text1';
     spyOn(explorationStatesService, 'getState').and.returnValue(state);
 
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('exp1');
-    spyOn(pageContextService, 'getExplorationVersion').and.returnValue(5);
+    spyOn(contextService, 'getExplorationId').and.returnValue('exp1');
+    spyOn(contextService, 'getExplorationVersion').and.returnValue(5);
     spyOn(
       translationTabActiveContentIdService,
       'getActiveContentId'

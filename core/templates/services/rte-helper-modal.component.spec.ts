@@ -27,7 +27,7 @@ import {AppConstants} from 'app.constants';
 import {RteHelperModalComponent} from './rte-helper-modal.component';
 import {ExternalRteSaveService} from './external-rte-save.service';
 import {AlertsService} from './alerts.service';
-import {PageContextService} from './page-context.service';
+import {ContextService} from './context.service';
 import {ImageLocalStorageService} from './image-local-storage.service';
 import {AssetsBackendApiService} from './assets-backend-api.service';
 import {ImageUploadHelperService} from './image-upload-helper.service';
@@ -47,7 +47,7 @@ import {
 describe('RteHelperModalComponent', () => {
   let component: RteHelperModalComponent;
   let fixture: ComponentFixture<RteHelperModalComponent>;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let assetsBackendApiService: AssetsBackendApiService;
   let imageUploadHelperService: ImageUploadHelperService;
   let alertsService: AlertsService;
@@ -73,7 +73,7 @@ describe('RteHelperModalComponent', () => {
       declarations: [RteHelperModalComponent],
       providers: [
         AlertsService,
-        PageContextService,
+        ContextService,
         ImageLocalStorageService,
         AssetsBackendApiService,
         ImageUploadHelperService,
@@ -93,7 +93,7 @@ describe('RteHelperModalComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(RteHelperModalComponent);
     component = fixture.componentInstance;
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     assetsBackendApiService = TestBed.inject(AssetsBackendApiService);
     imageUploadHelperService = TestBed.inject(ImageUploadHelperService);
     alertsService = TestBed.inject(AlertsService);
@@ -139,7 +139,7 @@ describe('RteHelperModalComponent', () => {
 
     it('should save modal customization args when closing it', fakeAsync(() => {
       spyOn(mockExternalRteSaveEventEmitter, 'emit').and.callThrough();
-      spyOn(pageContextService, 'getEntityType').and.returnValue('exploration');
+      spyOn(contextService, 'getEntityType').and.returnValue('exploration');
       component.ngOnInit();
       flush();
       component.onCustomizationArgsFormChange(
@@ -238,10 +238,10 @@ describe('RteHelperModalComponent', () => {
 
     it('should save modal customization args when closing it', fakeAsync(() => {
       spyOn(mockExternalRteSaveEventEmitter, 'emit').and.callThrough();
-      spyOn(pageContextService, 'getImageSaveDestination').and.returnValue(
+      spyOn(contextService, 'getImageSaveDestination').and.returnValue(
         AppConstants.IMAGE_SAVE_DESTINATION_SERVER
       );
-      spyOn(pageContextService, 'getEntityType').and.returnValue('exploration');
+      spyOn(contextService, 'getEntityType').and.returnValue('exploration');
       component.ngOnInit();
       flush();
 
@@ -287,10 +287,10 @@ describe('RteHelperModalComponent', () => {
     it('should handle being unable to communicate to server and show error while saving', fakeAsync(() => {
       spyOn(alertsService, 'addWarning');
       spyOn(mockExternalRteSaveEventEmitter, 'emit').and.callThrough();
-      spyOn(pageContextService, 'getImageSaveDestination').and.returnValue(
+      spyOn(contextService, 'getImageSaveDestination').and.returnValue(
         AppConstants.IMAGE_SAVE_DESTINATION_SERVER
       );
-      spyOn(pageContextService, 'getEntityType').and.returnValue('exploration');
+      spyOn(contextService, 'getEntityType').and.returnValue('exploration');
       component.ngOnInit();
       flush();
 
@@ -324,7 +324,7 @@ describe('RteHelperModalComponent', () => {
 
     it('should cancel the modal when math SVG exceeds 100 KB', fakeAsync(() => {
       spyOn(mockExternalRteSaveEventEmitter, 'emit').and.callThrough();
-      spyOn(pageContextService, 'getEntityType').and.returnValue('exploration');
+      spyOn(contextService, 'getEntityType').and.returnValue('exploration');
       component.ngOnInit();
       flush();
       component.customizationArgsForm.value[0] = {
@@ -351,7 +351,7 @@ describe('RteHelperModalComponent', () => {
 
     it('should cancel the modal when SVG exceeds 1 MB for blog post', fakeAsync(() => {
       spyOn(mockExternalRteSaveEventEmitter, 'emit').and.callThrough();
-      spyOn(pageContextService, 'getEntityType').and.returnValue(
+      spyOn(contextService, 'getEntityType').and.returnValue(
         AppConstants.ENTITY_TYPE.BLOG_POST
       );
       component.ngOnInit();
@@ -384,9 +384,7 @@ describe('RteHelperModalComponent', () => {
         'empty for a math expression',
       fakeAsync(() => {
         spyOn(mockExternalRteSaveEventEmitter, 'emit').and.callThrough();
-        spyOn(pageContextService, 'getEntityType').and.returnValue(
-          'exploration'
-        );
+        spyOn(contextService, 'getEntityType').and.returnValue('exploration');
         component.ngOnInit();
         flush();
         component.customizationArgsForm.value[0] = {
@@ -407,7 +405,7 @@ describe('RteHelperModalComponent', () => {
 
     it('should save modal customization args while in local storage', fakeAsync(() => {
       spyOn(mockExternalRteSaveEventEmitter, 'emit').and.callThrough();
-      spyOn(pageContextService, 'getEntityType').and.returnValue('exploration');
+      spyOn(contextService, 'getEntityType').and.returnValue('exploration');
       component.ngOnInit();
       flush();
       component.customizationArgsForm.value[0] = {
@@ -421,7 +419,7 @@ describe('RteHelperModalComponent', () => {
       );
 
       var imageFile = new Blob();
-      spyOn(pageContextService, 'getImageSaveDestination').and.returnValue(
+      spyOn(contextService, 'getImageSaveDestination').and.returnValue(
         AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE
       );
       spyOn(
@@ -516,7 +514,7 @@ describe('RteHelperModalComponent', () => {
 
     it('should save modal customization args when closing it', fakeAsync(() => {
       spyOn(mockExternalRteSaveEventEmitter, 'emit').and.callThrough();
-      spyOn(pageContextService, 'getEntityType').and.returnValue('exploration');
+      spyOn(contextService, 'getEntityType').and.returnValue('exploration');
       component.ngOnInit();
       flush();
       expect(component.isErrorMessageNonempty()).toBe(false);

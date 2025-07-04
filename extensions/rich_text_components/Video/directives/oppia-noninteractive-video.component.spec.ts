@@ -19,7 +19,7 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {NoninteractiveVideo} from './oppia-noninteractive-video.component';
 import {HtmlEscaperService} from 'services/html-escaper.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {NO_ERRORS_SCHEMA, SimpleChanges} from '@angular/core';
 import {AutoplayedVideosService} from 'services/autoplayed-videos.service';
 import {ServicesConstants} from 'services/services.constants';
@@ -29,7 +29,7 @@ describe('NoninteractiveVideo', () => {
   let fixture: ComponentFixture<NoninteractiveVideo>;
   let autoplayedVideosService: AutoplayedVideosService;
   let htmlEscaperService: HtmlEscaperService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let boundingClientRect = {
     x: -29968.005859375,
     y: -29941.130859375,
@@ -52,11 +52,7 @@ describe('NoninteractiveVideo', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [NoninteractiveVideo],
-      providers: [
-        HtmlEscaperService,
-        PageContextService,
-        AutoplayedVideosService,
-      ],
+      providers: [HtmlEscaperService, ContextService, AutoplayedVideosService],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
   }));
@@ -64,7 +60,7 @@ describe('NoninteractiveVideo', () => {
   beforeEach(() => {
     autoplayedVideosService = TestBed.inject(AutoplayedVideosService);
     htmlEscaperService = TestBed.inject(HtmlEscaperService);
-    pageContextService = TestBed.get(PageContextService);
+    contextService = TestBed.get(ContextService);
 
     fixture = TestBed.createComponent(NoninteractiveVideo);
     component = fixture.componentInstance;
@@ -76,9 +72,7 @@ describe('NoninteractiveVideo', () => {
 
   it('should initialize component when video is added to the RTE', () => {
     spyOn(htmlEscaperService, 'escapedJsonToObj').and.callThrough();
-    spyOn(pageContextService, 'isInExplorationEditorMode').and.returnValue(
-      true
-    );
+    spyOn(contextService, 'isInExplorationEditorMode').and.returnValue(true);
     spyOnProperty(window, 'innerHeight', 'get').and.returnValue(1054);
     spyOnProperty(window, 'innerWidth', 'get').and.returnValue(1098);
     spyOn(Element.prototype, 'getBoundingClientRect').and.callFake(
@@ -98,9 +92,7 @@ describe('NoninteractiveVideo', () => {
 
   it('should enable video when not in exploration editor', () => {
     spyOn(htmlEscaperService, 'escapedJsonToObj').and.callThrough();
-    spyOn(pageContextService, 'isInExplorationEditorMode').and.returnValue(
-      false
-    );
+    spyOn(contextService, 'isInExplorationEditorMode').and.returnValue(false);
     spyOnProperty(window, 'innerHeight', 'get').and.returnValue(1054);
     spyOnProperty(window, 'innerWidth', 'get').and.returnValue(1098);
     spyOn(Element.prototype, 'getBoundingClientRect').and.callFake(
@@ -133,7 +125,7 @@ describe('NoninteractiveVideo', () => {
         false
       );
       spyOn(autoplayedVideosService, 'addAutoplayedVideo');
-      spyOn(pageContextService, 'getPageContext').and.returnValue(
+      spyOn(contextService, 'getPageContext').and.returnValue(
         ServicesConstants.PAGE_CONTEXT.EXPLORATION_PLAYER
       );
 
@@ -166,7 +158,7 @@ describe('NoninteractiveVideo', () => {
         false
       );
       spyOn(autoplayedVideosService, 'addAutoplayedVideo');
-      spyOn(pageContextService, 'getPageContext').and.returnValue(
+      spyOn(contextService, 'getPageContext').and.returnValue(
         ServicesConstants.PAGE_CONTEXT.EXPLORATION_PLAYER
       );
       component.autoplayWithValue = 'false';

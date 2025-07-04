@@ -27,12 +27,12 @@ import {TopicEditorRoutingService} from './services/topic-editor-routing.service
 import {TopicEditorStateService} from './services/topic-editor-state.service';
 import {TopicEditorPageComponent} from './topic-editor-page.component';
 import {UndoRedoService} from 'domain/editor/undo_redo/undo-redo.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {UrlService} from 'services/contextual/url.service';
 import {PageTitleService} from 'services/page-title.service';
 import {PreventPageUnloadEventService} from 'services/prevent-page-unload-event.service';
 
-class MockPageContextService {
+class MockContextService {
   getExplorationId() {
     return 'explorationId';
   }
@@ -69,8 +69,8 @@ describe('Topic editor page', () => {
         TopicEditorStateService,
         UrlService,
         {
-          provide: PageContextService,
-          useClass: MockPageContextService,
+          provide: ContextService,
+          useClass: MockContextService,
         },
       ],
       schemas: [NO_ERRORS_SCHEMA],

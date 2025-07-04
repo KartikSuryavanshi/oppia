@@ -32,7 +32,7 @@ import {MockTranslateService} from '../../../../components/forms/schema-based-ed
 import {MockTranslatePipe} from '../../../../tests/unit-test-utils';
 import {LimitToPipe} from '../../../../filters/limit-to.pipe';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {PageContextService} from '../../../../services/page-context.service';
+import {ContextService} from '../../../../services/context.service';
 import {UrlService} from '../../../../services/contextual/url.service';
 import {WindowDimensionsService} from '../../../../services/contextual/window-dimensions.service';
 import {
@@ -116,7 +116,7 @@ class MockNgbModalRef {
 describe('ExplorationFooterComponent', () => {
   let component: ExplorationFooterComponent;
   let fixture: ComponentFixture<ExplorationFooterComponent>;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let urlService: UrlService;
   let learnerViewInfoBackendApiService: LearnerViewInfoBackendApiService;
   let loggerService: LoggerService;
@@ -195,7 +195,7 @@ describe('ExplorationFooterComponent', () => {
   }));
 
   beforeEach(() => {
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     urlService = TestBed.inject(UrlService);
     windowDimensionsService = TestBed.inject(WindowDimensionsService);
     learnerViewInfoBackendApiService = TestBed.inject(
@@ -240,7 +240,7 @@ describe('ExplorationFooterComponent', () => {
   it(
     'should initialise component when user opens exploration ' + 'player',
     fakeAsync(() => {
-      spyOn(pageContextService, 'getExplorationId').and.returnValue('exp1');
+      spyOn(contextService, 'getExplorationId').and.returnValue('exp1');
       spyOn(playerPositionService.onNewCardOpened, 'subscribe');
       spyOn(urlService, 'isIframed').and.returnValue(true);
       spyOn(windowDimensionsService, 'isWindowNarrow').and.returnValue(false);
@@ -255,13 +255,10 @@ describe('ExplorationFooterComponent', () => {
       );
       spyOn(component, 'getCheckpointCount').and.returnValue(Promise.resolve());
       spyOn(component, 'showProgressReminderModal');
-      spyOn(pageContextService, 'isInQuestionPlayerMode').and.returnValue(
-        false
+      spyOn(contextService, 'isInQuestionPlayerMode').and.returnValue(false);
+      spyOn(contextService, 'getQuestionPlayerIsManuallySet').and.returnValue(
+        true
       );
-      spyOn(
-        pageContextService,
-        'getQuestionPlayerIsManuallySet'
-      ).and.returnValue(true);
       spyOn(
         explorationSummaryBackendApiService,
         'loadPublicAndPrivateExplorationSummariesAsync'
@@ -646,8 +643,8 @@ describe('ExplorationFooterComponent', () => {
     'should not show hints after user finishes practice session' +
       ' and results are loaded.',
     () => {
-      spyOn(pageContextService, 'getExplorationId').and.returnValue('exp1');
-      spyOn(pageContextService, 'isInQuestionPlayerMode').and.returnValue(true);
+      spyOn(contextService, 'getExplorationId').and.returnValue('exp1');
+      spyOn(contextService, 'isInQuestionPlayerMode').and.returnValue(true);
       expect(component.hintsAndSolutionsAreSupported).toBeTrue();
 
       spyOnProperty(
@@ -1028,7 +1025,7 @@ describe('ExplorationFooterComponent', () => {
   });
 
   it('should get checkpoint index from state name', fakeAsync(() => {
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('exp1');
+    spyOn(contextService, 'getExplorationId').and.returnValue('exp1');
     spyOn(playerTranscriptService, 'getNumCards').and.returnValue(1);
     const card = StateCard.createNewCard(
       'State A',
@@ -1310,8 +1307,8 @@ describe('ExplorationFooterComponent', () => {
     'should show hints when initialized in question player when user is' +
       ' going through the practice session and should add subscription.',
     () => {
-      spyOn(pageContextService, 'getExplorationId').and.returnValue('expId');
-      spyOn(pageContextService, 'isInQuestionPlayerMode').and.returnValue(true);
+      spyOn(contextService, 'getExplorationId').and.returnValue('expId');
+      spyOn(contextService, 'isInQuestionPlayerMode').and.returnValue(true);
       spyOn(
         questionPlayerStateService.resultsPageIsLoadedEventEmitter,
         'subscribe'
@@ -1327,14 +1324,14 @@ describe('ExplorationFooterComponent', () => {
   );
 
   it('should check if window is narrow when user resizes window', () => {
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('exp1');
+    spyOn(contextService, 'getExplorationId').and.returnValue('exp1');
     spyOn(urlService, 'isIframed').and.returnValue(true);
     spyOn(windowDimensionsService, 'isWindowNarrow').and.returnValue(false);
     spyOn(windowDimensionsService, 'getResizeEvent').and.returnValue(
       mockResizeEventEmitter
     );
-    spyOn(pageContextService, 'isInQuestionPlayerMode').and.returnValue(false);
-    spyOn(pageContextService, 'getQuestionPlayerIsManuallySet').and.returnValue(
+    spyOn(contextService, 'isInQuestionPlayerMode').and.returnValue(false);
+    spyOn(contextService, 'getQuestionPlayerIsManuallySet').and.returnValue(
       false
     );
 
@@ -1343,8 +1340,8 @@ describe('ExplorationFooterComponent', () => {
   });
 
   it('should open lesson info modal if emitter emits', () => {
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('expId');
-    spyOn(pageContextService, 'isInQuestionPlayerMode').and.returnValue(true);
+    spyOn(contextService, 'getExplorationId').and.returnValue('expId');
+    spyOn(contextService, 'isInQuestionPlayerMode').and.returnValue(true);
     spyOn(
       checkpointCelebrationUtilityService.getOpenLessonInformationModalEmitter(),
       'subscribe'
@@ -1365,17 +1362,16 @@ describe('ExplorationFooterComponent', () => {
     'should not display author names when exploration is in question' +
       ' player mode',
     () => {
-      spyOn(pageContextService, 'getExplorationId').and.returnValue('exp1');
+      spyOn(contextService, 'getExplorationId').and.returnValue('exp1');
       spyOn(urlService, 'isIframed').and.returnValue(true);
       spyOn(windowDimensionsService, 'isWindowNarrow').and.returnValue(false);
       spyOn(windowDimensionsService, 'getResizeEvent').and.returnValue(
         mockResizeEventEmitter
       );
-      spyOn(pageContextService, 'isInQuestionPlayerMode').and.returnValue(true);
-      spyOn(
-        pageContextService,
-        'getQuestionPlayerIsManuallySet'
-      ).and.returnValue(false);
+      spyOn(contextService, 'isInQuestionPlayerMode').and.returnValue(true);
+      spyOn(contextService, 'getQuestionPlayerIsManuallySet').and.returnValue(
+        false
+      );
       spyOn(
         explorationSummaryBackendApiService,
         'loadPublicAndPrivateExplorationSummariesAsync'

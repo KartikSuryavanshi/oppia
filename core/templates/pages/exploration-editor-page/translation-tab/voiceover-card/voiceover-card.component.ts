@@ -29,7 +29,7 @@ import {Subscription} from 'rxjs';
 import {AddAudioTranslationModalComponent} from '../modal-templates/add-audio-translation-modal.component';
 import {AlertsService} from 'services/alerts.service';
 import {AudioPlayerService} from 'services/audio-player.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {IdGenerationService} from 'services/id-generation.service';
 import {TranslationLanguageService} from '../services/translation-language.service';
 import {TranslationTabActiveContentIdService} from '../services/translation-tab-active-content-id.service';
@@ -98,7 +98,7 @@ export class VoiceoverCardComponent implements OnInit, AfterViewChecked {
 
   constructor(
     private audioPlayerService: AudioPlayerService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private changeDetectorRef: ChangeDetectorRef,
     private translationLanguageService: TranslationLanguageService,
     private translationTabActiveContentIdService: TranslationTabActiveContentIdService,
@@ -491,7 +491,7 @@ export class VoiceoverCardComponent implements OnInit, AfterViewChecked {
   }
 
   isExplorationLinkedToStory(): boolean {
-    return this.pageContextService.isExplorationLinkedToStory();
+    return this.contextService.isExplorationLinkedToStory();
   }
 
   shouldShowAutoVoiceoverRegenerationSection(): boolean {
@@ -606,9 +606,9 @@ export class VoiceoverCardComponent implements OnInit, AfterViewChecked {
 
         if (this.activeEntityVoiceoversInstance === undefined) {
           this.activeEntityVoiceoversInstance = new EntityVoiceovers(
-            this.pageContextService.getExplorationId(),
+            this.contextService.getExplorationId(),
             'exploration',
-            this.pageContextService.getExplorationVersion() as number,
+            this.contextService.getExplorationVersion() as number,
             this.languageAccentCode,
             {},
             {}
@@ -680,8 +680,8 @@ export class VoiceoverCardComponent implements OnInit, AfterViewChecked {
 
         this.voiceoverBackendApiService
           .generateAutotmaticVoiceoverAsync(
-            this.pageContextService.getExplorationId(),
-            this.pageContextService.getExplorationVersion() as number,
+            this.contextService.getExplorationId(),
+            this.contextService.getExplorationVersion() as number,
             this.stateEditorService.getActiveStateName() as string,
             this.activeContentId,
             this.languageAccentCode
@@ -695,9 +695,9 @@ export class VoiceoverCardComponent implements OnInit, AfterViewChecked {
             );
             if (this.activeEntityVoiceoversInstance === undefined) {
               this.activeEntityVoiceoversInstance = new EntityVoiceovers(
-                this.pageContextService.getExplorationId(),
+                this.contextService.getExplorationId(),
                 'exploration',
-                this.pageContextService.getExplorationVersion() as number,
+                this.contextService.getExplorationVersion() as number,
                 this.languageAccentCode,
                 {},
                 {}

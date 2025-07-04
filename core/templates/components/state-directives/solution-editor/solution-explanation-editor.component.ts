@@ -24,7 +24,7 @@ import {
   Output,
 } from '@angular/core';
 import {Subscription} from 'rxjs';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {EditabilityService} from 'services/editability.service';
 import {ExternalSaveService} from 'services/external-save.service';
 import {StateSolutionService} from 'components/state-editor/state-editor-properties-services/state-solution.service';
@@ -55,7 +55,7 @@ export class SolutionExplanationEditor implements OnDestroy, OnInit {
   explanationEditorIsOpen: boolean = false;
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private editabilityService: EditabilityService,
     private externalSaveService: ExternalSaveService,
     private stateSolutionService: StateSolutionService,
@@ -127,7 +127,7 @@ export class SolutionExplanationEditor implements OnDestroy, OnInit {
       type: 'html',
       ui_config: {
         hide_complex_extensions:
-          this.pageContextService.getEntityType() === 'question',
+          this.contextService.getEntityType() === 'question',
       },
     };
   }

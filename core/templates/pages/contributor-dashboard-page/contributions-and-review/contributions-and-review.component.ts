@@ -46,7 +46,7 @@ import {TranslationTopicService} from 'pages/exploration-editor-page/translation
 import {FormatRtePreviewPipe} from 'filters/format-rte-preview.pipe';
 import {UserService} from 'services/user.service';
 import {AlertsService} from 'services/alerts.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {ContributionAndReviewService} from '../services/contribution-and-review.service';
 import {ContributionOpportunitiesService} from '../services/contribution-opportunities.service';
 import {OpportunitiesListComponent} from '../opportunities-list/opportunities-list.component';
@@ -193,7 +193,7 @@ export class ContributionsAndReview implements OnInit, OnDestroy {
 
   constructor(
     private alertsService: AlertsService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private contributionAndReviewService: ContributionAndReviewService,
     private contributionOpportunitiesService: ContributionOpportunitiesService,
     private formatRtePreviewPipe: FormatRtePreviewPipe,
@@ -564,7 +564,7 @@ export class ContributionsAndReview implements OnInit, OnDestroy {
     }
     const skillId = suggestion.change_cmd.skill_id;
 
-    this.pageContextService.setCustomEntityContext(
+    this.contextService.setCustomEntityContext(
       AppConstants.IMAGE_CONTEXT.QUESTION_SUGGESTIONS,
       skillId
     );
@@ -595,7 +595,7 @@ export class ContributionsAndReview implements OnInit, OnDestroy {
         const contribution = this.contributions[suggestionId];
         suggestionIdToContribution[suggestionId] = contribution;
       }
-      this.pageContextService.setCustomEntityContext(
+      this.contextService.setCustomEntityContext(
         AppConstants.IMAGE_CONTEXT.EXPLORATION_SUGGESTIONS,
         suggestion.target_id
       );

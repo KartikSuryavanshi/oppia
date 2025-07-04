@@ -25,7 +25,7 @@ import {
   ExplorationIdToFilenames,
 } from 'domain/voiceover/voiceover-backend-api.service';
 import {AudioPlayerService} from 'services/audio-player.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 
 @Component({
   selector: 'oppia-add-accent-to-voiceover-language-modal',
@@ -46,7 +46,7 @@ export class AddAccentToVoiceoverLanguageModalComponent extends ConfirmOrCancelM
     private ngbActiveModal: NgbActiveModal,
     private voiceoverBackendApiService: VoiceoverBackendApiService,
     private audioPlayerService: AudioPlayerService,
-    private pageContextService: PageContextService
+    private contextService: ContextService
   ) {
     super(ngbActiveModal);
   }
@@ -88,7 +88,7 @@ export class AddAccentToVoiceoverLanguageModalComponent extends ConfirmOrCancelM
   playAudio(filename: string, explorationId: string): void {
     this.pauseAudio();
 
-    this.pageContextService.explorationId = explorationId;
+    this.contextService.explorationId = explorationId;
 
     this.audioPlayerService.loadAsync(filename).then(() => {
       this.currentFilename = filename;

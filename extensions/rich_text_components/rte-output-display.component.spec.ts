@@ -36,7 +36,7 @@ import {FeatureStatusChecker} from 'domain/feature-flag/feature-status-summary.m
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {AutomaticVoiceoverHighlightService} from '../../core/templates/services/automatic-voiceover-highlight-service';
 import {EntityVoiceoversService} from '../../core/templates/services/entity-voiceovers.services';
-import {PageContextService} from '../../core/templates/services/page-context.service';
+import {ContextService} from '../../core/templates/services/context.service';
 import {TranslationTabActiveContentIdService} from '../../core/templates/pages/exploration-editor-page/translation-tab/services/translation-tab-active-content-id.service';
 import {VoiceoverPlayerService} from '../../core/templates/pages/exploration-player-page/services/voiceover-player.service';
 import {LocalStorageService} from '../../core/templates/services/local-storage.service';
@@ -59,7 +59,7 @@ describe('RTE display component', () => {
   let platformFeatureService: PlatformFeatureService;
   let automaticVoiceoverHighlightService: AutomaticVoiceoverHighlightService;
   let entityVoiceoversService: EntityVoiceoversService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let translationTabActiveContentIdService: TranslationTabActiveContentIdService;
   let voiceoverPlayerService: VoiceoverPlayerService;
   let localStorageService: LocalStorageService;
@@ -84,7 +84,7 @@ describe('RTE display component', () => {
       TranslationTabActiveContentIdService
     );
     voiceoverPlayerService = TestBed.inject(VoiceoverPlayerService);
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     entityVoiceoversService = TestBed.inject(EntityVoiceoversService);
     fixture = TestBed.createComponent(RteOutputDisplayComponent);
     localStorageService = TestBed.inject(LocalStorageService);
@@ -375,14 +375,14 @@ describe('RTE display component', () => {
     );
     let vpsSpy = spyOn(voiceoverPlayerService, 'getActiveContentId');
     let explorationPlayerPageSpy = spyOn(
-      pageContextService,
+      contextService,
       'isInExplorationPlayerPage'
     );
     let explorationEditorPageSpy = spyOn(
-      pageContextService,
+      contextService,
       'isInExplorationEditorPage'
     );
-    let editorTabContextSpy = spyOn(pageContextService, 'getEditorTabContext');
+    let editorTabContextSpy = spyOn(contextService, 'getEditorTabContext');
 
     // Exploration editor page (translation tab).
     explorationPlayerPageSpy.and.returnValue(false);

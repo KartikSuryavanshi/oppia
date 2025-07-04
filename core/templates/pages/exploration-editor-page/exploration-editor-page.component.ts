@@ -31,7 +31,7 @@ import {
 } from 'domain/exploration/ParamSpecsObjectFactory';
 import {AlertsService} from 'services/alerts.service';
 import {BottomNavbarStatusService} from 'services/bottom-navbar-status.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {EditabilityService} from 'services/editability.service';
 import {ExplorationFeaturesBackendApiService} from 'services/exploration-features-backend-api.service';
 import {ExplorationFeaturesService} from 'services/exploration-features.service';
@@ -143,7 +143,7 @@ export class ExplorationEditorPageComponent implements OnInit, OnDestroy {
     private autosaveInfoModalsService: AutosaveInfoModalsService,
     private bottomNavbarStatusService: BottomNavbarStatusService,
     private changeListService: ChangeListService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     public editabilityService: EditabilityService,
     private entityBulkTranslationsBackendApiService: EntityBulkTranslationsBackendApiService,
     private entityTranslationsService: EntityTranslationsService,
@@ -231,14 +231,14 @@ export class ExplorationEditorPageComponent implements OnInit, OnDestroy {
         }
       }),
       this.explorationFeaturesBackendApiService.fetchExplorationFeaturesAsync(
-        this.pageContextService.getExplorationId()
+        this.contextService.getExplorationId()
       ),
       this.threadDataBackendApiService.getFeedbackThreadsAsync(),
       this.userService.getUserInfoAsync(),
     ]).then(async ([explorationData, featuresData, _, userInfo]) => {
       if ((explorationData as ExplorationData).exploration_is_linked_to_story) {
         this.explorationIsLinkedToStory = true;
-        this.pageContextService.setExplorationIsLinkedToStory();
+        this.contextService.setExplorationIsLinkedToStory();
       }
 
       this.explorationFeaturesService.init(explorationData, featuresData);
@@ -252,7 +252,7 @@ export class ExplorationEditorPageComponent implements OnInit, OnDestroy {
         'exploration',
         explorationData.version
       );
-      this.pageContextService.setExplorationVersion(explorationData.version);
+      this.contextService.setExplorationVersion(explorationData.version);
 
       const languageCode =
         this.entityVoiceoversService.languageCode ||
@@ -461,7 +461,7 @@ export class ExplorationEditorPageComponent implements OnInit, OnDestroy {
   }
 
   isVoiceoverTabEnabled(): boolean {
-    if (this.pageContextService.isExplorationLinkedToStory()) {
+    if (this.contextService.isExplorationLinkedToStory()) {
       return true;
     }
     return this.platformFeatureService.status
@@ -667,7 +667,7 @@ export class ExplorationEditorPageComponent implements OnInit, OnDestroy {
   }
 
   showUserHelpModal(): void {
-    let explorationId = this.pageContextService.getExplorationId();
+    let explorationId = this.contextService.getExplorationId();
     this.siteAnalyticsService.registerClickHelpButtonEvent(explorationId);
     let EDITOR_TUTORIAL_MODE = 'editor';
     let TRANSLATION_TUTORIAL_MODE = 'translation';
@@ -791,7 +791,7 @@ export class ExplorationEditorPageComponent implements OnInit, OnDestroy {
      *********************************************************/
     this.loaderService.showLoadingScreen('Loading');
 
-    this.explorationId = this.pageContextService.getExplorationId();
+    this.explorationId = this.contextService.getExplorationId();
     this.explorationUrl = '/create/' + this.explorationId;
     this.explorationDownloadUrl =
       '/createhandler/download/' + this.explorationId;

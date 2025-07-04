@@ -19,7 +19,7 @@
 import {AnswerStats} from 'domain/exploration/answer-stats.model';
 import {ChangeListService} from 'pages/exploration-editor-page/services/change-list.service';
 import {ConfirmDeleteStateModalComponent} from 'pages/exploration-editor-page/editor-tab/templates/modal-templates/confirm-delete-state-modal.component';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {
   ExplorationImprovementsBackendApiService,
   ExplorationImprovementsResponse,
@@ -57,7 +57,7 @@ class MockNgbModal {
 
 describe('Exploration Improvements Service', () => {
   let changeListService: ChangeListService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let eibasGetTasksAsyncSpy: jasmine.Spy;
   let essGetExplorationStatsSpy: jasmine.Spy;
   let explorationImprovementsBackendApiService: ExplorationImprovementsBackendApiService;
@@ -170,7 +170,7 @@ describe('Exploration Improvements Service', () => {
 
   beforeEach(() => {
     changeListService = TestBed.inject(ChangeListService);
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     explorationImprovementsBackendApiService = TestBed.inject(
       ExplorationImprovementsBackendApiService
     );
@@ -197,7 +197,7 @@ describe('Exploration Improvements Service', () => {
       () => {}
     );
 
-    spyOn(pageContextService, 'getExplorationId').and.returnValue(expId);
+    spyOn(contextService, 'getExplorationId').and.returnValue(expId);
     eibasGetTasksAsyncSpy = spyOn(
       explorationImprovementsBackendApiService,
       'getTasksAsync'

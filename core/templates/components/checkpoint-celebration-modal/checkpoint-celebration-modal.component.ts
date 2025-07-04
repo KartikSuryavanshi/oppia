@@ -25,7 +25,7 @@ import {
 } from '@angular/core';
 import {Subscription} from 'rxjs';
 
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {
@@ -86,7 +86,7 @@ export class CheckpointCelebrationModalComponent implements OnInit, OnDestroy {
   autoMessageDismissalTimeout: NodeJS.Timeout | undefined;
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private readOnlyExplorationBackendApiService: ReadOnlyExplorationBackendApiService,
     private checkpointCelebrationUtilityService: CheckpointCelebrationUtilityService,
     private playerPositionService: PlayerPositionService,
@@ -97,7 +97,7 @@ export class CheckpointCelebrationModalComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.explorationId = this.pageContextService.getExplorationId();
+    this.explorationId = this.contextService.getExplorationId();
     this.oppiaAvatarImageUrl =
       this.urlInterpolationService.getStaticCopyrightedImageUrl(
         '/avatar/oppia_avatar_100px.svg'

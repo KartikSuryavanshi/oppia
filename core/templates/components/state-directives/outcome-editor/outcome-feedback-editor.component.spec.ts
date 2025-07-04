@@ -20,19 +20,19 @@ import {ChangeDetectorRef, NO_ERRORS_SCHEMA} from '@angular/core';
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {Outcome} from 'domain/exploration/outcome.model';
 import {SubtitledHtml} from 'domain/exploration/subtitled-html.model';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {OutcomeFeedbackEditorComponent} from './outcome-feedback-editor.component';
 
 describe('Outcome Feedback Editor Component', () => {
   let fixture: ComponentFixture<OutcomeFeedbackEditorComponent>;
   let component: OutcomeFeedbackEditorComponent;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [],
       declarations: [OutcomeFeedbackEditorComponent],
-      providers: [ChangeDetectorRef, PageContextService],
+      providers: [ChangeDetectorRef, ContextService],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
   }));
@@ -40,13 +40,13 @@ describe('Outcome Feedback Editor Component', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(OutcomeFeedbackEditorComponent);
     component = fixture.componentInstance;
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
   });
 
   it('should set outcome feedback schema on initialization', () => {
     expect(component.OUTCOME_FEEDBACK_SCHEMA).toBe(undefined);
 
-    spyOn(pageContextService, 'getEntityType').and.returnValue('notQuestion');
+    spyOn(contextService, 'getEntityType').and.returnValue('notQuestion');
     component.ngOnInit();
 
     expect(component.OUTCOME_FEEDBACK_SCHEMA).toEqual({

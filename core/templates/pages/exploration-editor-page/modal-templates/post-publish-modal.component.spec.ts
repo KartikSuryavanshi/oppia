@@ -20,7 +20,7 @@ import {Component, NO_ERRORS_SCHEMA} from '@angular/core';
 import {ComponentFixture, waitForAsync, TestBed} from '@angular/core/testing';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {WindowRef} from 'services/contextual/window-ref.service';
 import {PostPublishModalComponent} from 'pages/exploration-editor-page/modal-templates/post-publish-modal.component';
 
@@ -44,7 +44,7 @@ describe('Post Publish Modal Controller', function () {
   let component: PostPublishModalComponent;
   let fixture: ComponentFixture<PostPublishModalComponent>;
   let ngbActiveModal: NgbActiveModal;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let urlInterpolationService: UrlInterpolationService;
 
   const explorationId = 'exp1';
@@ -65,7 +65,7 @@ describe('Post Publish Modal Controller', function () {
         ChangesInHumanReadableFormComponentStub,
       ],
       providers: [
-        PageContextService,
+        ContextService,
         {
           provide: WindowRef,
           useClass: MockWindowRef,
@@ -85,11 +85,9 @@ describe('Post Publish Modal Controller', function () {
     component = fixture.componentInstance;
 
     ngbActiveModal = TestBed.inject(NgbActiveModal);
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     urlInterpolationService = TestBed.inject(UrlInterpolationService);
-    spyOn(pageContextService, 'getExplorationId').and.returnValue(
-      explorationId
-    );
+    spyOn(contextService, 'getExplorationId').and.returnValue(explorationId);
     spyOn(
       urlInterpolationService,
       'getStaticCopyrightedImageUrl'

@@ -29,7 +29,7 @@ import {
 } from '@angular/core/testing';
 import {InteractiveEndExplorationComponent} from './oppia-interactive-end-exploration.component';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {EndExplorationBackendApiService} from './end-exploration-backend-api.service';
 import {InteractionAttributesExtractorService} from 'interactions/interaction-attributes-extractor.service';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
@@ -38,7 +38,7 @@ import {InteractionSpecsKey} from 'pages/interaction-specs.constants';
 describe('Interactive ratio expression input', () => {
   let component: InteractiveEndExplorationComponent;
   let fixture: ComponentFixture<InteractiveEndExplorationComponent>;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let endExplorationBackendApiService: EndExplorationBackendApiService;
 
   const httpResponse = {
@@ -83,7 +83,7 @@ describe('Interactive ratio expression input', () => {
           provide: EndExplorationBackendApiService,
           useClass: MockEndExplorationBackendApiService,
         },
-        PageContextService,
+        ContextService,
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -93,7 +93,7 @@ describe('Interactive ratio expression input', () => {
     const explorationIds = ['0'];
 
     beforeEach(() => {
-      pageContextService = TestBed.inject(PageContextService);
+      contextService = TestBed.inject(ContextService);
       endExplorationBackendApiService = TestBed.inject(
         EndExplorationBackendApiService
       );
@@ -104,10 +104,10 @@ describe('Interactive ratio expression input', () => {
         JSON.stringify(explorationIds);
       component.errorMessage = '';
 
-      spyOn(pageContextService, 'getPageContext').and.returnValue(
+      spyOn(contextService, 'getPageContext').and.returnValue(
         pageContextEditor
       );
-      spyOn(pageContextService, 'getEditorTabContext').and.returnValue(
+      spyOn(contextService, 'getEditorTabContext').and.returnValue(
         editorTabContext
       );
     });
@@ -141,7 +141,7 @@ describe('Interactive ratio expression input', () => {
     const explorationIds = ['0', '1'];
 
     beforeEach(() => {
-      pageContextService = TestBed.inject(PageContextService);
+      contextService = TestBed.inject(ContextService);
       endExplorationBackendApiService = TestBed.inject(
         EndExplorationBackendApiService
       );
@@ -152,10 +152,10 @@ describe('Interactive ratio expression input', () => {
         JSON.stringify(explorationIds);
       component.errorMessage = '';
 
-      spyOn(pageContextService, 'getPageContext').and.returnValue(
+      spyOn(contextService, 'getPageContext').and.returnValue(
         pageContextEditor
       );
-      spyOn(pageContextService, 'getEditorTabContext').and.returnValue(
+      spyOn(contextService, 'getEditorTabContext').and.returnValue(
         editorTabContext
       );
     });
@@ -187,7 +187,7 @@ describe('Interactive ratio expression input', () => {
     const explorationIds = ['0', '1'];
 
     beforeEach(() => {
-      pageContextService = TestBed.inject(PageContextService);
+      contextService = TestBed.inject(ContextService);
       endExplorationBackendApiService = TestBed.inject(
         EndExplorationBackendApiService
       );
@@ -197,8 +197,8 @@ describe('Interactive ratio expression input', () => {
       component.recommendedExplorationIdsWithValue =
         JSON.stringify(explorationIds);
 
-      spyOn(pageContextService, 'getPageContext').and.returnValue('learner');
-      spyOn(pageContextService, 'getEditorTabContext').and.returnValue(
+      spyOn(contextService, 'getPageContext').and.returnValue('learner');
+      spyOn(contextService, 'getEditorTabContext').and.returnValue(
         editorTabContext
       );
       spyOn(

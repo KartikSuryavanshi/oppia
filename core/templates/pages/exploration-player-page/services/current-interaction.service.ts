@@ -21,7 +21,7 @@
 
 import {Injectable} from '@angular/core';
 
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {PlayerPositionService} from 'pages/exploration-player-page/services/player-position.service';
 import {PlayerTranscriptService} from 'pages/exploration-player-page/services/player-transcript.service';
 import {Observable, Subject} from 'rxjs';
@@ -72,7 +72,7 @@ export type PresubmitHookFn = () => void;
 })
 export class CurrentInteractionService {
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private playerPositionService: PlayerPositionService,
     private playerTranscriptService: PlayerTranscriptService
   ) {}
@@ -172,11 +172,11 @@ export class CurrentInteractionService {
         '\nInteraction ID: ' +
         displayedCard.getInteractionId() +
         '\nExploration ID: ' +
-        this.pageContextService.getExplorationId() +
+        this.contextService.getExplorationId() +
         '\nState Name: ' +
         displayedCard.getStateName() +
         '\nContext: ' +
-        this.pageContextService.getPageContext() +
+        this.contextService.getPageContext() +
         '\nErrored at index: ' +
         index;
       throw new Error(

@@ -21,7 +21,7 @@ import {Component, OnInit} from '@angular/core';
 import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import {AlertsService} from 'services/alerts.service';
 import {AppConstants} from 'app.constants';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {
   ClassroomBackendApiService,
   ClassroomBackendDict,
@@ -66,7 +66,7 @@ export class ClassroomAdminPageComponent implements OnInit {
     private classroomAdminDataService: ClassroomAdminDataService,
     private ngbModal: NgbModal,
     private alertsService: AlertsService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private editableTopicBackendApiService: EditableTopicBackendApiService
   ) {}
 
@@ -183,7 +183,7 @@ export class ClassroomAdminPageComponent implements OnInit {
           cloneDeep(response.classroomDict)
         );
 
-        this.pageContextService.setCustomEntityContext(
+        this.contextService.setCustomEntityContext(
           AppConstants.ENTITY_TYPE.CLASSROOM,
           classroomId
         );
@@ -865,6 +865,6 @@ export class ClassroomAdminPageComponent implements OnInit {
   }
 
   ngOnDestory(): void {
-    this.pageContextService.removeCustomEntityContext();
+    this.contextService.removeCustomEntityContext();
   }
 }

@@ -60,7 +60,7 @@ import {UrlInterpolationService} from 'domain/utilities/url-interpolation.servic
 import {ImagePreloaderService} from 'pages/exploration-player-page/services/image-preloader.service';
 import {AlertsService} from 'services/alerts.service';
 import {AssetsBackendApiService} from 'services/assets-backend-api.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {CsrfTokenService} from 'services/csrf-token.service';
 import {ImageLocalStorageService} from 'services/image-local-storage.service';
 import {ImageUploadHelperService} from 'services/image-upload-helper.service';
@@ -196,7 +196,7 @@ export class ImageEditorComponent implements OnInit, OnChanges {
     private http: HttpClient,
     private alertsService: AlertsService,
     private assetsBackendApiService: AssetsBackendApiService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private csrfTokenService: CsrfTokenService,
     private imageLocalStorageService: ImageLocalStorageService,
     private imagePreloaderService: ImagePreloaderService,
@@ -269,8 +269,8 @@ export class ImageEditorComponent implements OnInit, OnChanges {
     };
     this.processedImageIsTooLarge = false;
 
-    this.entityId = this.pageContextService.getEntityId();
-    this.entityType = this.pageContextService.getEntityType();
+    this.entityId = this.contextService.getEntityId();
+    this.entityType = this.contextService.getEntityType();
 
     window.addEventListener(
       'mouseup',
@@ -577,7 +577,7 @@ export class ImageEditorComponent implements OnInit, OnChanges {
 
   private getTrustedResourceUrlForImageFileName(imageFileName) {
     if (
-      this.pageContextService.getImageSaveDestination() ===
+      this.contextService.getImageSaveDestination() ===
         AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE &&
       this.imageLocalStorageService.isInStorage(imageFileName)
     ) {
@@ -590,8 +590,8 @@ export class ImageEditorComponent implements OnInit, OnChanges {
     }
     const encodedFilepath = window.encodeURIComponent(imageFileName);
     return this.assetsBackendApiService.getImageUrlForPreview(
-      this.pageContextService.getEntityType(),
-      this.pageContextService.getEntityId(),
+      this.contextService.getEntityType(),
+      this.contextService.getEntityId(),
       encodedFilepath
     );
   }
@@ -599,7 +599,7 @@ export class ImageEditorComponent implements OnInit, OnChanges {
   resetFilePathEditor(): void {
     if (
       this.data.metadata.savedImageFilename &&
-      this.pageContextService.getImageSaveDestination() ===
+      this.contextService.getImageSaveDestination() ===
         AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE &&
       this.imageLocalStorageService.isInStorage(
         this.data.metadata.savedImageFilename
@@ -1196,7 +1196,7 @@ export class ImageEditorComponent implements OnInit, OnChanges {
     imageType: string
   ): void {
     if (
-      this.pageContextService.getImageSaveDestination() ===
+      this.contextService.getImageSaveDestination() ===
       AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE
     ) {
       this.saveImageToLocalStorage(dimensions, resampledFile, imageType);

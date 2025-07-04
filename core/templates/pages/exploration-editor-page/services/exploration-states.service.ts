@@ -26,7 +26,7 @@ import isEqual from 'lodash/isEqual';
 
 import {Interaction} from 'domain/exploration/InteractionObjectFactory';
 import {ConfirmDeleteStateModalComponent} from 'pages/exploration-editor-page/editor-tab/templates/modal-templates/confirm-delete-state-modal.component';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {
   ChangeListService,
   StatePropertyNames,
@@ -105,7 +105,7 @@ export class ExplorationStatesService {
     private alertsService: AlertsService,
     private answerClassificationService: AnswerClassificationService,
     private changeListService: ChangeListService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private explorationInitStateNameService: ExplorationInitStateNameService,
     private interactionRulesRegistryService: InteractionRulesRegistryService,
     private windowRef: WindowRef,
@@ -386,7 +386,7 @@ export class ExplorationStatesService {
         '\nRequested state name: ' +
         stateName +
         '\nExploration ID: ' +
-        this.pageContextService.getExplorationId() +
+        this.contextService.getExplorationId() +
         '\nChange list: ' +
         JSON.stringify(this.changeListService.getChangeList()) +
         '\nAll states names: ' +

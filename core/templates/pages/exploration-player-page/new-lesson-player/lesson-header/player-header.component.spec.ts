@@ -35,7 +35,7 @@ import {
 } from '../../../../domain/topic_viewer/read-only-topic-object.factory';
 import {TopicViewerBackendApiService} from '../../../../domain/topic_viewer/topic-viewer-backend-api.service';
 import {UrlInterpolationService} from '../../../../domain/utilities/url-interpolation.service';
-import {PageContextService} from '../../../../services/page-context.service';
+import {ContextService} from '../../../../services/context.service';
 import {UrlService} from '../../../../services/contextual/url.service';
 import {I18nLanguageCodeService} from '../../../../services/i18n-language-code.service';
 import {SiteAnalyticsService} from '../../../../services/site-analytics.service';
@@ -47,7 +47,7 @@ import {MobileMenuService} from '../../services/mobile-menu.service';
 describe('Lesson player header component', () => {
   let fixture: ComponentFixture<PlayerHeaderComponent>;
   let componentInstance: PlayerHeaderComponent;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let readOnlyExplorationBackendApiService: ReadOnlyExplorationBackendApiService;
   let siteAnalyticsService: SiteAnalyticsService;
   let statsReportingService: StatsReportingService;
@@ -63,7 +63,7 @@ describe('Lesson player header component', () => {
       imports: [HttpClientTestingModule],
       declarations: [PlayerHeaderComponent, MockTranslatePipe],
       providers: [
-        PageContextService,
+        ContextService,
         ReadOnlyExplorationBackendApiService,
         SiteAnalyticsService,
         StatsReportingService,
@@ -80,7 +80,7 @@ describe('Lesson player header component', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PlayerHeaderComponent);
     componentInstance = fixture.componentInstance;
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     readOnlyExplorationBackendApiService = TestBed.inject(
       ReadOnlyExplorationBackendApiService
     );
@@ -126,9 +126,7 @@ describe('Lesson player header component', () => {
     let topicUrl = 'topic_url';
 
     spyOn(urlService, 'getPathname').and.returnValue('/explore/');
-    spyOn(pageContextService, 'getExplorationId').and.returnValue(
-      explorationId
-    );
+    spyOn(contextService, 'getExplorationId').and.returnValue(explorationId);
     spyOn(
       readOnlyExplorationBackendApiService,
       'fetchExplorationAsync'
@@ -153,7 +151,7 @@ describe('Lesson player header component', () => {
     tick();
 
     expect(urlService.getPathname).toHaveBeenCalled();
-    expect(pageContextService.getExplorationId).toHaveBeenCalled();
+    expect(contextService.getExplorationId).toHaveBeenCalled();
     expect(
       readOnlyExplorationBackendApiService.fetchExplorationAsync
     ).toHaveBeenCalled();
@@ -172,9 +170,7 @@ describe('Lesson player header component', () => {
     let explorationTitle = 'Exploration Title';
 
     spyOn(urlService, 'getPathname').and.returnValue('/explore/');
-    spyOn(pageContextService, 'getExplorationId').and.returnValue(
-      explorationId
-    );
+    spyOn(contextService, 'getExplorationId').and.returnValue(explorationId);
     spyOn(
       readOnlyExplorationBackendApiService,
       'fetchExplorationAsync'

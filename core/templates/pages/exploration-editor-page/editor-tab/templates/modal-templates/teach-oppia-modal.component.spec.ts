@@ -35,7 +35,7 @@ import {TrainingModalService} from '../../training-panel/training-modal.service'
 import {StateEditorService} from 'components/state-editor/state-editor-properties-services/state-editor.service';
 import {ExplorationStatesService} from 'pages/exploration-editor-page/services/exploration-states.service';
 import {AlertsService} from 'services/alerts.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {ExplorationHtmlFormatterService} from 'services/exploration-html-formatter.service';
 import {ResponsesService} from '../../services/responses.service';
 import {
@@ -55,7 +55,7 @@ describe('Teach Oppia Modal Component', () => {
   let component: TeachOppiaModalComponent;
   let fixture: ComponentFixture<TeachOppiaModalComponent>;
   let alertsService: AlertsService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let explorationHtmlFormatterService: ExplorationHtmlFormatterService;
   let stateEditorService: StateEditorService;
   let stateInteractionIdService: StateInteractionIdService;
@@ -228,7 +228,7 @@ describe('Teach Oppia Modal Component', () => {
         },
       ];
       alertsService = TestBed.inject(AlertsService);
-      pageContextService = TestBed.inject(PageContextService);
+      contextService = TestBed.inject(ContextService);
       explorationHtmlFormatterService = TestBed.inject(
         ExplorationHtmlFormatterService
       );
@@ -239,9 +239,7 @@ describe('Teach Oppia Modal Component', () => {
       trainingModalService = TestBed.inject(TrainingModalService);
 
       spyOn(injector, 'get').and.stub();
-      spyOn(pageContextService, 'getExplorationId').and.returnValue(
-        explorationId
-      );
+      spyOn(contextService, 'getExplorationId').and.returnValue(explorationId);
       spyOn(stateEditorService, 'getActiveStateName').and.returnValue(
         stateName
       );

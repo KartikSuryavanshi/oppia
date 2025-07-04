@@ -20,7 +20,7 @@ import {Component, OnInit} from '@angular/core';
 
 import {BrowserCheckerService} from 'domain/utilities/browser-checker.service';
 import {AttributionService} from 'services/attribution.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {UrlService} from 'services/contextual/url.service';
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {WindowDimensionsService} from 'services/contextual/window-dimensions.service';
@@ -41,7 +41,7 @@ export class AttributionGuideComponent implements OnInit {
   constructor(
     private attributionService: AttributionService,
     private browserCheckerService: BrowserCheckerService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private i18nLanguageCodeService: I18nLanguageCodeService,
     private urlService: UrlService,
     private windowDimensionsService: WindowDimensionsService
@@ -94,7 +94,7 @@ export class AttributionGuideComponent implements OnInit {
   }
 
   getExplorationId(): string {
-    return this.pageContextService.getExplorationId();
+    return this.contextService.getExplorationId();
   }
 
   copyAttribution(className: string): void {

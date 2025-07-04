@@ -24,7 +24,7 @@ import {
   FetchExplorationBackendResponse,
   ReadOnlyExplorationBackendApiService,
 } from 'domain/exploration/read-only-exploration-backend-api.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {MetaTagCustomizationService} from 'services/contextual/meta-tag-customization.service';
 import {UrlService} from 'services/contextual/url.service';
 import {KeyboardShortcutService} from 'services/keyboard-shortcut.service';
@@ -45,7 +45,7 @@ export class NewLessonPlayerPageComponent implements OnDestroy {
   isLoadingExploration: boolean = true;
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private keyboardShortcutService: KeyboardShortcutService,
     private metaTagCustomizationService: MetaTagCustomizationService,
     private pageTitleService: PageTitleService,
@@ -55,7 +55,7 @@ export class NewLessonPlayerPageComponent implements OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    let explorationId = this.pageContextService.getExplorationId();
+    let explorationId = this.contextService.getExplorationId();
     this.readOnlyExplorationBackendApiService
       .fetchExplorationAsync(explorationId, null)
       .then((response: FetchExplorationBackendResponse) => {

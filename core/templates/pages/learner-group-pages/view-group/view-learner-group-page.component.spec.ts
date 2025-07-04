@@ -30,7 +30,7 @@ import {LearnerGroupPagesConstants} from '../learner-group-pages.constants';
 import {LearnerGroupData} from 'domain/learner_group/learner-group.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ViewLearnerGroupPageComponent} from './view-learner-group-page.component';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {LearnerGroupUserProgress} from 'domain/learner_group/learner-group-user-progress.model';
 import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 import {LoaderService} from 'services/loader.service';
@@ -60,7 +60,7 @@ describe('ViewLearnerGroupPageComponent', () => {
   let component: ViewLearnerGroupPageComponent;
   let fixture: ComponentFixture<ViewLearnerGroupPageComponent>;
   let learnerGroupBackendApiService: LearnerGroupBackendApiService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let ngbModal: NgbModal;
   let loaderService: LoaderService;
   let windowRef: MockWindowRef;
@@ -151,7 +151,7 @@ describe('ViewLearnerGroupPageComponent', () => {
     learnerGroupBackendApiService = TestBed.inject(
       LearnerGroupBackendApiService
     );
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     ngbModal = TestBed.inject(NgbModal);
     loaderService = TestBed.inject(LoaderService);
     userService = TestBed.inject(UserService);
@@ -161,7 +161,7 @@ describe('ViewLearnerGroupPageComponent', () => {
     fixture = TestBed.createComponent(ViewLearnerGroupPageComponent);
     component = fixture.componentInstance;
 
-    spyOn(pageContextService, 'getLearnerGroupId').and.returnValue('groupId');
+    spyOn(contextService, 'getLearnerGroupId').and.returnValue('groupId');
 
     fixture.detectChanges();
   });

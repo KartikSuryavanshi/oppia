@@ -25,7 +25,7 @@ import {
   EventEmitter,
 } from '@angular/core';
 
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {EditabilityService} from 'services/editability.service';
 import {EditorFirstTimeEventsService} from 'pages/exploration-editor-page/services/editor-first-time-events.service';
 import {ExternalSaveService} from 'services/external-save.service';
@@ -63,7 +63,7 @@ export class StateContentEditorComponent implements OnInit {
 
   constructor(
     private changeDetectorRef: ChangeDetectorRef,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private editorFirstTimeEventsService: EditorFirstTimeEventsService,
     private externalSaveService: ExternalSaveService,
     public stateContentService: StateContentService,
@@ -76,7 +76,7 @@ export class StateContentEditorComponent implements OnInit {
       type: 'html',
       ui_config: {
         hide_complex_extensions:
-          this.pageContextService.getEntityType() === 'question',
+          this.contextService.getEntityType() === 'question',
       },
     };
     if (this.stateContentService.displayed) {

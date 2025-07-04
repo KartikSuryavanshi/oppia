@@ -28,14 +28,14 @@ import {BlogPostPageService} from 'pages/blog-post-page/services/blog-post-page.
 @Injectable({
   providedIn: 'root',
 })
-export class PageContextService {
+export class ContextService {
   constructor(
     private urlService: UrlService,
     private blogPostPageService: BlogPostPageService
   ) {}
 
   // Entity context needs to be a static variable since multiple instances of
-  // the PageContextService class accesses the same class variable.
+  // the ContextService class accesses the same class variable.
   // Eg: In the translation modal, a custom entity context was defined, and this
   // was accessed in the filepath component when the copy service was called.
   // Without the static declaration, the latter call returned undefined.
@@ -196,19 +196,19 @@ export class PageContextService {
   // correct context for some case. eg: Viewing a skill's concept card on
   // any page via the RTE.
   setCustomEntityContext(entityType: string, entityId: string): void {
-    PageContextService.customEntityContext = new EntityContext(
+    ContextService.customEntityContext = new EntityContext(
       entityId,
       entityType
     );
   }
 
   removeCustomEntityContext(): void {
-    PageContextService.customEntityContext = null;
+    ContextService.customEntityContext = null;
   }
 
   getEntityId(): string {
-    if (PageContextService.customEntityContext !== null) {
-      return PageContextService.customEntityContext.getId();
+    if (ContextService.customEntityContext !== null) {
+      return ContextService.customEntityContext.getId();
     }
     let pathnameArray = this.urlService.getPathname().split('/');
     let hashValues = this.urlService.getHash().split('#');
@@ -231,8 +231,8 @@ export class PageContextService {
 
   // Add constants for entity type.
   getEntityType(): string | undefined {
-    if (PageContextService.customEntityContext !== null) {
-      return PageContextService.customEntityContext.getType();
+    if (ContextService.customEntityContext !== null) {
+      return ContextService.customEntityContext.getType();
     }
     let pathnameArray = this.urlService.getPathname().split('/');
     let hashValues = this.urlService.getHash().split('#');
@@ -298,7 +298,7 @@ export class PageContextService {
       }
     }
     throw new Error(
-      'PageContextService should not be used outside the ' +
+      'ContextService should not be used outside the ' +
         'context of an exploration or a question.'
     );
   }
@@ -322,7 +322,7 @@ export class PageContextService {
       }
     }
     throw new Error(
-      'PageContextService should not be used outside the ' +
+      'ContextService should not be used outside the ' +
         'context of a learner group.'
     );
   }
@@ -384,16 +384,16 @@ export class PageContextService {
 
   // Sets the current context to save images to the server.
   resetImageSaveDestination(): void {
-    PageContextService.imageSaveDestination =
+    ContextService.imageSaveDestination =
       AppConstants.IMAGE_SAVE_DESTINATION_SERVER;
   }
 
   setImageSaveDestinationToLocalStorage(): void {
-    PageContextService.imageSaveDestination =
+    ContextService.imageSaveDestination =
       AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE;
   }
 
   getImageSaveDestination(): string {
-    return PageContextService.imageSaveDestination;
+    return ContextService.imageSaveDestination;
   }
 }

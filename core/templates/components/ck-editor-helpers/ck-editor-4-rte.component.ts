@@ -52,7 +52,7 @@ import {
 } from '@angular/core';
 import {AppConstants} from 'app.constants';
 import {OppiaAngularRootComponent} from 'components/oppia-angular-root.component';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {CkEditorCopyContentService} from './ck-editor-copy-content.service';
 import {InternetConnectivityService} from 'services/internet-connectivity.service';
 import {RteComponentSpecs} from './ck-editor-4-widgets.initializer';
@@ -97,7 +97,7 @@ export class CkEditor4RteComponent
 
   constructor(
     private ckEditorCopyContentService: CkEditorCopyContentService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private elementRef: ElementRef,
     private internetConnectivityService: InternetConnectivityService,
     private renderer: Renderer2
@@ -295,7 +295,7 @@ export class CkEditor4RteComponent
         this.uiConfig.hide_complex_extensions &&
         componentDefn.isComplex;
       var notSupportedOnAndroidFlag =
-        this.pageContextService.isExplorationLinkedToStory() &&
+        this.contextService.isExplorationLinkedToStory() &&
         AppConstants.VALID_RTE_COMPONENTS_FOR_ANDROID.indexOf(
           componentDefn.id
         ) === -1;
@@ -357,7 +357,7 @@ export class CkEditor4RteComponent
       })
       .join(',');
     var buttonNames = [];
-    if (this.pageContextService.canAddOrEditComponents()) {
+    if (this.contextService.canAddOrEditComponents()) {
       names.forEach(name => {
         buttonNames.push('Oppia' + name);
         buttonNames.push('-');
@@ -366,7 +366,7 @@ export class CkEditor4RteComponent
     buttonNames.pop();
 
     // Enable format headers in CKE editor for blog post editor rte.
-    this.headersEnabled = this.pageContextService.isInBlogPostEditorPage();
+    this.headersEnabled = this.contextService.isInBlogPostEditorPage();
 
     // Add external plugins.
     CKEDITOR.plugins.addExternal(
@@ -603,7 +603,7 @@ export class CkEditor4RteComponent
     let invalidComponents =
       AppConstants.INVALID_RTE_COMPONENTS_FOR_BLOG_POST_EDITOR;
     return (
-      this.pageContextService.isInBlogPostEditorPage() &&
+      this.contextService.isInBlogPostEditorPage() &&
       invalidComponents.some(
         invalidComponents => invalidComponents === compDefn.id
       )

@@ -23,7 +23,7 @@ import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {AlertsService} from 'services/alerts.service';
 import {AssetsBackendApiService} from 'services/assets-backend-api.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {ImageLocalStorageService} from 'services/image-local-storage.service';
 import {ImageUploadHelperService} from 'services/image-upload-helper.service';
 import {EditThumbnailModalComponent} from './edit-thumbnail-modal.component';
@@ -78,7 +78,7 @@ export class ThumbnailUploaderComponent implements OnInit, OnChanges {
   constructor(
     private imageUploadHelperService: ImageUploadHelperService,
     private alertsService: AlertsService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private imageLocalStorageService: ImageLocalStorageService,
     private ngbModal: NgbModal,
     private urlInterpolationService: UrlInterpolationService,
@@ -92,7 +92,7 @@ export class ThumbnailUploaderComponent implements OnInit, OnChanges {
       this.filename !== ''
     ) {
       this.hidePlaceholder = false;
-      let entityType = this.pageContextService.getEntityType();
+      let entityType = this.contextService.getEntityType();
       if (entityType === undefined) {
         throw new Error('No image present for preview');
       }
@@ -100,7 +100,7 @@ export class ThumbnailUploaderComponent implements OnInit, OnChanges {
         this.imageUploadHelperService.getTrustedResourceUrlForThumbnailFilename(
           this.filename,
           entityType,
-          this.pageContextService.getEntityId()
+          this.contextService.getEntityId()
         );
       this.uploadedImage = this.editableThumbnailDataUrl;
       this.thumbnailIsLoading = false;
@@ -130,7 +130,7 @@ export class ThumbnailUploaderComponent implements OnInit, OnChanges {
 
   filenameChanges(newFilename: string, prevFilename: string): void {
     if (newFilename) {
-      let entityType = this.pageContextService.getEntityType();
+      let entityType = this.contextService.getEntityType();
       if (entityType === undefined) {
         throw new Error('No image present for preview');
       }
@@ -138,7 +138,7 @@ export class ThumbnailUploaderComponent implements OnInit, OnChanges {
         this.imageUploadHelperService.getTrustedResourceUrlForThumbnailFilename(
           newFilename,
           entityType,
-          this.pageContextService.getEntityId()
+          this.contextService.getEntityId()
         );
       this.uploadedImage = this.editableThumbnailDataUrl;
     }
@@ -166,11 +166,11 @@ export class ThumbnailUploaderComponent implements OnInit, OnChanges {
   }
 
   postImageToServer(resampledFile: Blob, callback: () => void): void {
-    let entityType = this.pageContextService.getEntityType();
+    let entityType = this.contextService.getEntityType();
     if (entityType === undefined) {
       throw new Error('No image present for preview');
     }
-    let entityId = this.pageContextService.getEntityId();
+    let entityId = this.contextService.getEntityId();
     const result = this.assetsBackendApiService
       .postThumbnailFile(
         resampledFile,
@@ -180,13 +180,13 @@ export class ThumbnailUploaderComponent implements OnInit, OnChanges {
       )
       .toPromise();
     result.then(data => {
-      let entityType = this.pageContextService.getEntityType();
+      let entityType = this.contextService.getEntityType();
       if (entityType) {
         this.editableThumbnailDataUrl =
           this.imageUploadHelperService.getTrustedResourceUrlForThumbnailFilename(
             data.filename,
             entityType,
-            this.pageContextService.getEntityId()
+            this.contextService.getEntityId()
           );
       }
       callback();

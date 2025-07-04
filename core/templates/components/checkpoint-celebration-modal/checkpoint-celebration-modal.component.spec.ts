@@ -30,7 +30,7 @@ import {MockTranslateService} from 'components/forms/schema-based-editors/integr
 import {CheckpointCelebrationModalComponent} from './checkpoint-celebration-modal.component';
 import {CheckpointCelebrationUtilityService} from 'pages/exploration-player-page/services/checkpoint-celebration-utility.service';
 import {ReadOnlyExplorationBackendApiService} from 'domain/exploration/read-only-exploration-backend-api.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {PlayerPositionService} from 'pages/exploration-player-page/services/player-position.service';
@@ -189,7 +189,7 @@ describe('Checkpoint celebration modal component', function () {
   let fixture: ComponentFixture<CheckpointCelebrationModalComponent>;
   let checkpointCelebrationUtilityService: CheckpointCelebrationUtilityService;
   let readOnlyExplorationBackendApiService: ReadOnlyExplorationBackendApiService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let i18nLanguageCodeService: I18nLanguageCodeService;
   let playerPositionService: PlayerPositionService;
   let windowDimensionsService: WindowDimensionsService;
@@ -206,7 +206,7 @@ describe('Checkpoint celebration modal component', function () {
       declarations: [CheckpointCelebrationModalComponent],
       providers: [
         ReadOnlyExplorationBackendApiService,
-        PageContextService,
+        ContextService,
         I18nLanguageCodeService,
         PlayerPositionService,
         UrlInterpolationService,
@@ -238,7 +238,7 @@ describe('Checkpoint celebration modal component', function () {
     readOnlyExplorationBackendApiService = TestBed.inject(
       ReadOnlyExplorationBackendApiService
     );
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     i18nLanguageCodeService = TestBed.inject(I18nLanguageCodeService);
     playerPositionService = TestBed.inject(PlayerPositionService);
     windowDimensionsService = TestBed.inject(WindowDimensionsService);
@@ -315,7 +315,7 @@ describe('Checkpoint celebration modal component', function () {
   });
 
   it('should initialize the component', fakeAsync(() => {
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('expId');
+    spyOn(contextService, 'getExplorationId').and.returnValue('expId');
     spyOn(
       urlInterpolationService,
       'getStaticCopyrightedImageUrl'

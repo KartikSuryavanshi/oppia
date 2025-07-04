@@ -28,7 +28,7 @@ import {CkEditorCopyContentService} from 'components/ck-editor-helpers/ck-editor
 import {HtmlEscaperService} from 'services/html-escaper.service';
 import {NoninteractiveSkillreview} from './oppia-noninteractive-skillreview.component';
 import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {SimpleChanges} from '@angular/core';
 
 describe('NoninteractiveSkillreview', () => {
@@ -36,7 +36,7 @@ describe('NoninteractiveSkillreview', () => {
   let fixture: ComponentFixture<NoninteractiveSkillreview>;
   let ckEditorCopyContentService: CkEditorCopyContentService;
   let ngbModal: NgbModal;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
 
   class mockHtmlEscaperService {
     escapedJsonToObj(answer: string): string {
@@ -64,7 +64,7 @@ describe('NoninteractiveSkillreview', () => {
   }));
 
   beforeEach(() => {
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     ngbModal = TestBed.inject(NgbModal);
     ckEditorCopyContentService = TestBed.inject(CkEditorCopyContentService);
     fixture = TestBed.createComponent(NoninteractiveSkillreview);
@@ -104,7 +104,7 @@ describe('NoninteractiveSkillreview', () => {
   });
 
   it('should open concept card when user clicks the link', () => {
-    spyOn(pageContextService, 'removeCustomEntityContext');
+    spyOn(contextService, 'removeCustomEntityContext');
     let e = {
       currentTarget: {
         offsetParent: {
@@ -126,18 +126,18 @@ describe('NoninteractiveSkillreview', () => {
     component.openConceptCard(e);
 
     expect(modalSpy).toHaveBeenCalled();
-    expect(pageContextService.removeCustomEntityContext).not.toHaveBeenCalled();
+    expect(contextService.removeCustomEntityContext).not.toHaveBeenCalled();
   });
 
   it('should close concept card when user clicks the link', fakeAsync(() => {
-    spyOn(pageContextService, 'setCustomEntityContext');
-    spyOn(pageContextService, 'getEntityId').and.callFake(function () {
+    spyOn(contextService, 'setCustomEntityContext');
+    spyOn(contextService, 'getEntityId').and.callFake(function () {
       return 'InitialEntityId';
     });
-    spyOn(pageContextService, 'getEntityType').and.callFake(function () {
+    spyOn(contextService, 'getEntityType').and.callFake(function () {
       return 'InitialEntityType';
     });
-    spyOn(pageContextService, 'removeCustomEntityContext');
+    spyOn(contextService, 'removeCustomEntityContext');
     let e = {
       currentTarget: {
         offsetParent: {
@@ -160,8 +160,8 @@ describe('NoninteractiveSkillreview', () => {
     tick();
 
     expect(modalSpy).toHaveBeenCalled();
-    expect(pageContextService.removeCustomEntityContext).toHaveBeenCalled();
-    expect(pageContextService.setCustomEntityContext).toHaveBeenCalledWith(
+    expect(contextService.removeCustomEntityContext).toHaveBeenCalled();
+    expect(contextService.setCustomEntityContext).toHaveBeenCalledWith(
       'InitialEntityType',
       'InitialEntityId'
     );

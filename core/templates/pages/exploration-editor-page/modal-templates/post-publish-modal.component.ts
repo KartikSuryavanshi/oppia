@@ -19,7 +19,7 @@
 import {Component, OnInit} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {WindowRef} from 'services/contextual/window-ref.service';
 import {ConfirmOrCancelModal} from 'components/common-layout-directives/common-elements/confirm-or-cancel-modal.component';
 
@@ -42,7 +42,7 @@ export class PostPublishModalComponent
   constructor(
     private ngbActiveModal: NgbActiveModal,
     private urlInterpolationService: UrlInterpolationService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private windowRef: WindowRef
   ) {
     super(ngbActiveModal);
@@ -53,7 +53,7 @@ export class PostPublishModalComponent
       this.urlInterpolationService.getStaticCopyrightedImageUrl(
         '/general/congrats.svg'
       );
-    this.explorationId = this.pageContextService.getExplorationId();
+    this.explorationId = this.contextService.getExplorationId();
     this.explorationLinkCopied = false;
     this.explorationLink =
       this.windowRef.nativeWindow.location.protocol +

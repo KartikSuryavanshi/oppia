@@ -27,7 +27,7 @@ import {
   BlogPostSummary,
 } from 'domain/blog/blog-post-summary.model';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {WindowRef} from 'services/contextual/window-ref.service';
 import {UserService} from 'services/user.service';
 
@@ -35,7 +35,7 @@ describe('Blog Dashboard Tile Component', () => {
   let component: BlogCardComponent;
   let fixture: ComponentFixture<BlogCardComponent>;
   let urlInterpolationService: UrlInterpolationService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let sampleBlogPostSummary: BlogPostSummaryBackendDict;
   let userService: UserService;
   class MockWindowRef {
@@ -63,7 +63,7 @@ describe('Blog Dashboard Tile Component', () => {
           useClass: MockWindowRef,
         },
         UrlInterpolationService,
-        PageContextService,
+        ContextService,
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -72,7 +72,7 @@ describe('Blog Dashboard Tile Component', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(BlogCardComponent);
     urlInterpolationService = TestBed.inject(UrlInterpolationService);
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     component = fixture.componentInstance;
     mockWindowRef = TestBed.inject(WindowRef) as unknown as MockWindowRef;
     userService = TestBed.inject(UserService);
@@ -114,7 +114,7 @@ describe('Blog Dashboard Tile Component', () => {
     component.blogPostSummary = BlogPostSummary.createFromBackendDict(
       sampleBlogPostSummary
     );
-    spyOn(pageContextService, 'isInBlogPostEditorPage').and.returnValue(true);
+    spyOn(contextService, 'isInBlogPostEditorPage').and.returnValue(true);
 
     component.ngOnInit();
 
@@ -149,7 +149,7 @@ describe('Blog Dashboard Tile Component', () => {
   });
 
   it('should not show thumbnail if thumbnail filename is not given', () => {
-    spyOn(pageContextService, 'isInBlogPostEditorPage').and.returnValue(true);
+    spyOn(contextService, 'isInBlogPostEditorPage').and.returnValue(true);
     sampleBlogPostSummary.thumbnail_filename = null;
     component.blogPostSummary = BlogPostSummary.createFromBackendDict(
       sampleBlogPostSummary
@@ -166,7 +166,7 @@ describe('Blog Dashboard Tile Component', () => {
     component.blogPostSummary = BlogPostSummary.createFromBackendDict(
       sampleBlogPostSummary
     );
-    spyOn(pageContextService, 'isInBlogPostEditorPage').and.returnValue(false);
+    spyOn(contextService, 'isInBlogPostEditorPage').and.returnValue(false);
     spyOn(urlInterpolationService, 'interpolateUrl').and.returnValue(
       '/blog/sample-blog-post-url'
     );

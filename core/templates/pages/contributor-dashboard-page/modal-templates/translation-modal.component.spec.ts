@@ -39,7 +39,7 @@ import {
   TranslationOpportunity,
 } from 'pages/contributor-dashboard-page/modal-templates/translation-modal.component';
 import {TranslationLanguageService} from 'pages/exploration-editor-page/translation-tab/services/translation-language.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {WindowDimensionsService} from 'services/contextual/window-dimensions.service';
 import {
   ImageLocalStorageService,
@@ -90,7 +90,7 @@ class MockImageLocalStorageService {
 }
 
 describe('Translation Modal Component', () => {
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let translateTextService: TranslateTextService;
   let translationLanguageService: TranslationLanguageService;
   let ckEditorCopyContentService: CkEditorCopyContentService;
@@ -175,9 +175,8 @@ describe('Translation Modal Component', () => {
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
-    OppiaAngularRootComponent.pageContextService =
-      TestBed.inject(PageContextService);
-    pageContextService = OppiaAngularRootComponent.pageContextService;
+    OppiaAngularRootComponent.contextService = TestBed.inject(ContextService);
+    contextService = OppiaAngularRootComponent.contextService;
   }));
 
   beforeEach(() => {
@@ -396,17 +395,17 @@ describe('Translation Modal Component', () => {
     });
 
     it('should set context correctly', fakeAsync(() => {
-      pageContextService.removeCustomEntityContext();
-      pageContextService.resetImageSaveDestination();
+      contextService.removeCustomEntityContext();
+      contextService.resetImageSaveDestination();
       spyOn(translateTextService, 'init').and.callFake(
         (expId, languageCode, successCallback) => successCallback()
       );
       component.ngOnInit();
-      expect(pageContextService.getEntityType()).toBe(
+      expect(contextService.getEntityType()).toBe(
         AppConstants.ENTITY_TYPE.EXPLORATION
       );
-      expect(pageContextService.getEntityId()).toBe('1');
-      expect(pageContextService.getImageSaveDestination()).toBe(
+      expect(contextService.getEntityId()).toBe('1');
+      expect(contextService.getImageSaveDestination()).toBe(
         AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE
       );
     }));
@@ -870,7 +869,7 @@ describe('Translation Modal Component', () => {
       );
       flushMicrotasks();
       component.suggestTranslatedText();
-      expect(pageContextService.getImageSaveDestination()).toBe(
+      expect(contextService.getImageSaveDestination()).toBe(
         AppConstants.IMAGE_SAVE_DESTINATION_SERVER
       );
     }));
@@ -881,7 +880,7 @@ describe('Translation Modal Component', () => {
         imageLocalStorageService,
         'getFilenameToBase64MappingAsync'
       ).and.returnValue(Promise.resolve({}));
-      expect(pageContextService.getImageSaveDestination()).toBe(
+      expect(contextService.getImageSaveDestination()).toBe(
         AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE
       );
 
@@ -889,7 +888,7 @@ describe('Translation Modal Component', () => {
 
       component.suggestTranslatedText();
       tick();
-      expect(pageContextService.getImageSaveDestination()).toBe(
+      expect(contextService.getImageSaveDestination()).toBe(
         AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE
       );
     }));
@@ -1207,7 +1206,7 @@ describe('Translation Modal Component', () => {
               },
             },
             {
-              provide: PageContextService,
+              provide: ContextService,
               useValue: {
                 setImageSaveDestinationToLocalStorage: () => {},
                 setCustomEntityContext: () => {},

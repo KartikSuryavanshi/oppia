@@ -64,7 +64,7 @@ import {CollectionRightsBackendApiService} from 'domain/collection/collection-ri
 import {CollectionValidationService} from 'domain/collection/collection-validation.service';
 import {ComputeGraphService} from 'services/compute-graph.service';
 import {ConceptCardBackendApiService} from 'domain/skill/concept-card-backend-api.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {ContinueRulesService} from 'interactions/Continue/directives/continue-rules.service';
 import {ContinueValidationService} from 'interactions/Continue/directives/continue-validation.service';
 import {
@@ -694,7 +694,7 @@ export class UpgradedServices {
       upgradedServices['NormalizeWhitespacePipe'],
       upgradedServices['CodeNormalizerService']
     );
-    upgradedServices['PageContextService'] = new PageContextService(
+    upgradedServices['ContextService'] = new ContextService(
       upgradedServices['UrlService'],
       upgradedServices['BlogPostPageService']
     );
@@ -804,7 +804,7 @@ export class UpgradedServices {
       new EmailDashboardBackendApiService(upgradedServices['HttpClient']);
     upgradedServices['ExplorationPermissionsBackendApiService'] =
       new ExplorationPermissionsBackendApiService(
-        upgradedServices['PageContextService'],
+        upgradedServices['ContextService'],
         upgradedServices['HttpClient'],
         upgradedServices['UrlInterpolationService']
       );
@@ -867,7 +867,7 @@ export class UpgradedServices {
       );
     upgradedServices['CurrentInteractionService'] =
       new CurrentInteractionService(
-        upgradedServices['PageContextService'],
+        upgradedServices['ContextService'],
         upgradedServices['PlayerPositionService'],
         upgradedServices['PlayerTranscriptService']
       );
@@ -988,7 +988,7 @@ export class UpgradedServices {
       );
     upgradedServices['StatsReportingBackendApiService'] =
       new StatsReportingBackendApiService(
-        upgradedServices['PageContextService'],
+        upgradedServices['ContextService'],
         upgradedServices['HttpClient'],
         upgradedServices['UrlInterpolationService']
       );
@@ -1044,7 +1044,7 @@ export class UpgradedServices {
       );
     upgradedServices['ExplorationRecommendationsService'] =
       new ExplorationRecommendationsService(
-        upgradedServices['PageContextService'],
+        upgradedServices['ContextService'],
         upgradedServices['UrlService'],
         upgradedServices['ExplorationRecommendationsBackendApiService']
       );
@@ -1085,7 +1085,7 @@ export class UpgradedServices {
     upgradedServices['AudioPreloaderService'] = new AudioPreloaderService(
       upgradedServices['AssetsBackendApiService'],
       upgradedServices['ComputeGraphService'],
-      upgradedServices['PageContextService']
+      upgradedServices['ContextService']
     );
     upgradedServices['ExplorationHtmlFormatterService'] =
       new ExplorationHtmlFormatterService(

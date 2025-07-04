@@ -29,7 +29,7 @@ import {StateObjectsBackendDict} from 'domain/exploration/StatesObjectFactory';
 import {ExplorationSummaryBackendApiService} from 'domain/summary/exploration-summary-backend-api.service';
 import {LearnerExplorationSummaryBackendDict} from 'domain/summary/learner-exploration-summary.model';
 import {Subscription} from 'rxjs';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {LoggerService} from 'services/contextual/logger.service';
 import {UrlService} from 'services/contextual/url.service';
 import {WindowDimensionsService} from 'services/contextual/window-dimensions.service';
@@ -86,7 +86,7 @@ export class ExplorationFooterComponent {
   @ViewChild('lessonInfoButton') lessonInfoButton!: ElementRef;
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private explorationSummaryBackendApiService: ExplorationSummaryBackendApiService,
     private i18nLanguageCodeService: I18nLanguageCodeService,
     private ngbModal: NgbModal,
@@ -112,20 +112,20 @@ export class ExplorationFooterComponent {
     // TODO(#13494): Implement a different footer for practice-session-page.
     // This component is used at 'exploration-player-page' and
     // 'practice-session-page' with different usage at both places.
-    // 'pageContextService.getExplorationId()' throws an error when this component
+    // 'contextService.getExplorationId()' throws an error when this component
     // is used at 'practice-session-page' because the author profiles section
     // does not exist and the URL does not contain a valid explorationId.
     // Try-catch is for catching the error thrown from context-service so
     // that the component behaves properly at both the places.
     try {
-      this.explorationId = this.pageContextService.getExplorationId();
+      this.explorationId = this.contextService.getExplorationId();
       this.iframed = this.urlService.isIframed();
       this.userService.getUserInfoAsync().then(userInfo => {
         this.userIsLoggedIn = userInfo.isLoggedIn();
       });
       if (
-        !this.pageContextService.isInQuestionPlayerMode() ||
-        this.pageContextService.getQuestionPlayerIsManuallySet()
+        !this.contextService.isInQuestionPlayerMode() ||
+        this.contextService.getQuestionPlayerIsManuallySet()
       ) {
         this.explorationSummaryBackendApiService
           .loadPublicAndPrivateExplorationSummariesAsync([this.explorationId])
@@ -148,7 +148,7 @@ export class ExplorationFooterComponent {
       }
     } catch (err) {}
 
-    if (this.pageContextService.isInQuestionPlayerMode()) {
+    if (this.contextService.isInQuestionPlayerMode()) {
       this.questionPlayerStateService.resultsPageIsLoadedEventEmitter.subscribe(
         (resultsLoaded: boolean) => {
           this.hintsAndSolutionsAreSupported = !resultsLoaded;

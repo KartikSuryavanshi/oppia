@@ -19,7 +19,7 @@
 
 import {Injectable} from '@angular/core';
 
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {ServicesConstants} from 'services/services.constants';
 import {UrlService} from 'services/contextual/url.service';
 
@@ -39,17 +39,17 @@ export class ExplorationRecommendationsService {
   explorationId!: string;
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private urlService: UrlService,
     private expRecommendationBackendApiService: ExplorationRecommendationsBackendApiService
   ) {
     this.isIframed = this.urlService.isIframed();
     this.isInEditorPage =
-      this.pageContextService.getPageContext() ===
+      this.contextService.getPageContext() ===
       ServicesConstants.PAGE_CONTEXT.EXPLORATION_EDITOR;
     this.isInEditorPreviewMode =
       this.isInEditorPage &&
-      this.pageContextService.getEditorTabContext() ===
+      this.contextService.getEditorTabContext() ===
         ServicesConstants.EXPLORATION_EDITOR_TAB_CONTEXT.PREVIEW;
   }
 
@@ -61,7 +61,7 @@ export class ExplorationRecommendationsService {
     let collectionId = this.urlService.getCollectionIdFromExplorationUrl();
     let storyId = this.urlService.getUrlParams().story_id;
     let currentNodeId = this.urlService.getUrlParams().node_id;
-    this.explorationId = this.pageContextService.getExplorationId();
+    this.explorationId = this.contextService.getExplorationId();
 
     let includeSystemRecommendations = 'false';
 

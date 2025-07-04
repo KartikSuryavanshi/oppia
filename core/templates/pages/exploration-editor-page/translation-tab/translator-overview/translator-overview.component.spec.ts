@@ -39,7 +39,7 @@ import {TranslationTabActiveModeService} from '../services/translation-tab-activ
 import {TranslatorOverviewComponent} from './translator-overview.component';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {WindowRef} from 'services/contextual/window-ref.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {EntityTranslationsService} from 'services/entity-translations.services';
 import {ChangeListService} from '../../services/change-list.service';
 import {EntityTranslation} from 'domain/translation/EntityTranslationObjectFactory';
@@ -60,7 +60,7 @@ class MockNgbModal {
   }
 }
 
-class MockPageContextService {
+class MockContextService {
   getExplorationId() {
     return 'expId';
   }
@@ -85,7 +85,7 @@ class MockPlatformFeatureService {
 
 describe('Translator Overview component', () => {
   let component: TranslatorOverviewComponent;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let fixture: ComponentFixture<TranslatorOverviewComponent>;
   let explorationLanguageCodeService: ExplorationLanguageCodeService;
   let languageUtilService: LanguageUtilService;
@@ -117,8 +117,8 @@ describe('Translator Overview component', () => {
           useClass: MockNgbModal,
         },
         {
-          provide: PageContextService,
-          useClass: MockPageContextService,
+          provide: ContextService,
+          useClass: MockContextService,
         },
         {
           provide: PlatformFeatureService,
@@ -134,7 +134,7 @@ describe('Translator Overview component', () => {
     fixture = TestBed.createComponent(TranslatorOverviewComponent);
     component = fixture.componentInstance;
 
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     languageUtilService = TestBed.inject(LanguageUtilService);
     focusManagerService = TestBed.inject(FocusManagerService);
     explorationLanguageCodeService = TestBed.inject(
@@ -351,9 +351,7 @@ describe('Translator Overview component', () => {
   });
 
   it('should initialize component properties after controller is initialized', () => {
-    spyOn(pageContextService, 'isExplorationLinkedToStory').and.returnValue(
-      true
-    );
+    spyOn(contextService, 'isExplorationLinkedToStory').and.returnValue(true);
     component.canShowTabModeSwitcher();
 
     expect(component.inTranslationMode).toBe(true);
@@ -379,14 +377,12 @@ describe('Translator Overview component', () => {
     });
 
     it('should show mode switcher if exploration is linked to story', () => {
-      spyOn(pageContextService, 'isExplorationLinkedToStory').and.returnValue(
-        true
-      );
+      spyOn(contextService, 'isExplorationLinkedToStory').and.returnValue(true);
       expect(component.canShowTabModeSwitcher()).toBeTrue;
     });
 
     it('should not show mode switcher if exploration is not linked to story', () => {
-      spyOn(pageContextService, 'isExplorationLinkedToStory').and.returnValue(
+      spyOn(contextService, 'isExplorationLinkedToStory').and.returnValue(
         false
       );
       expect(component.canShowTabModeSwitcher()).toBeFalse;

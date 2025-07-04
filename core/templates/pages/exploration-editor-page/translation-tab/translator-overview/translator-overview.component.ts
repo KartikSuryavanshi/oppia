@@ -29,7 +29,7 @@ import {TranslationLanguageService} from '../services/translation-language.servi
 import {TranslationStatusService} from '../services/translation-status.service';
 import {TranslationTabActiveModeService} from '../services/translation-tab-active-mode.service';
 import {ExplorationEditorPageConstants} from 'pages/exploration-editor-page/exploration-editor-page.constants';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {EntityTranslationsService} from 'services/entity-translations.services';
 import {LoaderService} from 'services/loader.service';
 import {ChangeListService} from 'pages/exploration-editor-page/services/change-list.service';
@@ -82,7 +82,7 @@ export class TranslatorOverviewComponent implements OnInit {
   selectedLanguageAccentCode: string = '';
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private entityTranslationsService: EntityTranslationsService,
     private entityVoiceoversService: EntityVoiceoversService,
     private changeListService: ChangeListService,
@@ -106,7 +106,7 @@ export class TranslatorOverviewComponent implements OnInit {
 
   canShowTabModeSwitcher(): boolean {
     return (
-      this.pageContextService.isExplorationLinkedToStory() &&
+      this.contextService.isExplorationLinkedToStory() &&
       this.languageCode !== this.explorationLanguageCodeService.displayed
     );
   }

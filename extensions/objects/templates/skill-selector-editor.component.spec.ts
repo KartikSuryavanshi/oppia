@@ -27,14 +27,14 @@ import {FormsModule} from '@angular/forms';
 import {EventEmitter, NO_ERRORS_SCHEMA} from '@angular/core';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {SkillBackendApiService} from 'domain/skill/skill-backend-api.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {AppConstants} from 'app.constants';
 
 describe('SkillSelectorEditorComponent', () => {
   let component: SkillSelectorEditorComponent;
   let fixture: ComponentFixture<SkillSelectorEditorComponent>;
   let skillBackendApiService: SkillBackendApiService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let fetchAllSkillsEmitter = new EventEmitter();
 
   let skills = [
@@ -125,7 +125,7 @@ describe('SkillSelectorEditorComponent', () => {
   }));
 
   beforeEach(() => {
-    pageContextService = TestBed.get(PageContextService);
+    contextService = TestBed.get(ContextService);
     skillBackendApiService = TestBed.get(SkillBackendApiService);
     fixture = TestBed.createComponent(SkillSelectorEditorComponent);
     component = fixture.componentInstance;
@@ -138,14 +138,14 @@ describe('SkillSelectorEditorComponent', () => {
   });
 
   it('should initialise component when user has to select a skill', () => {
-    spyOn(pageContextService, 'setCustomEntityContext');
+    spyOn(contextService, 'setCustomEntityContext');
     spyOn(component.eventBusGroup, 'emit');
 
     component.ngOnInit();
 
     expect(component.showLoading).toBeTrue();
     expect(component.skills).toEqual([]);
-    expect(pageContextService.setCustomEntityContext).toHaveBeenCalledWith(
+    expect(contextService.setCustomEntityContext).toHaveBeenCalledWith(
       AppConstants.ENTITY_TYPE.SKILL,
       'skillId'
     );
@@ -172,24 +172,24 @@ describe('SkillSelectorEditorComponent', () => {
   }));
 
   it('should remove custom entity when the component is destroyed', () => {
-    spyOn(pageContextService, 'removeCustomEntityContext');
+    spyOn(contextService, 'removeCustomEntityContext');
 
     component.ngOnDestroy();
 
-    expect(pageContextService.removeCustomEntityContext).toHaveBeenCalled();
+    expect(contextService.removeCustomEntityContext).toHaveBeenCalled();
   });
 
   it(
     'should restore custom entity for images of question-editor' +
       'when component is destroyed',
     () => {
-      spyOn(pageContextService, 'setCustomEntityContext');
+      spyOn(contextService, 'setCustomEntityContext');
 
       component.initialEntityId = 'exampleEntityId';
       component.initialEntityType = 'exampleEntityType';
       component.ngOnDestroy();
 
-      expect(pageContextService.setCustomEntityContext).toHaveBeenCalledWith(
+      expect(contextService.setCustomEntityContext).toHaveBeenCalledWith(
         'exampleEntityType',
         'exampleEntityId'
       );
@@ -197,14 +197,14 @@ describe('SkillSelectorEditorComponent', () => {
   );
 
   it('should select skill when user selects skill', () => {
-    spyOn(pageContextService, 'setCustomEntityContext');
+    spyOn(contextService, 'setCustomEntityContext');
     spyOn(component.valueChanged, 'emit');
     component.value = '';
 
     component.selectSkill('akS2GkSjaOVL', 'skill 2');
 
     expect(component.value).toBe('akS2GkSjaOVL');
-    expect(pageContextService.setCustomEntityContext).toHaveBeenCalledWith(
+    expect(contextService.setCustomEntityContext).toHaveBeenCalledWith(
       AppConstants.ENTITY_TYPE.SKILL,
       'akS2GkSjaOVL'
     );

@@ -32,7 +32,7 @@ import {
 } from 'domain/question/QuestionObjectFactory';
 import {StateCard} from 'domain/state_card/state-card.model';
 import {DiagnosticTestTopicTrackerModel} from 'pages/diagnostic-test-player-page/diagnostic-test-topic-tracker.model';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {UrlService} from 'services/contextual/url.service';
 import {
   ExplorationFeatures,
@@ -86,7 +86,7 @@ export class ExplorationPlayerStateService {
     new EventEmitter<boolean>();
 
   constructor(
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private editableExplorationBackendApiService: EditableExplorationBackendApiService,
     private explorationEngineService: ExplorationEngineService,
     private explorationFeaturesBackendApiService: ExplorationFeaturesBackendApiService,
@@ -124,11 +124,9 @@ export class ExplorationPlayerStateService {
     }
 
     if (explorationContext) {
-      this.editorPreviewMode =
-        this.pageContextService.isInExplorationEditorPage();
-      this.questionPlayerMode =
-        this.pageContextService.isInQuestionPlayerMode();
-      this.explorationId = this.pageContextService.getExplorationId();
+      this.editorPreviewMode = this.contextService.isInExplorationEditorPage();
+      this.questionPlayerMode = this.contextService.isInQuestionPlayerMode();
+      this.explorationId = this.contextService.getExplorationId();
       this.version = this.urlService.getExplorationVersionFromUrl();
 
       if (

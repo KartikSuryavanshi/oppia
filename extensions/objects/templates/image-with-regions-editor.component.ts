@@ -32,7 +32,7 @@ import {
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {AppConstants} from 'app.constants';
 import {AssetsBackendApiService} from 'services/assets-backend-api.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {WindowRef} from 'services/contextual/window-ref.service';
 import {ImageLocalStorageService} from 'services/image-local-storage.service';
 import {CustomSchema} from 'services/schema-default-value.service';
@@ -95,7 +95,7 @@ export class ImageWithRegionsEditorComponent implements OnInit {
 
   constructor(
     private assetsBackendApiService: AssetsBackendApiService,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private changeDetectorDef: ChangeDetectorRef,
     private el: ElementRef,
     private imageLocalStorageService: ImageLocalStorageService,
@@ -379,10 +379,9 @@ export class ImageWithRegionsEditorComponent implements OnInit {
   }
 
   getPreviewUrl(imageUrl: string): string {
-    const entityType: string =
-      this.pageContextService.getEntityType() as string;
+    const entityType: string = this.contextService.getEntityType() as string;
     if (
-      this.pageContextService.getImageSaveDestination() ===
+      this.contextService.getImageSaveDestination() ===
         AppConstants.IMAGE_SAVE_DESTINATION_LOCAL_STORAGE &&
       this.imageLocalStorageService.isInStorage(imageUrl)
     ) {
@@ -419,7 +418,7 @@ export class ImageWithRegionsEditorComponent implements OnInit {
     } else {
       return this.assetsBackendApiService.getImageUrlForPreview(
         entityType,
-        this.pageContextService.getEntityId(),
+        this.contextService.getEntityId(),
         encodeURIComponent(imageUrl)
       );
     }

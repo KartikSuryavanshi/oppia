@@ -22,7 +22,7 @@ import {
 } from '@angular/common/http/testing';
 import {TestBed, fakeAsync, flushMicrotasks} from '@angular/core/testing';
 
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {
   InterpolationValuesType,
   UrlInterpolationService,
@@ -30,7 +30,7 @@ import {
 import {StatsReportingBackendApiService} from 'domain/exploration/stats-reporting-backend-api.service';
 
 describe('Stats reporting backend API Service', () => {
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let httpTestingController: HttpTestingController;
   let statsReportingBackendApiService: StatsReportingBackendApiService;
   let urlInterpolationService: UrlInterpolationService;
@@ -67,7 +67,7 @@ describe('Stats reporting backend API Service', () => {
       imports: [HttpClientTestingModule],
     });
 
-    pageContextService = TestBed.get(PageContextService);
+    contextService = TestBed.get(ContextService);
     httpTestingController = TestBed.get(HttpTestingController);
     statsReportingBackendApiService = TestBed.get(
       StatsReportingBackendApiService
@@ -323,7 +323,7 @@ describe('Stats reporting backend API Service', () => {
       mockInterpolateUrl
     );
 
-    spyOn(pageContextService, 'getExplorationId').and.callFake(mockGetExpId);
+    spyOn(contextService, 'getExplorationId').and.callFake(mockGetExpId);
 
     flushMicrotasks();
     await expectAsync(

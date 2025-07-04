@@ -56,7 +56,7 @@ import {
 } from 'components/skill-selector/select-skill-modal.component';
 import {ConfirmQuestionExitModalComponent} from '../modal-templates/confirm-question-exit-modal.component';
 import {QuestionEditorSaveModalComponent} from '../modal-templates/question-editor-save-modal.component';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {FocusManagerService} from 'services/stateful/focus-manager.service';
 import {ImageLocalStorageService} from 'services/image-local-storage.service';
 import {QuestionsListService} from 'services/questions-list.service';
@@ -117,7 +117,7 @@ export class QuestionsListComponent implements OnInit, OnDestroy {
   constructor(
     private alertsService: AlertsService,
     private changeDetectorRef: ChangeDetectorRef,
-    private pageContextService: PageContextService,
+    private contextService: ContextService,
     private editableQuestionBackendApiService: EditableQuestionBackendApiService,
     private focusManagerService: FocusManagerService,
     private imageLocalStorageService: ImageLocalStorageService,
@@ -161,7 +161,7 @@ export class QuestionsListComponent implements OnInit, OnDestroy {
     this.populateMisconceptions(this.newQuestionSkillIds);
 
     this.imageLocalStorageService.flushStoredImagesData();
-    this.pageContextService.setImageSaveDestinationToLocalStorage();
+    this.contextService.setImageSaveDestinationToLocalStorage();
     this.question = this.questionObjectFactory.createDefaultQuestion(
       this.newQuestionSkillIds
     );
@@ -288,7 +288,7 @@ export class QuestionsListComponent implements OnInit, OnDestroy {
     this.topicEditorStateService.toggleQuestionEditor(true);
     this.imageLocalStorageService.flushStoredImagesData();
     if (this.newQuestionIsBeingCreated) {
-      this.pageContextService.setImageSaveDestinationToLocalStorage();
+      this.contextService.setImageSaveDestinationToLocalStorage();
     }
 
     this.windowRef.nativeWindow.location.hash = '/questions#' + this.questionId;
@@ -619,7 +619,7 @@ export class QuestionsListComponent implements OnInit, OnDestroy {
       })
       .result.then(
         () => {
-          this.pageContextService.resetImageSaveDestination();
+          this.contextService.resetImageSaveDestination();
           this.editorIsOpen = false;
           this.topicEditorStateService.toggleQuestionEditor(false);
           this.windowRef.nativeWindow.location.hash = null;
@@ -667,7 +667,7 @@ export class QuestionsListComponent implements OnInit, OnDestroy {
 
   saveQuestion(): void {
     this.questionIsBeingSaved = true;
-    this.pageContextService.resetImageSaveDestination();
+    this.contextService.resetImageSaveDestination();
     this.windowRef.nativeWindow.location.hash = null;
     if (this.questionIsBeingUpdated) {
       this.ngbModal
@@ -682,7 +682,7 @@ export class QuestionsListComponent implements OnInit, OnDestroy {
             ) {
               this.updateSkillLinkageAndQuestions(commitMessage);
             } else {
-              this.pageContextService.resetImageSaveDestination();
+              this.contextService.resetImageSaveDestination();
               this.saveAndPublishQuestion(commitMessage);
             }
             this.topicEditorStateService.toggleQuestionEditor(false);
@@ -693,7 +693,7 @@ export class QuestionsListComponent implements OnInit, OnDestroy {
         );
     } else {
       this.topicEditorStateService.toggleQuestionEditor(false);
-      this.pageContextService.resetImageSaveDestination();
+      this.contextService.resetImageSaveDestination();
       this.saveAndPublishQuestion(null);
       this.skillEditorRoutingService.creatingNewQuestion(false);
     }

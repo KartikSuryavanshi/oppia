@@ -34,7 +34,7 @@ import {UserService} from 'services/user.service';
 import {WindowDimensionsService} from 'services/contextual/window-dimensions.service';
 import {ChangeListService} from '../services/change-list.service';
 import {HelpModalComponent} from '../modal-templates/help-modal.component';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {ExplorationFeaturesService} from 'services/exploration-features.service';
 import {ExplorationImprovementsService} from 'services/exploration-improvements.service';
 import {InternetConnectivityService} from 'services/internet-connectivity.service';
@@ -51,7 +51,7 @@ import {UserExplorationPermissionsService} from '../services/user-exploration-pe
 describe('Editor Navigation Component', () => {
   let component: EditorNavigationComponent;
   let fixture: ComponentFixture<EditorNavigationComponent>;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let explorationFeaturesService: ExplorationFeaturesService;
   let explorationImprovementsService: ExplorationImprovementsService;
   let explorationWarningsService: ExplorationWarningsService;
@@ -186,7 +186,7 @@ describe('Editor Navigation Component', () => {
 
   describe('when screen is large', () => {
     beforeEach(() => {
-      pageContextService = TestBed.inject(PageContextService);
+      contextService = TestBed.inject(ContextService);
       explorationRightsService = TestBed.inject(ExplorationRightsService);
       explorationSaveService = TestBed.inject(ExplorationSaveService);
       editabilityService = TestBed.inject(EditabilityService);
@@ -200,9 +200,7 @@ describe('Editor Navigation Component', () => {
         StateTutorialFirstTimeService
       );
 
-      spyOn(pageContextService, 'getExplorationId').and.returnValue(
-        explorationId
-      );
+      spyOn(contextService, 'getExplorationId').and.returnValue(explorationId);
 
       isImprovementsTabEnabledAsyncSpy = spyOn(
         explorationImprovementsService,

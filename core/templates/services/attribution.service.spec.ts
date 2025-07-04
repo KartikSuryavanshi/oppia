@@ -23,12 +23,12 @@ import {
 import {TestBed, fakeAsync, flushMicrotasks} from '@angular/core/testing';
 
 import {AttributionService} from 'services/attribution.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {CsrfTokenService} from 'services/csrf-token.service';
 
 describe('AttributionService', () => {
   let attributionService: AttributionService;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let csrfService: CsrfTokenService;
   let httpTestingController: HttpTestingController;
 
@@ -37,7 +37,7 @@ describe('AttributionService', () => {
       imports: [HttpClientTestingModule],
     });
     attributionService = TestBed.get(AttributionService);
-    pageContextService = TestBed.get(PageContextService);
+    contextService = TestBed.get(ContextService);
     csrfService = TestBed.get(CsrfTokenService);
     httpTestingController = TestBed.get(HttpTestingController);
 
@@ -51,7 +51,7 @@ describe('AttributionService', () => {
   });
 
   it('should set authors and exploration title correctly', fakeAsync(() => {
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('0');
+    spyOn(contextService, 'getExplorationId').and.returnValue('0');
     const explorationIds = ['0'];
     const sampleResults = {
       summaries: [
@@ -89,7 +89,7 @@ describe('AttributionService', () => {
   }));
 
   it('should show and hide modal correctly', fakeAsync(() => {
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('0');
+    spyOn(contextService, 'getExplorationId').and.returnValue('0');
     const explorationIds = ['0'];
     const sampleResults = {
       summaries: [
@@ -133,7 +133,7 @@ describe('AttributionService', () => {
   }));
 
   it('should not initialise fields if backend call fails', fakeAsync(() => {
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('0');
+    spyOn(contextService, 'getExplorationId').and.returnValue('0');
     const explorationIds = ['0'];
 
     const requestUrl =
@@ -164,16 +164,12 @@ describe('AttributionService', () => {
   }));
 
   it('should allow attribution generation in exp player page', () => {
-    spyOn(pageContextService, 'isInExplorationPlayerPage').and.returnValue(
-      true
-    );
+    spyOn(contextService, 'isInExplorationPlayerPage').and.returnValue(true);
     expect(attributionService.isGenerateAttributionAllowed()).toBeTrue();
   });
 
   it('should not allow attribution generation in non exp player pages', () => {
-    spyOn(pageContextService, 'isInExplorationPlayerPage').and.returnValue(
-      false
-    );
+    spyOn(contextService, 'isInExplorationPlayerPage').and.returnValue(false);
     expect(attributionService.isGenerateAttributionAllowed()).toBeFalse();
   });
 });

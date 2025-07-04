@@ -34,7 +34,7 @@ import {
   QuestionObjectFactory,
 } from '../../../domain/question/QuestionObjectFactory';
 import {DiagnosticTestTopicTrackerModel} from '../../../pages/diagnostic-test-player-page/diagnostic-test-topic-tracker.model';
-import {PageContextService} from '../../../services/page-context.service';
+import {ContextService} from '../../../services/context.service';
 import {UrlService} from '../../../services/contextual/url.service';
 import {
   ExplorationFeatures,
@@ -226,7 +226,7 @@ describe('Exploration Player State Service', () => {
     inapplicable_skill_misconception_ids: [],
   };
 
-  class MockPageContextService {
+  class MockContextService {
     isInExplorationEditorPage(): boolean {
       return false;
     }
@@ -263,8 +263,8 @@ describe('Exploration Player State Service', () => {
         PlayerTranscriptService,
         StatsReportingService,
         {
-          provide: PageContextService,
-          useClass: MockPageContextService,
+          provide: ContextService,
+          useClass: MockContextService,
         },
         UrlService,
         {

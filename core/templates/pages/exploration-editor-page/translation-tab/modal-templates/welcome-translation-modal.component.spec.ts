@@ -20,7 +20,7 @@ import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {ComponentFixture, waitForAsync, TestBed} from '@angular/core/testing';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {SiteAnalyticsService} from 'services/site-analytics.service';
 import {WelcomeTranslationModalComponent} from './welcome-translation-modal.component';
 
@@ -37,7 +37,7 @@ class MockActiveModal {
 describe('Welcome Translation Modal Component', function () {
   let component: WelcomeTranslationModalComponent;
   let fixture: ComponentFixture<WelcomeTranslationModalComponent>;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let siteAnalyticsService: SiteAnalyticsService;
 
   const explorationId = 'exp1';
@@ -46,7 +46,7 @@ describe('Welcome Translation Modal Component', function () {
     TestBed.configureTestingModule({
       declarations: [WelcomeTranslationModalComponent],
       providers: [
-        PageContextService,
+        ContextService,
         UrlInterpolationService,
         {
           provide: NgbActiveModal,
@@ -63,12 +63,10 @@ describe('Welcome Translation Modal Component', function () {
 
     TestBed.inject(NgbActiveModal);
     TestBed.inject(UrlInterpolationService);
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     siteAnalyticsService = TestBed.inject(SiteAnalyticsService);
 
-    spyOn(pageContextService, 'getExplorationId').and.returnValue(
-      explorationId
-    );
+    spyOn(contextService, 'getExplorationId').and.returnValue(explorationId);
     spyOn(
       siteAnalyticsService,
       'registerTutorialModalOpenEvent'

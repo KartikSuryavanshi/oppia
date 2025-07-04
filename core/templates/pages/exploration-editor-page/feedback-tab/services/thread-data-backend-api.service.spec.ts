@@ -32,12 +32,12 @@ import {
 import {SuggestionBackendDict} from 'domain/suggestion/suggestion.model';
 import {SuggestionThread} from 'domain/suggestion/suggestion-thread-object.model';
 import {ThreadDataBackendApiService} from 'pages/exploration-editor-page/feedback-tab/services/thread-data-backend-api.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 import {CsrfTokenService} from 'services/csrf-token.service';
 
 describe('retrieving threads service', () => {
   let httpTestingController: HttpTestingController;
-  let pageContextService: PageContextService;
+  let contextService: ContextService;
   let csrfTokenService: CsrfTokenService;
   let feedbackThreadObjectFactory: FeedbackThreadObjectFactory;
   let threadDataBackendApiService: ThreadDataBackendApiService;
@@ -145,12 +145,12 @@ describe('retrieving threads service', () => {
   });
 
   beforeEach(() => {
-    pageContextService = TestBed.inject(PageContextService);
+    contextService = TestBed.inject(ContextService);
     csrfTokenService = TestBed.inject(CsrfTokenService);
     feedbackThreadObjectFactory = TestBed.inject(FeedbackThreadObjectFactory);
     threadDataBackendApiService = TestBed.inject(ThreadDataBackendApiService);
 
-    spyOn(pageContextService, 'getExplorationId').and.returnValue('exp1');
+    spyOn(contextService, 'getExplorationId').and.returnValue('exp1');
     spyOn(csrfTokenService, 'getTokenAsync').and.returnValue(
       Promise.resolve('sample-csrf-token')
     );

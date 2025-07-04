@@ -19,7 +19,7 @@
 import {Component, OnInit} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {UrlService} from 'services/contextual/url.service';
-import {PageContextService} from 'services/page-context.service';
+import {ContextService} from 'services/context.service';
 
 @Component({
   selector: 'keyboard-shortcut-help-modal',
@@ -30,7 +30,7 @@ export class KeyboardShortcutHelpModalComponent implements OnInit {
   constructor(
     private activeModal: NgbActiveModal,
     private urlService: UrlService,
-    private pageContextService: PageContextService
+    private contextService: ContextService
   ) {}
 
   KEYBOARD_SHORTCUTS = {};
@@ -50,7 +50,7 @@ export class KeyboardShortcutHelpModalComponent implements OnInit {
         s: skipShortcutDescription,
         c: categoryShortcutDescription,
       };
-    } else if (this.pageContextService.isInExplorationPlayerPage()) {
+    } else if (this.contextService.isInExplorationPlayerPage()) {
       this.KEYBOARD_SHORTCUTS = {
         '?': helpShortcutDescription,
         s: skipShortcutDescription,

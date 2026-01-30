@@ -53,6 +53,7 @@ import {PageTitleService} from 'services/page-title.service';
 import {LearnerGroupBackendApiService} from 'domain/learner_group/learner-group-backend-api.service';
 import {UrlService} from 'services/contextual/url.service';
 import {PlatformFeatureService} from 'services/platform-feature.service';
+import {CommunityLessonProgressService} from 'pages/exploration-player-page/services/community-lesson-progress.service';
 
 import './learner-dashboard-page.component.css';
 
@@ -203,8 +204,20 @@ export class LearnerDashboardPageComponent implements OnInit, OnDestroy {
     private pageTitleService: PageTitleService,
     private learnerGroupBackendApiService: LearnerGroupBackendApiService,
     private urlService: UrlService,
-    private platFeatService: PlatformFeatureService
-  ) {}
+    private platFeatService: PlatformFeatureService,
+    private communityLessonProgressService: CommunityLessonProgressService
+  ) {
+    // Subscribe to community lesson progress changes and refresh dashboard explorations.
+    this.directiveSubscriptions.add(
+      this.communityLessonProgressService.progress$.subscribe(() => {
+        this.learnerDashboardBackendApiService
+          .fetchLearnerDashboardExplorationsDataAsync()
+          .then(responseData => {
+            this.filterExplorationsData(responseData);
+          });
+      })
+    );
+  }
 
   populateCuratedExplorationIds(): void {
     this.curatedExplorationIds.clear();

@@ -24,6 +24,7 @@ import {PlayerPositionService} from '../../../services/player-position.service';
 import {Subscription} from 'rxjs';
 import {PageContextService} from 'services/page-context.service';
 import {CheckpointProgressService} from 'pages/exploration-player-page/services/checkpoint-progress.service';
+import {CommunityLessonProgressService} from 'pages/exploration-player-page/services/community-lesson-progress.service';
 
 const CHECKPOINT_STATUS_INCOMPLETE = 'incomplete';
 const CHECKPOINT_STATUS_COMPLETED = 'completed';
@@ -50,7 +51,8 @@ export class CheckpointBarComponent implements OnInit {
     private explorationEngineService: ExplorationEngineService,
     private playerPositionService: PlayerPositionService,
     private pageContextService: PageContextService,
-    private checkpointProgressService: CheckpointProgressService
+    private checkpointProgressService: CheckpointProgressService,
+    private communityLessonProgressService: CommunityLessonProgressService
   ) {}
 
   ngOnInit(): void {
@@ -71,6 +73,13 @@ export class CheckpointBarComponent implements OnInit {
 
     this.directiveSubscriptions.add(
       this.playerPositionService.onNewCardOpened.subscribe(() => {
+        this.updateLessonProgressBar();
+      })
+    );
+
+    // Subscribe to community lesson progress updates.
+    this.directiveSubscriptions.add(
+      this.communityLessonProgressService.progress$.subscribe(() => {
         this.updateLessonProgressBar();
       })
     );

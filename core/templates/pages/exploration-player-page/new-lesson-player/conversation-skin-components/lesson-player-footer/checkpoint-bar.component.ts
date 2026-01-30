@@ -36,6 +36,7 @@ const CHECKPOINT_STATUS_IN_PROGRESS = 'in-progress';
   styleUrls: ['./checkpoint-bar.component.css'],
 })
 export class CheckpointBarComponent implements OnInit {
+  private communityLessonProgressSubscription: Subscription;
   explorationId!: string;
   expStates!: StateObjectsBackendDict;
   checkpointCount: number = 0;
@@ -78,11 +79,11 @@ export class CheckpointBarComponent implements OnInit {
     );
 
     // Subscribe to community lesson progress updates.
-    this.directiveSubscriptions.add(
+    this.communityLessonProgressSubscription =
       this.communityLessonProgressService.progress$.subscribe(() => {
         this.updateLessonProgressBar();
-      })
-    );
+      });
+    this.directiveSubscriptions.add(this.communityLessonProgressSubscription);
   }
 
   getCompletedProgressBarWidth(): number {
@@ -216,6 +217,9 @@ export class CheckpointBarComponent implements OnInit {
   }
 
   ngOnDestroy(): void {
+    if (this.communityLessonProgressSubscription) {
+      this.communityLessonProgressSubscription.unsubscribe();
+    }
     this.directiveSubscriptions.unsubscribe();
   }
 

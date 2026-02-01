@@ -72,6 +72,7 @@ import {RefresherExplorationConfirmationModalService} from '../services/refreshe
 import {ConceptCardManagerService} from './concept-card-manager.service';
 import {QuestionPlayerEngineService} from './question-player-engine.service';
 import {UserService} from '../../../services/user.service';
+import {CommunityLessonProgressService} from './community-lesson-progress.service';
 
 describe('Conversation flow service', () => {
   let conversationFlowService: ConversationFlowService;
@@ -106,6 +107,7 @@ describe('Conversation flow service', () => {
   let pageContextService: PageContextService;
   let playerPositionService: PlayerPositionService;
   let explorationEngineService: ExplorationEngineService;
+  let communityLessonProgressService: CommunityLessonProgressService;
 
   let createCard = function (interactionType: string): StateCard {
     return new StateCard(
@@ -192,6 +194,9 @@ describe('Conversation flow service', () => {
     explorationEngineService = TestBed.inject(ExplorationEngineService);
     conversationFlowService = TestBed.inject(ConversationFlowService);
     playerTranscriptService = TestBed.inject(PlayerTranscriptService);
+    communityLessonProgressService = TestBed.inject(
+      CommunityLessonProgressService
+    );
 
     spyOn(pageContextService, 'getExplorationId').and.returnValue('expId');
   }));
@@ -1393,6 +1398,196 @@ describe('Conversation flow service', () => {
         console.error = originalConsoleError;
       }
     }, 0);
+  });
+
+  describe('Community Lesson Progress Tracking', () => {
+    it('should track checkpoint progress for community lessons (non-story mode)', fakeAsync(() => {
+      const currentStateName = 'CommunityCheckpoint1';
+      const version = 1;
+
+      spyOn(playerPositionService, 'getDisplayedCardIndex').and.returnValue(1);
+      spyOn(pageContextService, 'isInExplorationEditorPage').and.returnValue(
+        false
+      );
+      spyOn(urlService, 'isIframed').and.returnValue(false);
+      spyOn(explorationModeService, 'isInQuestionPlayerMode').and.returnValue(
+        false
+      );
+      spyOn(
+        explorationModeService,
+        'isInDiagnosticTestPlayerMode'
+      ).and.returnValue(false);
+      spyOn(explorationModeService, 'isInStoryChapterMode').and.returnValue(
+        false
+      );
+      spyOn(explorationEngineService, 'getState').and.returnValue({
+        name: currentStateName,
+        cardIsCheckpoint: true,
+      });
+      spyOn(
+        checkpointProgressService,
+        'checkIfCheckpointIsVisited'
+      ).and.returnValue(false);
+      spyOn(
+        playerTranscriptService,
+        'getPrevSessionStatesProgress'
+      ).and.returnValue([]);
+      spyOn(progressUrlService, 'getUniqueProgressUrlId').and.returnValue(
+        'uuid-123'
+      );
+
+      spyOn(
+        readOnlyExplorationBackendApiService,
+        'loadLatestExplorationAsync'
+      ).and.returnValue(Promise.resolve({version}));
+
+      const markCheckpointSpy = spyOn(
+        communityLessonProgressService,
+        'markCheckpointReached'
+      ).and.stub();
+
+      conversationFlowService.navigateToDisplayedCard();
+      flushMicrotasks();
+      tick();
+
+      expect(markCheckpointSpy).toHaveBeenCalledWith(
+        'expId',
+        currentStateName
+      );
+    }));
+
+    it('should not track community lesson progress for story chapter mode', fakeAsync(() => {
+      const currentStateName = 'StoryCheckpoint';
+      const version = 1;
+
+      spyOn(playerPositionService, 'getDisplayedCardIndex').and.returnValue(1);
+      spyOn(pageContextService, 'isInExplorationEditorPage').and.returnValue(
+        false
+      );
+      spyOn(urlService, 'isIframed').and.returnValue(false);
+      spyOn(explorationModeService, 'isInQuestionPlayerMode').and.returnValue(
+        false
+      );
+      spyOn(
+        explorationModeService,
+        'isInDiagnosticTestPlayerMode'
+      ).and.returnValue(false);
+      spyOn(explorationModeService, 'isInStoryChapterMode').and.returnValue(
+        true
+      );
+      spyOn(explorationEngineService, 'getState').and.returnValue({
+        name: currentStateName,
+        cardIsCheckpoint: true,
+      });
+      spyOn(
+        checkpointProgressService,
+        'checkIfCheckpointIsVisited'
+      ).and.returnValue(false);
+      spyOn(
+        playerTranscriptService,
+        'getPrevSessionStatesProgress'
+      ).and.returnValue([]);
+      spyOn(progressUrlService, 'getUniqueProgressUrlId').and.returnValue(
+        'uuid-123'
+      );
+
+      spyOn(
+        readOnlyExplorationBackendApiService,
+        'loadLatestExplorationAsync'
+      ).and.returnValue(Promise.resolve({version}));
+
+      const markCheckpointSpy = spyOn(
+        communityLessonProgressService,
+        'markCheckpointReached'
+      ).and.stub();
+
+      conversationFlowService.navigateToDisplayedCard();
+      flushMicrotasks();
+      tick();
+
+      expect(markCheckpointSpy).not.toHaveBeenCalled();
+    }));
+
+    it('should track multiple checkpoints for a community lesson', fakeAsync(() => {
+      const version = 1;
+
+      spyOn(pageContextService, 'isInExplorationEditorPage').and.returnValue(
+        false
+      );
+      spyOn(urlService, 'isIframed').and.returnValue(false);
+      spyOn(explorationModeService, 'isInQuestionPlayerMode').and.returnValue(
+        false
+      );
+      spyOn(
+        explorationModeService,
+        'isInDiagnosticTestPlayerMode'
+      ).and.returnValue(false);
+      spyOn(explorationModeService, 'isInStoryChapterMode').and.returnValue(
+        false
+      );
+      spyOn(
+        checkpointProgressService,
+        'checkIfCheckpointIsVisited'
+      ).and.returnValue(false);
+      spyOn(progressUrlService, 'getUniqueProgressUrlId').and.returnValue(
+        'uuid-123'
+      );
+
+      spyOn(
+        readOnlyExplorationBackendApiService,
+        'loadLatestExplorationAsync'
+      ).and.returnValue(Promise.resolve({version}));
+
+      const markCheckpointSpy = spyOn(
+        communityLessonProgressService,
+        'markCheckpointReached'
+      ).and.stub();
+
+      spyOn(playerPositionService, 'getDisplayedCardIndex').and.returnValue(1);
+      spyOn(playerTranscriptService, 'getPrevSessionStatesProgress').and.returnValue([]);
+      spyOn(explorationEngineService, 'getState').and.returnValue({
+        name: 'Checkpoint1',
+        cardIsCheckpoint: true,
+      });
+
+      conversationFlowService.navigateToDisplayedCard();
+      flushMicrotasks();
+      tick();
+
+      expect(markCheckpointSpy).toHaveBeenCalledWith('expId', 'Checkpoint1');
+
+      markCheckpointSpy.calls.reset();
+
+      (explorationEngineService.getState as jasmine.Spy).and.returnValue({
+        name: 'Checkpoint2',
+        cardIsCheckpoint: true,
+      });
+
+      conversationFlowService.navigateToDisplayedCard();
+      flushMicrotasks();
+      tick();
+
+      expect(markCheckpointSpy).toHaveBeenCalledWith('expId', 'Checkpoint2');
+    }));
+
+    it('should handle community lesson progress even when iframed', fakeAsync(() => {
+      spyOn(playerPositionService, 'getDisplayedCardIndex').and.returnValue(1);
+      spyOn(pageContextService, 'isInExplorationEditorPage').and.returnValue(
+        false
+      );
+      spyOn(urlService, 'isIframed').and.returnValue(true);
+
+      const markCheckpointSpy = spyOn(
+        communityLessonProgressService,
+        'markCheckpointReached'
+      ).and.stub();
+
+      conversationFlowService.navigateToDisplayedCard();
+      flushMicrotasks();
+      tick();
+
+      expect(markCheckpointSpy).not.toHaveBeenCalled();
+    }));
   });
 
   it('should throw error when moving forward beyond last card', () => {

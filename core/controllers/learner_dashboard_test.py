@@ -950,7 +950,6 @@ class LearnerDashboardExplorationsProgressHandlerTests(
 
         exp_summary = completed_list[0]
         self.assertEqual(exp_summary['id'], self.EXP_ID_1)
-        # Completed explorations always show 100% progress.
         self.assertEqual(exp_summary['progress_percent'], 100)
         self.assertEqual(
             exp_summary['visited_cards_count'], exp_summary['total_cards_count']

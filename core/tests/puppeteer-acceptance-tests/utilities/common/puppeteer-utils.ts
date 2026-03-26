@@ -503,18 +503,24 @@ export class BaseUser {
     const element =
       typeof selector === 'string'
         ? await this.page.waitForSelector(selector)
-        : selector;
-    try {
-      await this.page.waitForFunction(isElementClickable, {}, element);
-    } catch (error) {
-      if (error instanceof Error) {
-        await this.page.evaluate(isElementClickable, element, true, true);
-        error.message =
-          `Element ${elementDesc} took too long to be clickable.\n` +
-          'Original Error:\n' +
-          error.message;
+        : selector; // Simple retry for transient non-clickable state (max 2 tries)
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await this.page.waitForFunction(isElementClickable, {}, element);
+        return;
+      } catch (error) {
+        if (attempt === 1) {
+          if (error instanceof Error) {
+            await this.page.evaluate(isElementClickable, element, true, true);
+            error.message =
+              `Element ${elementDesc} took too long to be clickable.\n` +
+              'Original Error:\n' +
+              error.message;
+          }
+          throw error;
+        }
+        await this.page.waitForTimeout(1500);
       }
-      throw error;
     }
   }
 

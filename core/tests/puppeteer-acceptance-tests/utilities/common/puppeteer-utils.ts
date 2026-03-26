@@ -365,7 +365,18 @@ export class BaseUser {
     }
     await this.clickOnElementWithText('Sign in');
     await this.typeInInputField(testConstants.SignInDetails.inputField, email);
-    await this.clickAndWaitForNavigation('Sign In');
+    // Simple retry for navigation timeout (max 2 tries)
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await this.clickAndWaitForNavigation('Sign In');
+        break;
+      } catch (err) {
+        if (attempt === 1) {
+          throw err;
+        }
+        await this.page.waitForTimeout(1500);
+      }
+    }
   }
 
   /**

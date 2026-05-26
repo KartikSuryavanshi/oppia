@@ -31,8 +31,6 @@ import {PracticeTabComponent} from './deprecations/practice-tab/practice-tab.com
 import {SubtopicsListComponent} from './subtopics-list/subtopics-list.component';
 import {TopicViewerAccessGuard} from './topic-viewer-page-auth.guard';
 import {TopicHeaderComponent} from './topic-header/topic-header.component';
-import {TopicPracticeCardComponent} from './topic-practice-card/topic-practice-card.component';
-import {TopicPracticeProgressComponent} from './topic-practice-card/topic-practice-progress.component';
 
 @NgModule({
   imports: [

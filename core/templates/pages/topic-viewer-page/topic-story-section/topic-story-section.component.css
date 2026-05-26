@@ -1,0 +1,177 @@
+/* NOTE to developers: We generate RTL CSS from this file in the webpack
+   compilation, here are some additional rules that can be added to the
+   CSS files: https://rtlcss.com/learn/usage-guide/control-directives/ */
+
+/* ---- Story section wrapper ---- */
+.tss-story-section {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+/* ---- Story header (teal band) ---- */
+.tss-story-header {
+  align-items: center;
+  background-color: #00645c;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.tss-story-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tss-story-title {
+  color: #fff;
+  font-family: 'Capriola', Roboto, Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.tss-story-counts {
+  color: rgba(255, 255, 255, 0.85);
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ---- Study Skills CTA ---- */
+.tss-study-skills-btn {
+  align-items: center;
+  border: 2px solid #fff;
+  border-radius: 6px;
+  color: #fff;
+  display: flex;
+  flex-shrink: 0;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 6px;
+  margin-left: 16px;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.tss-study-skills-btn:hover,
+.tss-study-skills-btn:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  text-decoration: none;
+}
+
+/* ---- Lessons container ---- */
+.tss-lessons-container {
+  background-color: #fff;
+  padding: 16px;
+}
+
+/* ---- Individual lesson card ---- */
+.tss-lesson-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  margin-bottom: 16px;
+  min-height: 120px;
+  overflow: hidden;
+}
+
+.tss-lesson-card:last-child {
+  margin-bottom: 0;
+}
+
+.tss-lesson-card-thumbnail {
+  background-color: #e8f5e9;
+  flex-shrink: 0;
+  width: 120px;
+}
+
+.tss-lesson-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+
+.tss-lesson-title {
+  color: #333;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+}
+
+.tss-lesson-description {
+  color: #555;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+}
+
+.tss-lesson-card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---- Start / Continue button ---- */
+.tss-lesson-start-btn {
+  background-color: #00645c;
+  border-radius: 4px;
+  color: #fff;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 24px;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.tss-lesson-start-btn:hover,
+.tss-lesson-start-btn:focus {
+  background-color: #00453e;
+  color: #fff;
+  outline: 2px solid #00645c;
+  outline-offset: 2px;
+  text-decoration: none;
+}
+
+/* ---- Responsive: mobile ---- */
+@media (max-width: 767px) {
+  .tss-story-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .tss-study-skills-btn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tss-story-title {
+    font-size: 18px;
+  }
+
+  .tss-lesson-card {
+    flex-direction: column;
+  }
+
+  .tss-lesson-card-thumbnail {
+    height: 100px;
+    width: 100%;
+  }
+}

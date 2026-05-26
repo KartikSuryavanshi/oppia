@@ -1,0 +1,56 @@
+<div class="tss-story-section e2e-test-story-section">
+
+  <!-- Story header: teal background, title, counts, Study Skills CTA -->
+  <div class="tss-story-header">
+    <div class="tss-story-header-info">
+      <h2 class="tss-story-title e2e-test-story-title">
+        Story: "{{ storySummary.getTitle() }}"
+      </h2>
+      <p class="tss-story-counts e2e-test-story-counts">
+        {{ lessonCount }} lessons<ng-container *ngIf="practiceCount > 0">, {{ practiceCount }} practices</ng-container>
+      </p>
+    </div>
+    <a
+      [href]="getStudySkillsUrl()"
+      class="tss-study-skills-btn e2e-test-study-skills-link"
+      aria-label="Study skills for this topic">
+      <i class="fa fa-file-text-o" aria-hidden="true"></i>
+      Study Skills
+    </a>
+  </div>
+
+  <!-- Story content: lesson cards stacked vertically -->
+  <div class="tss-lessons-container">
+    <div
+      *ngFor="let node of storySummary.getAllNodes(); let i = index"
+      class="tss-lesson-card e2e-test-lesson-card">
+
+      <!-- Coloured left panel (thumbnail background) -->
+      <div
+        class="tss-lesson-card-thumbnail"
+        [style.background-color]="node.getThumbnailBgColor() || '#e8f5e9'">
+      </div>
+
+      <!-- Lesson content -->
+      <div class="tss-lesson-card-content">
+        <h3 class="tss-lesson-title e2e-test-lesson-title">
+          Lesson {{ i + 1 }}: {{ node.getTitle() }}
+        </h3>
+        <p class="tss-lesson-description e2e-test-lesson-description">
+          {{ node.getDescription() }}
+        </p>
+
+        <div class="tss-lesson-card-footer">
+          <a
+            [href]="getChapterUrl(node)"
+            class="tss-lesson-start-btn e2e-test-lesson-start-btn"
+            [attr.aria-label]="(isChapterCompleted(node) ? 'Continue' : 'Start') + ' lesson: ' + node.getTitle()">
+            {{ isChapterCompleted(node) ? 'Continue' : 'Start' }}
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

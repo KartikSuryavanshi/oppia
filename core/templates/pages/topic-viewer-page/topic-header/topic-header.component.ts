@@ -16,12 +16,8 @@
  * @fileoverview Component for topic header.
  */
 
-import {Component, Input, OnInit} from '@angular/core';
-import {UrlService} from 'services/contextual/url.service';
-import {
-  I18nLanguageCodeService,
-  TranslationKeyType,
-} from 'services/i18n-language-code.service';
+import {Component, Input} from '@angular/core';
+import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import './topic-header.component.css';
 
 @Component({
@@ -29,69 +25,13 @@ import './topic-header.component.css';
   templateUrl: './topic-header.component.html',
   styleUrls: ['./topic-header.component.css'],
 })
-export class TopicHeaderComponent implements OnInit {
+export class TopicHeaderComponent {
   @Input() topicName!: string;
   @Input() topicDescription!: string;
-  @Input() topicId!: string;
   @Input() classroomName!: string | null;
-  classroomUrlFragment!: string;
+  @Input() classroomUrlFragment!: string;
 
-  topicNameTranslationKey!: string;
-  topicDescTranslationKey!: string;
-  classroomNameTranslationKey!: string;
-
-  constructor(
-    private i18nLanguageCodeService: I18nLanguageCodeService,
-    private urlService: UrlService
-  ) {}
-
-  ngOnInit(): void {
-    this.topicNameTranslationKey =
-      this.i18nLanguageCodeService.getTopicTranslationKey(
-        this.topicId,
-        TranslationKeyType.TITLE
-      );
-    this.topicDescTranslationKey =
-      this.i18nLanguageCodeService.getTopicTranslationKey(
-        this.topicId,
-        TranslationKeyType.DESCRIPTION
-      );
-
-    this.classroomUrlFragment =
-      this.urlService.getClassroomUrlFragmentFromLearnerUrl();
-
-    if (this.classroomName) {
-      this.classroomNameTranslationKey =
-        this.i18nLanguageCodeService.getClassroomTranslationKeys(
-          this.classroomName
-        ).name;
-    }
-  }
-
-  isHackyTopicNameTranslationDisplayed(): boolean {
-    return (
-      this.i18nLanguageCodeService.isHackyTranslationAvailable(
-        this.topicNameTranslationKey
-      ) && !this.i18nLanguageCodeService.isCurrentLanguageEnglish()
-    );
-  }
-
-  isHackyTopicDescTranslationDisplayed(): boolean {
-    return (
-      this.i18nLanguageCodeService.isHackyTranslationAvailable(
-        this.topicDescTranslationKey
-      ) && !this.i18nLanguageCodeService.isCurrentLanguageEnglish()
-    );
-  }
-
-  isHackyClassroomNameTranslationDisplayed(): boolean {
-    if (!this.classroomName) {
-      return false;
-    }
-    return this.i18nLanguageCodeService.isClassroomnNameTranslationAvailable(
-      this.classroomName
-    );
-  }
+  constructor(private i18nLanguageCodeService: I18nLanguageCodeService) {}
 
   isLanguageRTL(): boolean {
     return this.i18nLanguageCodeService.isCurrentLanguageRTL();

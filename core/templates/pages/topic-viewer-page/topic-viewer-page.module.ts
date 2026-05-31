@@ -61,13 +61,7 @@ import {TopicStorySectionComponent} from './topic-story-section/topic-story-sect
       },
     ]),
   ],
-  declarations: [
-    TopicViewerPageRootComponent,
-    TopicViewerPageComponent,
-    TopicHeaderComponent,
-    TopicStorySectionComponent,
-    PracticeSessionConfirmationModal,
-  ],
+  declarations: [TopicViewerPageRootComponent, TopicViewerPageComponent],
   entryComponents: [TopicViewerPageComponent, PracticeSessionConfirmationModal],
 })
 export class TopicViewerPageModule {}

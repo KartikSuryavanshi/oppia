@@ -255,7 +255,6 @@ describe('CheckpointBarComponent', () => {
 
     const width = component.getCompletedProgressBarWidth();
 
-    // Should be 0% (base) + (5/10 * 25%) = 12.5%.
     expect(width).toBe(12.5);
   });
 
@@ -266,7 +265,6 @@ describe('CheckpointBarComponent', () => {
 
     const width = component.getCompletedProgressBarWidth();
 
-    // Should be at second checkpoint = 25%.
     expect(width).toBe(25);
   });
 
@@ -278,7 +276,6 @@ describe('CheckpointBarComponent', () => {
 
     const width = component.getCompletedProgressBarWidth();
 
-    // Should be 75% (base) + (5/10 * 25%) = 87.5%.
     expect(width).toBe(87.5);
   });
 
@@ -468,6 +465,47 @@ describe('CheckpointBarComponent', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('should not navigate when isReadOnly is true', () => {
+    component.isReadOnly = true;
+    component.checkpointIndexes = [0, 10, 20, 30];
+    component.checkpointStatusArray = [
+      'completed',
+      'completed',
+      'in-progress',
+      'incomplete',
+    ];
+
+    component.returnToCheckpointIfCompleted(1);
+
+    expect(
+      mockPlayerPositionService.setDisplayedCardIndex
+    ).not.toHaveBeenCalled();
+  });
+
+  it('should use provided input data when checkpointStatuses is set', () => {
+    const testStatuses = ['completed', 'completed', 'in-progress'];
+    component.checkpointStatuses = testStatuses;
+    component.progressPercent = 66;
+    component.isReadOnly = true;
+
+    component.ngOnInit();
+
+    expect(component.checkpointStatusArray).toEqual(testStatuses);
+    expect(component.progressBarWidth).toBe(66);
+    expect(component.checkpointCount).toBe(3);
+  });
+
+  it('should handle input mode with single checkpoint', () => {
+    const testStatuses = ['completed'];
+    component.checkpointStatuses = testStatuses;
+    component.progressPercent = 100;
+
+    component.ngOnInit();
+
+    expect(component.checkpointStatusArray).toEqual(testStatuses);
+    expect(component.checkpointCount).toBe(1);
+  });
+
   it('should handle case when displayed card index is negative', () => {
     component.checkpointIndexes = [0, 10, 20, 30];
     component.checkpointCount = 4;
@@ -475,10 +513,6 @@ describe('CheckpointBarComponent', () => {
 
     const width = component.getCompletedProgressBarWidth();
 
-    // The method will find currentSegmentIndex = 0, then calculate based on that
-    // startIdx = 0, endIdx = 10, stepsCompleted = -1 - 0 = -1
-    // fractionInSegment = -1/10 = -0.1, baseWidth = 0, additionalWidth = -0.1 * 25 = -2.5
-    // So result is 0 + (-2.5) = -2.5, but we should handle this edge case.
     expect(width).toBeLessThan(0);
   });
 
@@ -502,7 +536,6 @@ describe('CheckpointBarComponent', () => {
 
     const width = component.getCompletedProgressBarWidth();
 
-    // Should be 66.67% (base) + (5/10 * 33.33%) = 83.33%.
     expect(width).toBeCloseTo(83.33, 1);
   });
 
@@ -514,8 +547,6 @@ describe('CheckpointBarComponent', () => {
     expect(() => component.getCompletedProgressBarWidth()).not.toThrowError();
 
     const width = component.getCompletedProgressBarWidth();
-    // When totalSteps is 0, fractionInSegment should be 0, so result should be baseWidth.
-    // currentSegmentIndex = 0, baseWidth = 0 * (100/3) = 0.
     expect(width).toBe(0);
   });
 

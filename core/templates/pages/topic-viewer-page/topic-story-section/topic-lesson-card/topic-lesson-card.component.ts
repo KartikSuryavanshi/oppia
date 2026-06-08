@@ -21,6 +21,10 @@ import {UrlInterpolationService} from 'domain/utilities/url-interpolation.servic
 
 import './topic-lesson-card.component.css';
 
+const CHECKPOINT_STATUS_COMPLETED = 'completed';
+const CHECKPOINT_STATUS_IN_PROGRESS = 'in-progress';
+const CHECKPOINT_STATUS_INCOMPLETE = 'incomplete';
+
 @Component({
   selector: 'topic-lesson-card',
   templateUrl: './topic-lesson-card.component.html',
@@ -32,6 +36,14 @@ export class TopicLessonCardComponent implements OnInit {
   @Input() thumbnailUrl: string = '';
   @Input() startUrl: string | null = null;
 
+  @Input() lessonProgressStatus:
+    | 'not_started'
+    | 'in_progress'
+    | 'completed'
+    | 'coming_soon' = 'not_started';
+  @Input() totalCheckpointsCount: number = 0;
+  @Input() visitedCheckpointsCount: number = 0;
+
   resolvedThumbnailUrl: string = '';
 
   private readonly fallbackThumbnailImagePath: string =
@@ -42,6 +54,63 @@ export class TopicLessonCardComponent implements OnInit {
   ngOnInit(): void {
     this.resolvedThumbnailUrl =
       this.thumbnailUrl || this.getFallbackThumbnailUrl();
+  }
+
+  get checkpointStatuses(): string[] {
+    if (
+      this.lessonProgressStatus === 'coming_soon' ||
+      this.totalCheckpointsCount === 0
+    ) {
+      return [];
+    }
+
+    const statuses: string[] = [];
+    for (let i = 0; i < this.totalCheckpointsCount; i++) {
+      if (this.lessonProgressStatus === 'completed') {
+        statuses.push(CHECKPOINT_STATUS_COMPLETED);
+      } else if (
+        this.lessonProgressStatus === 'in_progress' &&
+        i < this.visitedCheckpointsCount
+      ) {
+        statuses.push(CHECKPOINT_STATUS_COMPLETED);
+      } else if (
+        this.lessonProgressStatus === 'in_progress' &&
+        i === this.visitedCheckpointsCount
+      ) {
+        statuses.push(CHECKPOINT_STATUS_IN_PROGRESS);
+      } else {
+        statuses.push(CHECKPOINT_STATUS_INCOMPLETE);
+      }
+    }
+    return statuses;
+  }
+
+  get progressPercent(): number {
+    if (
+      this.totalCheckpointsCount === 0 ||
+      this.lessonProgressStatus === 'coming_soon'
+    ) {
+      return 0;
+    }
+    if (this.lessonProgressStatus === 'completed') {
+      return 100;
+    }
+    if (this.lessonProgressStatus === 'not_started') {
+      return 0;
+    }
+    if (this.visitedCheckpointsCount >= this.totalCheckpointsCount) {
+      return 100;
+    }
+    return Math.floor(
+      (this.visitedCheckpointsCount / this.totalCheckpointsCount) * 100
+    );
+  }
+
+  get showCheckpointBar(): boolean {
+    return (
+      this.lessonProgressStatus !== 'coming_soon' &&
+      this.totalCheckpointsCount > 0
+    );
   }
 
   navigateTo(url: string | null): void {

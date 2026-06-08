@@ -7,7 +7,7 @@
 //      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
+// distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
@@ -32,7 +32,7 @@ import {PracticeSessionPageConstants} from 'pages/practice-session-page/practice
 import {AssetsBackendApiService} from 'services/assets-backend-api.service';
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {UrlService} from 'services/contextual/url.service';
-
+import {ChapterProgressLoaderService} from 'services/chapter-progress-loader.service';
 import './topic-story-section.component.css';
 
 const PRIMARY_AVATAR_IMAGE_PATH = '/avatar/oppia_avatar_large_100px.svg';
@@ -45,6 +45,13 @@ interface LessonCardData {
   lessonDescription: string;
   thumbnailUrl: string;
   startUrl: string;
+  lessonProgressStatus:
+    | 'not_started'
+    | 'in_progress'
+    | 'completed'
+    | 'coming_soon';
+  totalCheckpointsCount: number;
+  visitedCheckpointsCount: number;
 }
 
 interface PracticeCardData {
@@ -81,11 +88,13 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     private assetsBackendApiService: AssetsBackendApiService,
     private urlInterpolationService: UrlInterpolationService,
     private urlService: UrlService,
-    private i18nLanguageCodeService: I18nLanguageCodeService
+    private i18nLanguageCodeService: I18nLanguageCodeService,
+    private chapterProgressLoaderService: ChapterProgressLoaderService
   ) {}
 
   ngOnInit(): void {
     this.syncFromInputs();
+    this.loadChapterProgress();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -99,6 +108,9 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
       changes.practiceCount
     ) {
       this.syncFromInputs();
+      if (changes.storySummary) {
+        this.loadChapterProgress();
+      }
     }
   }
 
@@ -137,6 +149,83 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     return this.i18nLanguageCodeService.isCurrentLanguageRTL();
   }
 
+  private getLessonProgressStatus(
+    node: StoryNode
+  ): 'not_started' | 'in_progress' | 'completed' | 'coming_soon' {
+    if (!this.storySummary) {
+      return 'coming_soon';
+    }
+
+    const nodeTitle = node.getTitle();
+    if (this.storySummary.isNodeCompleted(nodeTitle)) {
+      return 'completed';
+    }
+
+    const visitedChapterTitles = this.storySummary.getVisitedChapterTitles();
+    if (
+      visitedChapterTitles &&
+      visitedChapterTitles.indexOf(nodeTitle) !== -1
+    ) {
+      return 'in_progress';
+    }
+
+    return 'not_started';
+  }
+
+  private async loadChapterProgress(): Promise<void> {
+    if (!this.storySummary) {
+      return;
+    }
+
+    const explorationIds = this.storySummary
+      .getAllNodes()
+      .map(node => node.getExplorationId())
+      .filter(id => id !== null) as string[];
+
+    if (explorationIds.length === 0) {
+      return;
+    }
+
+    try {
+      await this.chapterProgressLoaderService.loadChapterProgressForStory(
+        this.storySummary.getId(),
+        explorationIds
+      );
+    } catch {
+      return;
+    }
+
+    this.lessonCards = this.storySummary
+      .getAllNodes()
+      .map((node: StoryNode, index: number) => {
+        const explorationId = node.getExplorationId();
+        let totalCheckpoints = 0;
+        let visitedCheckpoints = 0;
+
+        if (explorationId) {
+          const summary =
+            this.chapterProgressLoaderService.getChapterProgressSummary(
+              explorationId
+            );
+          if (summary) {
+            totalCheckpoints = summary.totalCheckpoints;
+            visitedCheckpoints = summary.visitedCheckpoints;
+          }
+        }
+
+        return {
+          lessonNumber: index + 1,
+          lessonTitle: 'Lesson ' + (index + 1) + ': ' + node.getTitle(),
+          lessonDescription: node.getDescription(),
+          thumbnailUrl: this.getLessonThumbnailUrl(node),
+          startUrl: this.getLessonStartUrl(node),
+          lessonProgressStatus: this.getLessonProgressStatus(node),
+          totalCheckpointsCount: totalCheckpoints,
+          visitedCheckpointsCount: visitedCheckpoints,
+        };
+      });
+  }
+
   private syncFromInputs(): void {
     if (!this.classroomUrlFragment) {
       this.classroomUrlFragment =
@@ -159,6 +248,7 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     this.storyTitle = this.storySummary.getTitle();
     this.storyDescription = this.storySummary.getDescription() || '';
     this.lessonCount = this.storySummary.getNodeTitles().length;
+
     this.lessonCards = this.storySummary
       .getAllNodes()
       .map((node: StoryNode, index: number) => {
@@ -168,6 +258,9 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
           lessonDescription: node.getDescription(),
           thumbnailUrl: this.getLessonThumbnailUrl(node),
           startUrl: this.getLessonStartUrl(node),
+          lessonProgressStatus: this.getLessonProgressStatus(node),
+          totalCheckpointsCount: 0,
+          visitedCheckpointsCount: 0,
         };
       });
 

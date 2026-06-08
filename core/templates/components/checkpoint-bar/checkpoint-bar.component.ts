@@ -16,11 +16,11 @@
  * @fileoverview Component for tracking Checkpoint state.
  */
 
-import {Component, OnInit} from '@angular/core';
+import {Component, Input, OnInit, Optional} from '@angular/core';
 import './checkpoint-bar.component.css';
-import {ExplorationEngineService} from '../../../services/exploration-engine.service';
+import {ExplorationEngineService} from 'pages/exploration-player-page/services/exploration-engine.service';
 import {StateObjectsBackendDict} from 'domain/exploration/states.model';
-import {PlayerPositionService} from '../../../services/player-position.service';
+import {PlayerPositionService} from 'pages/exploration-player-page/services/player-position.service';
 import {Subscription} from 'rxjs';
 import {PageContextService} from 'services/page-context.service';
 import {CheckpointProgressService} from 'pages/exploration-player-page/services/checkpoint-progress.service';
@@ -35,6 +35,10 @@ const CHECKPOINT_STATUS_IN_PROGRESS = 'in-progress';
   styleUrls: ['./checkpoint-bar.component.css'],
 })
 export class CheckpointBarComponent implements OnInit {
+  @Input() checkpointStatuses: string[] | null = null;
+  @Input() progressPercent: number | null = null;
+  @Input() isReadOnly: boolean = false;
+
   explorationId!: string;
   expStates!: StateObjectsBackendDict;
   checkpointCount: number = 0;
@@ -47,13 +51,29 @@ export class CheckpointBarComponent implements OnInit {
   maxStateDepth: number = 0;
 
   constructor(
-    private explorationEngineService: ExplorationEngineService,
-    private playerPositionService: PlayerPositionService,
-    private pageContextService: PageContextService,
-    private checkpointProgressService: CheckpointProgressService
+    @Optional() private explorationEngineService?: ExplorationEngineService,
+    @Optional() private playerPositionService?: PlayerPositionService,
+    @Optional() private pageContextService?: PageContextService,
+    @Optional() private checkpointProgressService?: CheckpointProgressService
   ) {}
 
   ngOnInit(): void {
+    if (this.checkpointStatuses !== null) {
+      this.checkpointStatusArray = this.checkpointStatuses;
+      this.progressBarWidth = this.progressPercent ?? 0;
+      this.checkpointCount = this.checkpointStatuses.length;
+      return;
+    }
+
+    if (
+      !this.pageContextService ||
+      !this.checkpointProgressService ||
+      !this.explorationEngineService ||
+      !this.playerPositionService
+    ) {
+      return;
+    }
+
     this.explorationId = this.pageContextService.getExplorationId();
     this.checkpointIndexes =
       this.checkpointProgressService.getCheckpointStates();
@@ -77,28 +97,32 @@ export class CheckpointBarComponent implements OnInit {
   }
 
   getCompletedProgressBarWidth(): number {
+    const playerPositionService = this.playerPositionService;
+    const explorationEngineService = this.explorationEngineService;
+    if (!playerPositionService || !explorationEngineService) {
+      return 0;
+    }
+
     const checkpointIndexes = this.checkpointIndexes;
-    const displayedCardIndex =
-      this.playerPositionService.getDisplayedCardIndex();
+    const displayedCardIndex = playerPositionService.getDisplayedCardIndex();
     const segmentWidth = 100 / this.checkpointCount;
 
     if (displayedCardIndex === checkpointIndexes[0]) {
-      return 0; // No progress needed; it's the first checkpoint.
+      return 0;
     }
 
-    let state = this.explorationEngineService.getState();
-    let stateCard = this.explorationEngineService.getStateCardByName(
+    let state = explorationEngineService.getState();
+    let stateCard = explorationEngineService.getStateCardByName(
       state.name as string
     );
     if (stateCard.isTerminal()) {
       return 100;
     }
 
-    // Find the current segment between checkpoints.
     let currentSegmentIndex = 0;
 
     if (displayedCardIndex >= checkpointIndexes[checkpointIndexes.length - 1]) {
-      currentSegmentIndex = checkpointIndexes.length - 1; // If at or beyond the last checkpoint, full progress.
+      currentSegmentIndex = checkpointIndexes.length - 1;
     } else {
       for (let i = 0; i < checkpointIndexes.length - 1; i++) {
         if (
@@ -130,18 +154,28 @@ export class CheckpointBarComponent implements OnInit {
   }
 
   updateLessonProgressBar(): void {
+    const explorationEngineService = this.explorationEngineService;
+    const checkpointProgressService = this.checkpointProgressService;
+    const playerPositionService = this.playerPositionService;
+    if (
+      !explorationEngineService ||
+      !checkpointProgressService ||
+      !playerPositionService
+    ) {
+      return;
+    }
+
     this.progressBarWidth = this.getCompletedProgressBarWidth();
-    let state = this.explorationEngineService.getState();
-    let stateCard = this.explorationEngineService.getStateCardByName(
+    let state = explorationEngineService.getState();
+    let stateCard = explorationEngineService.getStateCardByName(
       state.name as string
     );
     if (!this.expEnded) {
       const mostRecentlyReachedCheckpointIndex =
-        this.checkpointProgressService.getMostRecentlyReachedCheckpointIndex();
+        checkpointProgressService.getMostRecentlyReachedCheckpointIndex();
       this.completedCheckpointsCount = mostRecentlyReachedCheckpointIndex - 1;
 
-      let displayedCardIndex =
-        this.playerPositionService.getDisplayedCardIndex();
+      let displayedCardIndex = playerPositionService.getDisplayedCardIndex();
       if (displayedCardIndex > 0) {
         if (stateCard.isTerminal()) {
           this.checkpointStatusArray[this.checkpointCount] =
@@ -152,22 +186,18 @@ export class CheckpointBarComponent implements OnInit {
       }
     }
 
-    // Mark the first checkpoint as completed.
     this.checkpointStatusArray = new Array(this.checkpointCount + 1);
     this.checkpointStatusArray[0] = CHECKPOINT_STATUS_COMPLETED;
 
-    // Mark remaining checkpoints based on current progress.
     for (let i = 1; i < this.completedCheckpointsCount; i++) {
       this.checkpointStatusArray[i] = CHECKPOINT_STATUS_COMPLETED;
     }
 
-    // If there are still incomplete checkpoints, mark the next checkpoint as "in-progress".
     if (this.checkpointCount > this.completedCheckpointsCount) {
       this.checkpointStatusArray[this.completedCheckpointsCount] =
         CHECKPOINT_STATUS_IN_PROGRESS;
     }
 
-    // All remaining checkpoints are incomplete.
     for (
       let i = this.completedCheckpointsCount + 1;
       i < this.checkpointCount;
@@ -185,13 +215,10 @@ export class CheckpointBarComponent implements OnInit {
     }
   }
 
-  /**
-   * If the checkpoint is completed, this function returns the user to the checkpoint.
-   *
-   * @param {number} checkpointNumber - The number of the checkpoint to return to.
-   * @returns {void} This function does not return a value. It changes the displayed card if the checkpoint is completed.
-   */
   returnToCheckpointIfCompleted(checkpointNumber: number): void {
+    if (this.isReadOnly || !this.playerPositionService) {
+      return;
+    }
     const checkpointCardIndexes = this.checkpointIndexes;
     const cardIndex = checkpointCardIndexes[checkpointNumber];
 

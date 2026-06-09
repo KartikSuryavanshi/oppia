@@ -303,7 +303,7 @@ describe('TopicStorySectionComponent', () => {
 
     expect(component.lessonCards.length).toBe(1);
     expect(component.lessonCards[0].totalCheckpointsCount).toBe(5);
-    expect(component.lessonCards[0].visitedCheckpointsCount).toBe(3);
+    expect(component.lessonCards[0].visitedCheckpointsCount).toBe(2);
   });
 
   it('should not create practice card when lesson cards exist', () => {

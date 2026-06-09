@@ -64,24 +64,32 @@ export class TopicLessonCardComponent implements OnInit {
       return [];
     }
 
+    const totalNodes = this.totalCheckpointsCount + 1;
     const statuses: string[] = [];
-    for (let i = 0; i < this.totalCheckpointsCount; i++) {
-      if (this.lessonProgressStatus === 'completed') {
+    const visitedCheckpointCount = Math.min(
+      Math.max(this.visitedCheckpointsCount, 0),
+      this.totalCheckpointsCount
+    );
+
+    if (visitedCheckpointCount >= this.totalCheckpointsCount) {
+      for (let i = 0; i < totalNodes; i++) {
         statuses.push(CHECKPOINT_STATUS_COMPLETED);
-      } else if (
-        this.lessonProgressStatus === 'in_progress' &&
-        i < this.visitedCheckpointsCount
-      ) {
+      }
+      return statuses;
+    }
+
+    const currentNodeIndex = visitedCheckpointCount;
+
+    for (let i = 0; i < totalNodes; i++) {
+      if (i < currentNodeIndex) {
         statuses.push(CHECKPOINT_STATUS_COMPLETED);
-      } else if (
-        this.lessonProgressStatus === 'in_progress' &&
-        i === this.visitedCheckpointsCount
-      ) {
+      } else if (i === currentNodeIndex) {
         statuses.push(CHECKPOINT_STATUS_IN_PROGRESS);
       } else {
         statuses.push(CHECKPOINT_STATUS_INCOMPLETE);
       }
     }
+
     return statuses;
   }
 
@@ -92,17 +100,15 @@ export class TopicLessonCardComponent implements OnInit {
     ) {
       return 0;
     }
-    if (this.lessonProgressStatus === 'completed') {
-      return 100;
-    }
-    if (this.lessonProgressStatus === 'not_started') {
-      return 0;
-    }
-    if (this.visitedCheckpointsCount >= this.totalCheckpointsCount) {
+    const visitedCheckpointCount = Math.min(
+      Math.max(this.visitedCheckpointsCount, 0),
+      this.totalCheckpointsCount
+    );
+    if (visitedCheckpointCount >= this.totalCheckpointsCount) {
       return 100;
     }
     return Math.floor(
-      (this.visitedCheckpointsCount / this.totalCheckpointsCount) * 100
+      (visitedCheckpointCount / this.totalCheckpointsCount) * 100
     );
   }
 

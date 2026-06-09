@@ -283,7 +283,7 @@ describe('TopicStorySectionComponent', () => {
     storyNodeSpy.getExplorationId.and.returnValue('exp_1');
     storyNodeSpy.getId.and.returnValue('node_1');
 
-    const mockSummary = new ChapterProgressSummary(5, 3, false);
+    const mockSummary = new ChapterProgressSummary('exp_1', 5, 3, false);
     chapterProgressLoaderService.getChapterProgressSummary.and.returnValue(
       mockSummary
     );

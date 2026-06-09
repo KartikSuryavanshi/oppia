@@ -57,7 +57,13 @@
 }
 
 .topic-lesson-card-progress {
-  padding: 8px 0 4px;
+  height: 24px;
+  width: 296px;
+}
+
+.topic-lesson-card-progress oppia-checkpoint-bar {
+  display: block;
+  height: 100%;
   width: 100%;
 }
 
@@ -110,7 +116,9 @@
   }
 
   .topic-lesson-card-progress {
-    padding: 4px 0 2px;
+    height: 24px;
+    max-width: 296px;
+    width: 100%;
   }
 
   .topic-lesson-card-start-button {
@@ -164,7 +172,8 @@
   }
 
   .topic-lesson-card-progress {
-    padding: 4px 0;
+    height: 24px;
+    width: 100%;
   }
 
   .topic-lesson-card-start-button {

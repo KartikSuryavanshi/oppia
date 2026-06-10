@@ -163,8 +163,8 @@ describe('TopicLessonCardComponent', () => {
       const statuses = component.checkpointStatuses;
       expect(statuses.length).toBe(6);
       expect(statuses[0]).toBe('completed');
-      expect(statuses[1]).toBe('completed');
-      expect(statuses[2]).toBe('in-progress');
+      expect(statuses[1]).toBe('in-progress');
+      expect(statuses[2]).toBe('incomplete');
       expect(statuses[3]).toBe('incomplete');
       expect(statuses[4]).toBe('incomplete');
       expect(statuses[5]).toBe('incomplete');
@@ -180,14 +180,14 @@ describe('TopicLessonCardComponent', () => {
       expect(statuses.every(s => s === 'completed')).toBeTrue();
     });
 
-    it('should not show all completed if completed status is set but checkpoints are not visited', () => {
+    it('should show all completed if completed status is set even if checkpoint count is stale', () => {
       component.lessonProgressStatus = 'completed';
       component.totalCheckpointsCount = 5;
       component.visitedCheckpointsCount = 0;
 
       const statuses = component.checkpointStatuses;
-      expect(statuses[0]).toBe('in-progress');
-      expect(statuses.slice(1).every(s => s === 'incomplete')).toBeTrue();
+      expect(statuses.length).toBe(6);
+      expect(statuses.every(s => s === 'completed')).toBeTrue();
     });
 
     it('should return empty for coming_soon lesson', () => {
@@ -221,12 +221,12 @@ describe('TopicLessonCardComponent', () => {
       expect(component.progressPercent).toBe(100);
     });
 
-    it('should return progress from checkpoint counts even if status is completed', () => {
+    it('should return 100 when status is completed even if checkpoint count is stale', () => {
       component.lessonProgressStatus = 'completed';
       component.totalCheckpointsCount = 10;
       component.visitedCheckpointsCount = 3;
 
-      expect(component.progressPercent).toBe(30);
+      expect(component.progressPercent).toBe(100);
     });
 
     it('should return 0 for coming_soon', () => {
@@ -240,7 +240,17 @@ describe('TopicLessonCardComponent', () => {
       component.totalCheckpointsCount = 10;
       component.visitedCheckpointsCount = 3;
 
-      expect(component.progressPercent).toBe(30);
+      expect(component.progressPercent).toBe(20);
+    });
+
+    it('should mark all nodes complete when visited checkpoint count reaches total checkpoints', () => {
+      component.lessonProgressStatus = 'in_progress';
+      component.totalCheckpointsCount = 5;
+      component.visitedCheckpointsCount = 5;
+
+      const statuses = component.checkpointStatuses;
+      expect(statuses.length).toBe(6);
+      expect(statuses.every(s => s === 'completed')).toBeTrue();
     });
 
     it('should return correct showCheckpointBar value', () => {

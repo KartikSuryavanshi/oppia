@@ -209,7 +209,7 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
             );
           if (summary) {
             totalCheckpoints = summary.totalCheckpoints;
-            visitedCheckpoints = Math.max(0, summary.visitedCheckpoints - 1);
+            visitedCheckpoints = summary.visitedCheckpoints;
           }
         }
 

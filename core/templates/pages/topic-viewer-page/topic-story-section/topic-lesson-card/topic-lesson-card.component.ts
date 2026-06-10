@@ -70,15 +70,19 @@ export class TopicLessonCardComponent implements OnInit {
       Math.max(this.visitedCheckpointsCount, 0),
       this.totalCheckpointsCount
     );
+    const reachedCheckpointCount = Math.max(visitedCheckpointCount - 1, 0);
 
-    if (visitedCheckpointCount >= this.totalCheckpointsCount) {
+    if (
+      this.lessonProgressStatus === 'completed' ||
+      visitedCheckpointCount >= this.totalCheckpointsCount
+    ) {
       for (let i = 0; i < totalNodes; i++) {
         statuses.push(CHECKPOINT_STATUS_COMPLETED);
       }
       return statuses;
     }
 
-    const currentNodeIndex = visitedCheckpointCount;
+    const currentNodeIndex = reachedCheckpointCount;
 
     for (let i = 0; i < totalNodes; i++) {
       if (i < currentNodeIndex) {
@@ -100,15 +104,22 @@ export class TopicLessonCardComponent implements OnInit {
     ) {
       return 0;
     }
+
     const visitedCheckpointCount = Math.min(
       Math.max(this.visitedCheckpointsCount, 0),
       this.totalCheckpointsCount
     );
-    if (visitedCheckpointCount >= this.totalCheckpointsCount) {
+
+    if (
+      this.lessonProgressStatus === 'completed' ||
+      visitedCheckpointCount >= this.totalCheckpointsCount
+    ) {
       return 100;
     }
+
+    const reachedCheckpointCount = Math.max(visitedCheckpointCount - 1, 0);
     return Math.floor(
-      (visitedCheckpointCount / this.totalCheckpointsCount) * 100
+      (reachedCheckpointCount / this.totalCheckpointsCount) * 100
     );
   }
 

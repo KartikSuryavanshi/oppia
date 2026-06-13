@@ -46,6 +46,7 @@ import {PlatformFeatureService} from 'services/platform-feature.service';
 
 import './story-viewer-page.component.css';
 import {StoryNode} from 'domain/story/story-node.model';
+import {Arc} from 'domain/story_viewer/story-playthrough.model';
 import constants from 'assets/constants';
 
 interface IconParametersArray {
@@ -87,6 +88,8 @@ export class StoryViewerPageComponent implements OnInit, OnDestroy {
   isLoggedIn: boolean = false;
   storyNodesTitleTranslationKeys: string[] = [];
   storyNodesDescTranslationKeys: string[] = [];
+  arcList: Arc[] = [];
+  arcCollapsedState: boolean[] = [];
   constructor(
     private urlInterpolationService: UrlInterpolationService,
     private i18nLanguageCodeService: I18nLanguageCodeService,
@@ -230,6 +233,8 @@ export class StoryViewerPageComponent implements OnInit, OnDestroy {
           this.storyNodes = this.storyPlaythroughObject.getStoryNodes();
           this.storyId = this.storyPlaythroughObject.getStoryId();
           this.topicName = this.storyPlaythroughObject.topicName;
+          this.arcList = this.storyPlaythroughObject.getArcs();
+          this.arcCollapsedState = this.arcList.map(() => false);
           this.pageTitleService.updateMetaTag(
             storyDataDict.getMetaTagContent()
           );
@@ -290,6 +295,24 @@ export class StoryViewerPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.directiveSubscriptions.unsubscribe();
+  }
+
+  getNodeIndexInStory(node: ReadOnlyStoryNode): number {
+    return this.storyNodes.indexOf(node);
+  }
+
+  toggleArcCollapse(arcIndex: number): void {
+    this.arcCollapsedState[arcIndex] = !this.arcCollapsedState[arcIndex];
+  }
+
+  isArcCollapsed(arcIndex: number): boolean {
+    return this.arcCollapsedState[arcIndex] === true;
+  }
+
+  getArcProgressText(arcIndex: number): string {
+    var completed = this.storyPlaythroughObject.getArcCompletionCount(arcIndex);
+    var total = this.storyPlaythroughObject.getNodesInArc(arcIndex).length;
+    return completed + '/' + total;
   }
 
   isHackyStoryTitleTranslationDisplayed(): boolean {

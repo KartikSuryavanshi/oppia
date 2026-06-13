@@ -1,0 +1,37 @@
+<div class="topic-lesson-card" [attr.aria-label]="lessonTitle || 'Lesson card'">
+  <div class="topic-lesson-card-thumbnail">
+    <img class="topic-lesson-card-image"
+         [src]="resolvedThumbnailUrl"
+         alt="{{ getThumbnailAltText() }}"
+         title="{{ getThumbnailAltText() }}">
+  </div>
+
+  <div class="topic-lesson-card-content">
+    <div class="topic-lesson-card-copy">
+      <h3 class="topic-lesson-card-title">{{ lessonTitle }}</h3>
+      <p class="topic-lesson-card-description">{{ lessonDescription }}</p>
+    </div>
+
+    <div class="topic-lesson-card-actions">
+      <button class="topic-lesson-card-start-button"
+              type="button"
+              [disabled]="!startUrl"
+              (click)="navigateTo(startUrl)">
+        <span>Start</span>
+      </button>
+
+      <a class="topic-lesson-card-study-link"
+         [attr.href]="studyUrl"
+         [attr.aria-disabled]="studyUrl ? null : 'true'">
+        <span>Study</span>
+      </a>
+
+      <button class="topic-lesson-card-practice-button"
+              type="button"
+              [disabled]="!practiceUrl"
+              (click)="navigateTo(practiceUrl)">
+        <span>Practice</span>
+      </button>
+    </div>
+  </div>
+</div>

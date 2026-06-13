@@ -383,6 +383,18 @@ def apply_change_list(
                         update_node_unpublishing_reason_cmd.node_id,
                         update_node_unpublishing_reason_cmd.new_value,
                     )
+                elif (
+                    change.property_name
+                    == story_domain.STORY_NODE_PROPERTY_IS_PRACTICE_NODE
+                ):
+                    update_node_is_practice_node_cmd = cast(
+                        story_domain.UpdateStoryNodePropertyIsPracticeNodeCmd,
+                        change,
+                    )
+                    story.update_node_is_practice_node(
+                        update_node_is_practice_node_cmd.node_id,
+                        update_node_is_practice_node_cmd.new_value,
+                    )
             elif change.cmd == story_domain.CMD_UPDATE_STORY_PROPERTY:
                 # Here we use cast because we are narrowing down the type from
                 # StoryChange to a specific change command.
@@ -470,6 +482,40 @@ def apply_change_list(
                 # latest schema version. As a result, simply resaving the
                 # story is sufficient to apply the schema migration.
                 continue
+            elif change.cmd == story_domain.CMD_CREATE_ARC:
+                create_arc_cmd = cast(story_domain.CreateArcCmd, change)
+                story.create_arc(create_arc_cmd.title)
+            elif change.cmd == story_domain.CMD_DELETE_ARC:
+                delete_arc_cmd = cast(story_domain.DeleteArcCmd, change)
+                story.delete_arc(delete_arc_cmd.arc_index)
+            elif change.cmd == story_domain.CMD_RENAME_ARC:
+                rename_arc_cmd = cast(story_domain.RenameArcCmd, change)
+                story.rename_arc(
+                    rename_arc_cmd.arc_index, rename_arc_cmd.new_title
+                )
+            elif change.cmd == story_domain.CMD_REARRANGE_ARCS:
+                rearrange_arcs_cmd = cast(story_domain.RearrangeArcsCmd, change)
+                story.rearrange_arcs(
+                    rearrange_arcs_cmd.from_index,
+                    rearrange_arcs_cmd.to_index,
+                )
+            elif change.cmd == story_domain.CMD_MOVE_NODE_TO_ARC:
+                move_node_to_arc_cmd = cast(
+                    story_domain.MoveNodeToArcCmd, change
+                )
+                story.move_node_to_arc(
+                    move_node_to_arc_cmd.node_id,
+                    move_node_to_arc_cmd.new_arc_index,
+                )
+            elif change.cmd == story_domain.CMD_UPDATE_ARC_PROPERTY:
+                update_arc_property_cmd = cast(
+                    story_domain.UpdateArcPropertyCmd, change
+                )
+                story.update_arc_property(
+                    update_arc_property_cmd.arc_index,
+                    update_arc_property_cmd.property_name,
+                    update_arc_property_cmd.new_value,
+                )
 
         exp_ids_in_modified_story = (
             story.story_contents.get_all_linked_exp_ids()

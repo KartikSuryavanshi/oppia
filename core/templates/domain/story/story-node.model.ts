@@ -36,6 +36,7 @@ export interface StoryNodeBackendDict {
   last_modified_msecs: number | null;
   first_publication_date_msecs: number | null;
   unpublishing_reason: string | null;
+  is_practice_node: boolean;
 }
 
 export class StoryNode {
@@ -55,6 +56,7 @@ export class StoryNode {
   _lastModifiedMsecs: number | null;
   _firstPublicationDateMsecs: number | null;
   _unpublishingReason: string | null;
+  _isPracticeNode: boolean;
 
   constructor(
     id: string,
@@ -72,7 +74,8 @@ export class StoryNode {
     plannedPublicationDateMsecs: number | null,
     lastModifiedMsecs: number | null,
     firstPublicationDateMsecs: number | null,
-    unpublishingReason: string | null
+    unpublishingReason: string | null,
+    isPracticeNode: boolean = false
   ) {
     this._id = id;
     this._title = title;
@@ -90,6 +93,29 @@ export class StoryNode {
     this._lastModifiedMsecs = lastModifiedMsecs;
     this._firstPublicationDateMsecs = firstPublicationDateMsecs;
     this._unpublishingReason = unpublishingReason;
+    this._isPracticeNode = isPracticeNode;
+  }
+
+  toBackendDict(): StoryNodeBackendDict {
+    return {
+      id: this._id,
+      title: this._title,
+      description: this._description,
+      destination_node_ids: [...this._destinationNodeIds],
+      prerequisite_skill_ids: [...this._prerequisiteSkillIds],
+      acquired_skill_ids: [...this._acquiredSkillIds],
+      outline: this._outline,
+      outline_is_finalized: this._outlineIsFinalized,
+      exploration_id: this._explorationId,
+      thumbnail_bg_color: this._thumbnailBgColor,
+      thumbnail_filename: this._thumbnailFilename,
+      status: this._status,
+      planned_publication_date_msecs: this._plannedPublicationDateMsecs,
+      last_modified_msecs: this._lastModifiedMsecs,
+      first_publication_date_msecs: this._firstPublicationDateMsecs,
+      unpublishing_reason: this._unpublishingReason,
+      is_practice_node: this._isPracticeNode,
+    };
   }
 
   _checkValidNodeId(nodeId: string): boolean {
@@ -174,6 +200,14 @@ export class StoryNode {
 
   setUnpublishingReason(unpublishingReason: string | null): void {
     this._unpublishingReason = unpublishingReason;
+  }
+
+  getIsPracticeNode(): boolean {
+    return this._isPracticeNode;
+  }
+
+  setIsPracticeNode(isPracticeNode: boolean): void {
+    this._isPracticeNode = isPracticeNode;
   }
 
   setOutline(outline: string): void {
@@ -394,7 +428,8 @@ export class StoryNode {
       storyNodeBackendObject.planned_publication_date_msecs,
       storyNodeBackendObject.last_modified_msecs,
       storyNodeBackendObject.first_publication_date_msecs,
-      storyNodeBackendObject.unpublishing_reason
+      storyNodeBackendObject.unpublishing_reason,
+      storyNodeBackendObject.is_practice_node
     );
   }
 
@@ -415,7 +450,8 @@ export class StoryNode {
       null,
       null,
       null,
-      null
+      null,
+      false
     );
   }
 }

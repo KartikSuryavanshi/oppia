@@ -74,6 +74,9 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
 
         canonical_story_dicts = []
         for story_summary in canonical_story_summaries:
+            story = story_fetchers.get_story_by_id(
+                story_summary.id, strict=False
+            )
             all_nodes = story_fetchers.get_pending_and_all_nodes_in_story(
                 self.user_id, story_summary.id
             )['all_nodes']
@@ -101,11 +104,19 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 'story_is_published': True,
                 'completed_node_titles': completed_node_titles,
                 'all_node_dicts': [node.to_dict() for node in filtered_nodes],
+                'arcs': (
+                    story.story_contents.to_dict()['arcs']
+                    if story and story.story_contents.to_dict().get('arcs')
+                    else []
+                ),
             }
             canonical_story_dicts.append(canonical_story_dict)
 
         additional_story_dicts = []
         for story_summary in additional_story_summaries:
+            story = story_fetchers.get_story_by_id(
+                story_summary.id, strict=False
+            )
             all_nodes = story_fetchers.get_pending_and_all_nodes_in_story(
                 self.user_id, story_summary.id
             )['all_nodes']
@@ -128,6 +139,11 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 'story_is_published': True,
                 'completed_node_titles': completed_node_titles,
                 'all_node_dicts': [node.to_dict() for node in all_nodes],
+                'arcs': (
+                    story.story_contents.to_dict()['arcs']
+                    if story and story.story_contents.to_dict().get('arcs')
+                    else []
+                ),
             }
             additional_story_dicts.append(additional_story_dict)
 

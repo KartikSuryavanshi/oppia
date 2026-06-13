@@ -21,6 +21,28 @@ import {
   StoryNodeBackendDict,
 } from 'domain/story_viewer/read-only-story-node.model';
 
+export interface ArcBackendDict {
+  title: string;
+  node_ids: string[];
+  description: string;
+}
+
+export class Arc {
+  constructor(
+    public title: string,
+    public nodeIds: string[],
+    public description: string
+  ) {}
+
+  static createFromBackendDict(backendDict: ArcBackendDict): Arc {
+    return new Arc(
+      backendDict.title,
+      [...backendDict.node_ids],
+      backendDict.description
+    );
+  }
+}
+
 export interface StoryPlaythroughBackendDict {
   story_id: string;
   story_nodes: StoryNodeBackendDict[];
@@ -28,11 +50,13 @@ export interface StoryPlaythroughBackendDict {
   story_description: string;
   topic_name: string;
   meta_tag_content: string;
+  arcs: ArcBackendDict[];
 }
 
 export class StoryPlaythrough {
   id: string;
   nodes: ReadOnlyStoryNode[];
+  arcs: Arc[];
   title: string;
   description: string;
   topicName: string;
@@ -41,6 +65,7 @@ export class StoryPlaythrough {
   constructor(
     id: string,
     nodes: ReadOnlyStoryNode[],
+    arcs: Arc[],
     title: string,
     description: string,
     topicName: string,
@@ -48,6 +73,7 @@ export class StoryPlaythrough {
   ) {
     this.id = id;
     this.nodes = nodes;
+    this.arcs = arcs;
     this.title = title;
     this.description = description;
     this.topicName = topicName;
@@ -61,9 +87,14 @@ export class StoryPlaythrough {
       storyNodeDict => ReadOnlyStoryNode.createFromBackendDict(storyNodeDict)
     );
 
+    var arcs = (storyPlaythroughBackendDict.arcs || []).map(arcDict =>
+      Arc.createFromBackendDict(arcDict)
+    );
+
     return new StoryPlaythrough(
       storyPlaythroughBackendDict.story_id,
       nodeObjects,
+      arcs,
       storyPlaythroughBackendDict.story_title,
       storyPlaythroughBackendDict.story_description,
       storyPlaythroughBackendDict.topic_name,
@@ -106,5 +137,43 @@ export class StoryPlaythrough {
 
   getMetaTagContent(): string {
     return this.metaTagContent;
+  }
+
+  getArcs(): Arc[] {
+    return this.arcs;
+  }
+
+  getNodesInArc(arcIndex: number): ReadOnlyStoryNode[] {
+    var arc = this.arcs[arcIndex];
+    if (!arc) {
+      return [];
+    }
+    var nodeMap: Record<string, ReadOnlyStoryNode> = {};
+    for (var i = 0; i < this.nodes.length; i++) {
+      nodeMap[this.nodes[i].getId()] = this.nodes[i];
+    }
+    return arc.nodeIds
+      .map(nodeId => nodeMap[nodeId])
+      .filter(node => node !== undefined) as ReadOnlyStoryNode[];
+  }
+
+  getArcIndexForNode(nodeId: string): number {
+    for (var i = 0; i < this.arcs.length; i++) {
+      if (this.arcs[i].nodeIds.indexOf(nodeId) !== -1) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  getArcCompletionCount(arcIndex: number): number {
+    var nodes = this.getNodesInArc(arcIndex);
+    var count = 0;
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].isCompleted()) {
+        count++;
+      }
+    }
+    return count;
   }
 }

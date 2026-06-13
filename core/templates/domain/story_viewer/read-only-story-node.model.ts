@@ -37,6 +37,7 @@ export interface StoryNodeBackendDict {
   thumbnail_bg_color: string;
   thumbnail_filename: string;
   status: string;
+  is_practice_node: boolean;
 }
 
 export class ReadOnlyStoryNode {
@@ -54,6 +55,7 @@ export class ReadOnlyStoryNode {
   thumbnailBgColor: string;
   thumbnailFilename: string;
   status: string;
+  isPracticeNode: boolean;
 
   constructor(
     id: string,
@@ -69,7 +71,8 @@ export class ReadOnlyStoryNode {
     completed: boolean,
     thumbnailBgColor: string,
     thumbnailFilename: string,
-    status: string
+    status: string,
+    isPracticeNode: boolean = false
   ) {
     this.id = id;
     this.title = title;
@@ -85,6 +88,7 @@ export class ReadOnlyStoryNode {
     this.thumbnailBgColor = thumbnailBgColor;
     this.thumbnailFilename = thumbnailFilename;
     this.status = status;
+    this.isPracticeNode = isPracticeNode;
   }
 
   static createFromBackendDict(
@@ -108,7 +112,8 @@ export class ReadOnlyStoryNode {
       storyNodeBackendDict.completed,
       storyNodeBackendDict.thumbnail_bg_color,
       storyNodeBackendDict.thumbnail_filename,
-      storyNodeBackendDict.status
+      storyNodeBackendDict.status,
+      storyNodeBackendDict.is_practice_node
     );
   }
 
@@ -154,5 +159,9 @@ export class ReadOnlyStoryNode {
 
   getStatus(): string {
     return this.status;
+  }
+
+  getIsPracticeNode(): boolean {
+    return this.isPracticeNode;
   }
 }

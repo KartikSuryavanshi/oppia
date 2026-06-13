@@ -21,7 +21,9 @@ import {TranslateService} from '@ngx-translate/core';
 import {Subscription} from 'rxjs';
 
 import {AppConstants} from 'app.constants';
+import {ArcBackendDict} from 'domain/story/story-contents-object.model';
 import {ReadOnlyTopic} from 'domain/topic_viewer/read-only-topic.model';
+import {StoryNode} from 'domain/story/story-node.model';
 import {StorySummary} from 'domain/story/story-summary.model';
 import {Subtopic, SkillIdToDescriptionMap} from 'domain/topic/subtopic.model';
 import {DegreesOfMastery} from 'domain/topic_viewer/read-only-topic.model';
@@ -43,6 +45,9 @@ interface TopicViewerStorySectionData {
   storyDescription: string;
   lessonCount: number;
   practiceCount: number;
+  arcs: ArcBackendDict[];
+  nodes: StoryNode[];
+  storyUrlFragment: string;
 }
 
 @Component({
@@ -179,6 +184,9 @@ export class TopicViewerPageComponent implements OnInit, OnDestroy {
         storyDescription: storySummary.getDescription() || '',
         lessonCount: storySummary.getNodeTitles().length,
         practiceCount,
+        arcs: storySummary.getArcs(),
+        nodes: storySummary.getAllNodes(),
+        storyUrlFragment: storySummary.getUrlFragment(),
       };
     });
   }

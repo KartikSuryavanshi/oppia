@@ -230,6 +230,53 @@
               </div>
             </div>
           </div>
+          <div class="arc-panel-section">
+            <div class="arc-panel-header" (click)="toggleArcPanel()">
+              <span>Arc Management</span>
+              <i class="fa" [ngClass]="arcPanelIsShown ? 'fa-caret-up' : 'fa-caret-down'"></i>
+            </div>
+            <div *ngIf="arcPanelIsShown" class="arc-panel-body">
+              <div *ngIf="getArcs().length === 0" class="no-arcs-message">
+                No arcs defined.
+              </div>
+              <div cdkDropList (cdkDropListDropped)="dropArc($event)" class="arc-list">
+                <div *ngFor="let arc of getArcs(); let arcIdx = index" class="arc-item" cdkDrag>
+                  <div class="arc-item-header">
+                    <span class="fas fa-grip-vertical draggable-icon-indicator" cdkDragHandle></span>
+                    <span class="arc-title" (click)="renameArc(arcIdx)">{{ arc.getTitle() }}</span>
+                    <span class="arc-node-count">({{ arc.getNodeIds().length }} chapters)</span>
+                    <button class="btn btn-sm btn-outline-secondary edit-arc-description-btn"
+                            (click)="updateArcDescription(arcIdx)"
+                            title="Edit description">
+                      <i class="fa fa-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger delete-arc-btn"
+                            (click)="deleteArc(arcIdx)"
+                            title="Delete arc">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                  <div class="arc-node-list">
+                    <div *ngFor="let nodeId of arc.getNodeIds()" class="arc-node-item">
+                      <span class="arc-node-title">{{ getNodeTitle(nodeId) }}</span>
+                      <select class="arc-node-select"
+                              [value]="arcIdx"
+                              (change)="moveNodeToArc(nodeId, +$event.target.value)">
+                        <option *ngFor="let otherArc of getArcs(); let otherIdx = index"
+                                [value]="otherIdx"
+                                [selected]="otherIdx === arcIdx">
+                          {{ otherArc.getTitle() }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline-success add-arc-btn" (click)="createArc()">
+                + ADD ARC
+              </button>
+            </div>
+          </div>
         </mat-card>
       </div>
 
@@ -821,6 +868,80 @@
       .chapter-edit-option span {
         font-size: 12px;
       }
+    }
+    .arc-panel-section {
+      border-top: 1px solid #e0e0e0;
+      margin-top: 16px;
+      padding-top: 8px;
+    }
+    .arc-panel-header {
+      cursor: pointer;
+      display: flex;
+      font-weight: bold;
+      justify-content: space-between;
+      padding: 8px 4px;
+      user-select: none;
+    }
+    .arc-panel-body {
+      padding: 8px 4px;
+    }
+    .no-arcs-message {
+      color: #888;
+      font-style: italic;
+      padding: 8px 0;
+    }
+    .arc-list {
+      min-height: 30px;
+    }
+    .arc-item {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      padding: 8px;
+    }
+    .arc-item-header {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+    }
+    .arc-title {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .arc-title:hover {
+      text-decoration: underline;
+    }
+    .arc-node-count {
+      color: #888;
+      font-size: 12px;
+    }
+    .delete-arc-btn {
+      margin-left: auto;
+    }
+    .arc-node-list {
+      margin-top: 8px;
+      padding-left: 24px;
+    }
+    .arc-node-item {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      padding: 4px 0;
+    }
+    .arc-node-title {
+      flex: 1;
+      font-size: 13px;
+    }
+    .arc-node-select {
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 12px;
+      padding: 2px 4px;
+    }
+    .add-arc-btn {
+      margin-top: 8px;
+      width: 100%;
     }
   </style>
 </div>

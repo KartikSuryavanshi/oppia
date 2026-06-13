@@ -36,10 +36,12 @@ import {StoryEditorPageRootComponent} from './story-editor-page-root.component';
 import {StoryEditorNavbarComponent} from './navbar/story-editor-navbar.component';
 import {StoryEditorNavbarBreadcrumbComponent} from './navbar/story-editor-navbar-breadcrumb.component';
 import {toastrConfig} from 'pages/oppia-root/app.module';
+import {DragDropModule} from '@angular/cdk/drag-drop';
 @NgModule({
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     SharedComponentsModule,
+    DragDropModule,
     ToastrModule.forRoot(toastrConfig),
     RouterModule.forChild([
       {

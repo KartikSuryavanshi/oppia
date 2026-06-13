@@ -20,10 +20,65 @@
 import {StoryEditorPageConstants} from 'pages/story-editor-page/story-editor-page.constants';
 import {StoryNodeBackendDict, StoryNode} from 'domain/story/story-node.model';
 
+export interface ArcBackendDict {
+  title: string;
+  node_ids: string[];
+  description: string;
+}
+
 export interface StoryContentsBackendDict {
   initial_node_id: string;
   next_node_id: string;
   nodes: StoryNodeBackendDict[];
+  arcs: ArcBackendDict[];
+}
+
+export class ArcModel {
+  _title: string;
+  _nodeIds: string[];
+  _description: string;
+
+  constructor(title: string, nodeIds: string[], description: string) {
+    this._title = title;
+    this._nodeIds = nodeIds;
+    this._description = description;
+  }
+
+  getTitle(): string {
+    return this._title;
+  }
+
+  getNodeIds(): string[] {
+    return this._nodeIds;
+  }
+
+  getDescription(): string {
+    return this._description;
+  }
+
+  setTitle(title: string): void {
+    this._title = title;
+  }
+
+  setDescription(description: string): void {
+    this._description = description;
+  }
+
+  toBackendDict(): ArcBackendDict {
+    return {
+      title: this._title,
+      node_ids: this._nodeIds,
+      description: this._description,
+    };
+  }
+
+  static createFromBackendDict(backendDict: ArcBackendDict): ArcModel {
+    return new ArcModel(
+      backendDict.title,
+      [...backendDict.node_ids],
+      backendDict.description
+    );
+  }
 }
 
 interface NodeTitles {
@@ -37,10 +92,17 @@ export class StoryContents {
   _initialNodeId: string | null;
   _nodes: StoryNode[];
   _nextNodeId: string;
-  constructor(initialNodeId: string, nodes: StoryNode[], nextNodeId: string) {
+  _arcs: ArcModel[];
+  constructor(
+    initialNodeId: string,
+    nodes: StoryNode[],
+    nextNodeId: string,
+    arcs: ArcModel[]
+  ) {
     this._initialNodeId = initialNodeId;
     this._nodes = nodes;
     this._nextNodeId = nextNodeId;
+    this._arcs = arcs;
   }
 
   getIncrementedNodeId(nodeId: string): string {
@@ -61,6 +123,10 @@ export class StoryContents {
 
   getNextNodeId(): string {
     return this._nextNodeId;
+  }
+
+  getArcs(): ArcModel[] {
+    return this._arcs;
   }
 
   getNodes(): StoryNode[] {
@@ -384,10 +450,28 @@ export class StoryContents {
         StoryNode.createFromBackendDict(storyContentsBackendObject.nodes[i])
       );
     }
+    var arcs = [];
+    if (storyContentsBackendObject.arcs) {
+      for (var i = 0; i < storyContentsBackendObject.arcs.length; i++) {
+        arcs.push(
+          ArcModel.createFromBackendDict(storyContentsBackendObject.arcs[i])
+        );
+      }
+    }
     return new StoryContents(
       storyContentsBackendObject.initial_node_id,
       nodes,
-      storyContentsBackendObject.next_node_id
+      storyContentsBackendObject.next_node_id,
+      arcs
     );
+  }
+
+  toBackendDict(): StoryContentsBackendDict {
+    return {
+      initial_node_id: this._initialNodeId as string,
+      next_node_id: this._nextNodeId,
+      nodes: this._nodes.map(n => n.toBackendDict()),
+      arcs: this._arcs.map(a => a.toBackendDict()),
+    };
   }
 }

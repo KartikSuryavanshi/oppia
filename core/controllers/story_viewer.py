@@ -103,6 +103,12 @@ class StoryPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
         for ind, node in enumerate(ordered_node_dicts):
             node['exp_summary_dict'] = exp_summary_dicts[ind]
 
+        arcs_dict = (
+            story.story_contents.to_dict()['arcs']
+            if story.story_contents.to_dict().get('arcs')
+            else []
+        )
+
         self.values.update(
             {
                 'story_id': story.id,
@@ -111,6 +117,7 @@ class StoryPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 'story_nodes': ordered_node_dicts,
                 'topic_name': topic_name,
                 'meta_tag_content': story.meta_tag_content,
+                'arcs': arcs_dict,
             }
         )
         self.render_json(self.values)

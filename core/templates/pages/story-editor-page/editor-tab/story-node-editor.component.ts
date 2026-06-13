@@ -93,6 +93,7 @@ export class StoryNodeEditorComponent implements OnInit, OnDestroy {
   plannedPublicationDate: Date | null;
   editablePlannedPublicationDate: Date | null;
   plannedPublicationDateIsInPast: boolean = false;
+  isPracticeNode: boolean = false;
 
   OUTLINE_SCHEMA = {
     type: 'html',
@@ -175,6 +176,16 @@ export class StoryNodeEditorComponent implements OnInit, OnDestroy {
       ? new Date(this.plannedPublicationDateMsecs)
       : null;
     this.editablePlannedPublicationDate = this.plannedPublicationDate;
+
+    var nodes = this.story.getStoryContents().getNodes();
+    var foundNode = null;
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].getId() === this.nodeId) {
+        foundNode = nodes[i];
+        break;
+      }
+    }
+    this.isPracticeNode = foundNode ? foundNode.getIsPracticeNode() : false;
 
     this.updateCurrentNodeIsPublishable();
   }
@@ -289,6 +300,15 @@ export class StoryNodeEditorComponent implements OnInit, OnDestroy {
     }
 
     this.updateCurrentNodeIsPublishable();
+  }
+
+  togglePracticeNodeStatus(): void {
+    this.isPracticeNode = !this.isPracticeNode;
+    this.storyUpdateService.setPracticeNodeStatus(
+      this.story,
+      this.nodeId,
+      this.isPracticeNode
+    );
   }
 
   updateThumbnailFilename(newThumbnailFilename: string): void {

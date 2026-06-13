@@ -39,6 +39,8 @@ import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import {PlatformFeatureService} from 'services/platform-feature.service';
 import {DateTimeFormatService} from 'services/date-time-format.service';
 import constants from 'assets/constants';
+import {ArcModel} from 'domain/story/story-contents-object.model';
+import {StoryDomainConstants} from 'domain/story/story-domain.constants';
 
 @Component({
   selector: 'oppia-story-editor',
@@ -74,6 +76,7 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   chapterIsPublishable: boolean[];
   selectedChapterIndexInPublishUptoDropdown: number;
   publishedChaptersDropErrorIsShown: boolean = false;
+  arcPanelIsShown: boolean = true;
   NOTES_SCHEMA = {
     type: 'html',
     ui_config: {
@@ -500,6 +503,94 @@ export class StoryEditorComponent implements OnInit, OnDestroy {
   toggleStoryEditorCard(): void {
     if (this.windowDimensionsService.isWindowNarrow()) {
       this.mainStoryCardIsShown = !this.mainStoryCardIsShown;
+    }
+  }
+
+  getArcs(): ArcModel[] {
+    return this.storyContents ? this.storyContents.getArcs() : [];
+  }
+
+  getNodeTitle(nodeId: string): string {
+    var nodes = this.storyContents.getNodes();
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].getId() === nodeId) {
+        return nodes[i].getTitle();
+      }
+    }
+    return nodeId;
+  }
+
+  toggleArcPanel(): void {
+    this.arcPanelIsShown = !this.arcPanelIsShown;
+  }
+
+  getArcIndexForNode(nodeId: string): number {
+    var arcs = this.getArcs();
+    for (var i = 0; i < arcs.length; i++) {
+      if (arcs[i].getNodeIds().indexOf(nodeId) !== -1) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  createArc(): void {
+    var title = prompt('Enter a title for the new arc:');
+    if (title && title.trim()) {
+      this.storyUpdateService.createArc(this.story, title.trim());
+    }
+  }
+
+  deleteArc(arcIndex: number): void {
+    if (
+      confirm(
+        'Are you sure you want to delete this arc? The chapters will remain in the story.'
+      )
+    ) {
+      this.storyUpdateService.deleteArc(this.story, arcIndex);
+    }
+  }
+
+  renameArc(arcIndex: number): void {
+    var currentTitle = this.getArcs()[arcIndex].getTitle();
+    var newTitle = prompt('Rename arc:', currentTitle);
+    if (newTitle && newTitle.trim() && newTitle.trim() !== currentTitle) {
+      this.storyUpdateService.renameArc(this.story, arcIndex, newTitle.trim());
+    }
+  }
+
+  dropArc(event: CdkDragDrop<string[]>): void {
+    if (event.previousIndex !== event.currentIndex) {
+      this.storyUpdateService.rearrangeArcs(
+        this.story,
+        event.previousIndex,
+        event.currentIndex
+      );
+    }
+  }
+
+  moveNodeToArc(nodeId: string, newArcIndex: number): void {
+    var oldArcIndex = this.getArcIndexForNode(nodeId);
+    if (oldArcIndex !== -1 && oldArcIndex !== newArcIndex) {
+      this.storyUpdateService.moveNodeToArc(
+        this.story,
+        nodeId,
+        oldArcIndex,
+        newArcIndex
+      );
+    }
+  }
+
+  updateArcDescription(arcIndex: number): void {
+    var currentDescription = this.getArcs()[arcIndex].getDescription();
+    var newDescription = prompt('Arc description:', currentDescription);
+    if (newDescription !== null && newDescription !== currentDescription) {
+      this.storyUpdateService.updateArcProperty(
+        this.story,
+        arcIndex,
+        StoryDomainConstants.ARC_PROPERTY_DESCRIPTION,
+        newDescription
+      );
     }
   }
 

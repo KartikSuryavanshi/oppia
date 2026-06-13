@@ -33,7 +33,10 @@ import {StoryChange} from 'domain/editor/undo_redo/change.model';
 import {StoryDomainConstants} from 'domain/story/story-domain.constants';
 import {StoryEditorStateService} from 'pages/story-editor-page/services/story-editor-state.service';
 import {Story} from 'domain/story/story.model';
-import {StoryContents} from 'domain/story/story-contents-object.model';
+import {
+  StoryContents,
+  ArcModel,
+} from 'domain/story/story-contents-object.model';
 import {StoryNode} from './story-node.model';
 import {EntityEditorBrowserTabsInfo} from 'domain/entity_editor_browser_tabs_info/entity-editor-browser-tabs-info.model';
 import {LocalStorageService} from 'services/local-storage.service';
@@ -50,6 +53,13 @@ type ChangeBackendDict = (
 interface Params {
   node_id?: string;
   title?: string;
+  arc_index?: number;
+  old_arc_index?: number;
+  new_arc_index?: number;
+  from_index?: number;
+  to_index?: number;
+  old_title?: string;
+  new_title?: string;
   // For properties like initialNodeId, thumbnailBackdroundColor
   // old value can be null.
   old_value?: string | string[] | boolean | number | null;
@@ -196,8 +206,8 @@ export class StoryUpdateService {
     story: Story,
     propertyName: string,
     nodeId: string,
-    oldValue: number | string | string[] | null,
-    newValue: number | string | string[] | null,
+    oldValue: number | string | string[] | boolean | null,
+    newValue: number | string | string[] | boolean | null,
     apply: StoryUpdateApply,
     reverse: StoryUpdateReverse
   ): void {
@@ -720,6 +730,33 @@ export class StoryUpdateService {
   }
 
   /**
+   * Sets whether a node is a practice node and records the change
+   * in the undo/redo service.
+   */
+  setPracticeNodeStatus(
+    story: Story,
+    nodeId: string,
+    newIsPracticeNode: boolean
+  ): void {
+    var storyNode = this._getStoryNode(story.getStoryContents(), nodeId);
+    var oldIsPracticeNode = storyNode.getIsPracticeNode();
+
+    this._applyStoryNodePropertyChange(
+      story,
+      StoryDomainConstants.STORY_NODE_PROPERTY_IS_PRACTICE_NODE,
+      nodeId,
+      oldIsPracticeNode,
+      newIsPracticeNode,
+      (changeDict, story) => {
+        storyNode.setIsPracticeNode(newIsPracticeNode);
+      },
+      (changeDict, story) => {
+        storyNode.setIsPracticeNode(oldIsPracticeNode);
+      }
+    );
+  }
+
+  /**
    * Sets the publication status of a node in the story and records the change
    * in the undo/redo service.
    */
@@ -992,6 +1029,179 @@ export class StoryUpdateService {
       (changeDict, story) => {
         // ---- Undo ----
         story.getStoryContents().rearrangeNodeInStory(fromIndex, toIndex);
+      }
+    );
+  }
+
+  /**
+   * Creates a new arc in the story.
+   */
+  createArc(story: Story, title: string): void {
+    this._applyChange(
+      story,
+      StoryDomainConstants.CMD_CREATE_ARC,
+      {title},
+      (changeDict, story) => {
+        var contents = story.getStoryContents();
+        var allNodeIds = contents.getNodeIds();
+        var assignedNodeIds: string[] = [];
+        for (var i = 0; i < contents.getArcs().length; i++) {
+          assignedNodeIds = assignedNodeIds.concat(
+            contents.getArcs()[i].getNodeIds()
+          );
+        }
+        var unassignedNodeIds = allNodeIds.filter(
+          id => assignedNodeIds.indexOf(id) === -1
+        );
+        contents.getArcs().push(new ArcModel(title, unassignedNodeIds, ''));
+      },
+      (changeDict, story) => {
+        story.getStoryContents().getArcs().pop();
+      }
+    );
+  }
+
+  /**
+   * Deletes an arc from the story by index.
+   */
+  deleteArc(story: Story, arcIndex: number): void {
+    var contents = story.getStoryContents();
+    var deletedArc = contents.getArcs()[arcIndex];
+    this._applyChange(
+      story,
+      StoryDomainConstants.CMD_DELETE_ARC,
+      {arc_index: arcIndex},
+      (changeDict, story) => {
+        story.getStoryContents().getArcs().splice(arcIndex, 1);
+      },
+      (changeDict, story) => {
+        story.getStoryContents().getArcs().splice(arcIndex, 0, deletedArc);
+      }
+    );
+  }
+
+  /**
+   * Renames an arc in the story.
+   */
+  renameArc(story: Story, arcIndex: number, newTitle: string): void {
+    var contents = story.getStoryContents();
+    var oldTitle = contents.getArcs()[arcIndex].getTitle();
+    this._applyChange(
+      story,
+      StoryDomainConstants.CMD_RENAME_ARC,
+      {arc_index: arcIndex, new_title: newTitle},
+      (changeDict, story) => {
+        story.getStoryContents().getArcs()[arcIndex].setTitle(newTitle);
+      },
+      (changeDict, story) => {
+        story.getStoryContents().getArcs()[arcIndex].setTitle(oldTitle);
+      }
+    );
+  }
+
+  /**
+   * Rearranges arcs in the story by moving one from fromIndex to toIndex.
+   */
+  rearrangeArcs(story: Story, fromIndex: number, toIndex: number): void {
+    this._applyChange(
+      story,
+      StoryDomainConstants.CMD_REARRANGE_ARCS,
+      {from_index: fromIndex, to_index: toIndex},
+      (changeDict, story) => {
+        var arcs = story.getStoryContents().getArcs();
+        var arc = arcs.splice(fromIndex, 1)[0];
+        arcs.splice(toIndex, 0, arc);
+      },
+      (changeDict, story) => {
+        var arcs = story.getStoryContents().getArcs();
+        var arc = arcs.splice(toIndex, 1)[0];
+        arcs.splice(fromIndex, 0, arc);
+      }
+    );
+  }
+
+  /**
+   * Moves a node from its current arc to a different arc.
+   */
+  moveNodeToArc(
+    story: Story,
+    nodeId: string,
+    oldArcIndex: number,
+    newArcIndex: number
+  ): void {
+    var contents = story.getStoryContents();
+    var oldNodeIds = contents.getArcs()[oldArcIndex].getNodeIds().slice();
+    var newNodeIds = contents.getArcs()[newArcIndex].getNodeIds().slice();
+    this._applyChange(
+      story,
+      StoryDomainConstants.CMD_MOVE_NODE_TO_ARC,
+      {
+        node_id: nodeId,
+        old_arc_index: oldArcIndex,
+        new_arc_index: newArcIndex,
+      },
+      (changeDict, story) => {
+        var arcs = story.getStoryContents().getArcs();
+        for (var i = 0; i < arcs.length; i++) {
+          var idx = arcs[i].getNodeIds().indexOf(nodeId);
+          if (idx !== -1) {
+            arcs[i].getNodeIds().splice(idx, 1);
+          }
+        }
+        arcs[newArcIndex].getNodeIds().push(nodeId);
+      },
+      (changeDict, story) => {
+        var arcs = story.getStoryContents().getArcs();
+        for (var i = 0; i < arcs.length; i++) {
+          arcs[i].getNodeIds().length = 0;
+          if (i === oldArcIndex) {
+            for (var j = 0; j < oldNodeIds.length; j++) {
+              arcs[i].getNodeIds().push(oldNodeIds[j]);
+            }
+          } else if (i === newArcIndex) {
+            for (var j = 0; j < newNodeIds.length; j++) {
+              arcs[i].getNodeIds().push(newNodeIds[j]);
+            }
+          }
+        }
+      }
+    );
+  }
+
+  /**
+   * Updates a property of an arc in the story.
+   */
+  updateArcProperty(
+    story: Story,
+    arcIndex: number,
+    propertyName: string,
+    newValue: string
+  ): void {
+    var contents = story.getStoryContents();
+    var oldValue = '';
+    if (propertyName === StoryDomainConstants.ARC_PROPERTY_DESCRIPTION) {
+      oldValue = contents.getArcs()[arcIndex].getDescription();
+    }
+    this._applyChange(
+      story,
+      StoryDomainConstants.CMD_UPDATE_ARC_PROPERTY,
+      {
+        arc_index: arcIndex,
+        property_name: propertyName,
+        new_value: newValue,
+        old_value: oldValue,
+      },
+      (changeDict, story) => {
+        var arcs = story.getStoryContents().getArcs();
+        if (propertyName === StoryDomainConstants.ARC_PROPERTY_DESCRIPTION) {
+          arcs[arcIndex].setDescription(newValue);
+        }
+      },
+      (changeDict, story) => {
+        var arcs = story.getStoryContents().getArcs();
+        if (propertyName === StoryDomainConstants.ARC_PROPERTY_DESCRIPTION) {
+          arcs[arcIndex].setDescription(oldValue);
+        }
       }
     );
   }

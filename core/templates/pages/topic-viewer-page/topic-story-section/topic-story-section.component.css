@@ -140,6 +140,120 @@
   padding: 0;
 }
 
+.arc-section {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.arc-section:last-child {
+  border-bottom: none;
+}
+
+.arc-header {
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 16px;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 18px 28px;
+  text-align: left;
+  width: 100%;
+}
+
+.arc-header:hover {
+  background: #f5f5f5;
+}
+
+.arc-header-left {
+  align-items: baseline;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.arc-title {
+  color: #00645c;
+  font-family: Capriola, Roboto, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.arc-lesson-count {
+  color: #555;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.arc-header-right {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
+.arc-description-preview {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.4;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arc-chevron {
+  color: #555;
+  display: flex;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.arc-chevron--collapsed {
+  transform: rotate(-90deg);
+}
+
+.arc-body {
+  padding: 0 28px 18px;
+}
+
+.arc-description {
+  color: #333;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.arc-lessons-placeholder {
+  background: #f9f9f9;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.arc-lessons-placeholder-text {
+  color: #888;
+  font-size: 14px;
+  margin: 0;
+}
+
+.no-arcs-placeholder {
+  padding: 24px 28px;
+}
+
+.no-arcs-text {
+  color: #555;
+  font-size: 14px;
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .story-callout-row {
     align-items: flex-start;
@@ -205,6 +319,18 @@
 
   .story-card-body {
     min-height: 260px;
+  }
+
+  .arc-header {
+    padding: 14px 20px;
+  }
+
+  .arc-body {
+    padding: 0 20px 14px;
+  }
+
+  .arc-title {
+    font-size: 16px;
   }
 }
 
@@ -294,6 +420,18 @@
   }
 
   .story-card-body {
-    min-height: 500px;
+    min-height: 200px;
+  }
+
+  .arc-header {
+    padding: 12px 16px;
+  }
+
+  .arc-body {
+    padding: 0 16px 12px;
+  }
+
+  .arc-title {
+    font-size: 15px;
   }
 }

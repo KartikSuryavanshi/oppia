@@ -88,6 +88,20 @@
                                       [previewDescription]="editableDescription">
             </oppia-thumbnail-uploader>
           </div>
+          <div class="oppia-practice-node-toggle">
+            <label class="form-heading">
+              <input type="checkbox"
+                     [checked]="isPracticeNode"
+                     (change)="togglePracticeNodeStatus()">
+              Practice Chapter
+            </label>
+            <span class="oppia-input-box-subtitle">
+              <i>
+                Practice chapters are displayed at the end of their arc and
+                contain review questions instead of a lesson.
+              </i>
+            </span>
+          </div>
         </div>
         <div *ngIf="mainChapterCardIsShown">
           <div *ngIf="!chapterPreviewCardIsShown">

@@ -46,6 +46,16 @@ export const StoryDomainConstants = {
 
   INITIAL_NODE_ID: 'initial_node_id',
   NODE: 'node',
+  ARCS: 'arcs',
+
+  CMD_CREATE_ARC: 'create_arc',
+  CMD_DELETE_ARC: 'delete_arc',
+  CMD_RENAME_ARC: 'rename_arc',
+  CMD_REARRANGE_ARCS: 'rearrange_arcs',
+  CMD_MOVE_NODE_TO_ARC: 'move_node_to_arc',
+  CMD_UPDATE_ARC_PROPERTY: 'update_arc_property',
+
+  ARC_PROPERTY_DESCRIPTION: 'description',
 
   STORY_NODE_PROPERTY_TITLE: 'title',
   STORY_NODE_PROPERTY_DESCRIPTION: 'description',
@@ -63,4 +73,5 @@ export const StoryDomainConstants = {
   STORY_NODE_PROPERTY_FIRST_PUBLICATION_DATE_MSECS:
     'first_publication_date_msecs',
   STORY_NODE_PROPERTY_UNPUBLISHING_REASON: 'unpublishing_reason',
+  STORY_NODE_PROPERTY_IS_PRACTICE_NODE: 'is_practice_node',
 } as const;

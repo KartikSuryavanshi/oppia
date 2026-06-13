@@ -34,6 +34,41 @@
       </div>
     </div>
 
-    <div class="story-card-body"></div>
+    <div class="story-card-body">
+      <div *ngFor="let arc of arcs; let i = index" class="arc-section">
+        <button class="arc-header"
+                (click)="toggleArc(i)"
+                [attr.aria-expanded]="!isArcCollapsed(i)"
+                [attr.aria-label]="'Arc: ' + arc.title">
+          <span class="arc-header-left">
+            <span class="arc-title">{{ arc.title }}</span>
+            <span class="arc-lesson-count">{{ arc.node_ids.length }} lesson{{ arc.node_ids.length === 1 ? '' : 's' }}</span>
+          </span>
+          <span class="arc-header-right">
+            <span *ngIf="arc.description" class="arc-description-preview">{{ arc.description }}</span>
+            <span class="arc-chevron" [class.arc-chevron--collapsed]="isArcCollapsed(i)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </span>
+        </button>
+        <div class="arc-body" *ngIf="!isArcCollapsed(i)">
+          <p *ngIf="arc.description" class="arc-description">{{ arc.description }}</p>
+          <div class="arc-lessons-list">
+            <topic-lesson-card
+              *ngFor="let lesson of getNodesForArc(arc)"
+              [lessonTitle]="lesson.getTitle()"
+              [lessonDescription]="lesson.getDescription()"
+              [thumbnailUrl]="getThumbnailUrl(lesson)"
+              [startUrl]="getExplorationUrl(lesson)">
+            </topic-lesson-card>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="arcs.length === 0" class="no-arcs-placeholder">
+        <p class="no-arcs-text">All chapters</p>
+      </div>
+    </div>
   </article>
 </section>

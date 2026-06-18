@@ -16,9 +16,11 @@
  * @fileoverview Lesson card component used in the redesigned topic viewer story section.
  */
 
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, Output, EventEmitter} from '@angular/core';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {WindowRef} from 'services/contextual/window-ref.service';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {ResumeLessonModal} from './resume-lesson-modal.component';
 
 import './topic-lesson-card.component.css';
 
@@ -42,11 +44,14 @@ export class TopicLessonCardComponent implements OnInit {
   @Input() totalCheckpointsCount: number = 0;
   @Input() visitedCheckpointsCount: number = 0;
 
+  @Output() resetProgress: EventEmitter<void> = new EventEmitter();
+
   resolvedThumbnailUrl: string = '';
 
   constructor(
     private urlInterpolationService: UrlInterpolationService,
-    private windowRef: WindowRef
+    private windowRef: WindowRef,
+    private ngbModal: NgbModal
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +63,36 @@ export class TopicLessonCardComponent implements OnInit {
     return (
       this.lessonProgressStatus !== 'coming_soon' &&
       this.totalCheckpointsCount > 0
+    );
+  }
+
+  onLessonAction(): void {
+    if (this.lessonProgressStatus === 'not_started') {
+      this.navigateTo(this.startUrl);
+    } else if (this.lessonProgressStatus === 'in_progress') {
+      this.openResumeModal();
+    } else if (this.lessonProgressStatus === 'completed') {
+      this.resetProgress.emit();
+      this.navigateTo(this.startUrl);
+    }
+  }
+
+  private openResumeModal(): void {
+    const modalRef = this.ngbModal.open(ResumeLessonModal, {
+      centered: true,
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result: string) => {
+        if (result === 'start_over') {
+          this.resetProgress.emit();
+          this.navigateTo(this.startUrl);
+        } else {
+          this.navigateTo(this.startUrl);
+        }
+      },
+      () => {}
     );
   }
 

@@ -1,0 +1,28 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2 class="modal-title">
+      {{ 'I18N_TOPIC_VIEWER_LESSON_IN_PROGRESS_MODAL_TITLE' | translate }}
+    </h2>
+    <button type="button"
+            class="close-btn"
+            (click)="cancel()"
+            aria-label="Close">
+      &times;
+    </button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'I18N_TOPIC_VIEWER_LESSON_IN_PROGRESS_MODAL_DESCRIPTION' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button"
+            (click)="confirm('start_over')"
+            class="btn start-over-btn">
+      {{ 'I18N_TOPIC_VIEWER_START_OVER' | translate }}
+    </button>
+    <button type="button"
+            (click)="confirm('resume')"
+            class="btn resume-btn">
+      {{ 'I18N_TOPIC_VIEWER_RESUME' | translate }}
+    </button>
+  </div>
+</div>

@@ -18,11 +18,13 @@
 
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
+import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 
 import {TopicLessonCardComponent} from './topic-lesson-card.component';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {WindowRef} from 'services/contextual/window-ref.service';
 import {MockTranslatePipe} from 'tests/unit-test-utils';
+import {ResumeLessonModal} from './resume-lesson-modal.component';
 
 class MockWindowRef {
   nativeWindow = {
@@ -37,12 +39,14 @@ describe('TopicLessonCardComponent', () => {
   let fixture: ComponentFixture<TopicLessonCardComponent>;
   let urlInterpolationService: jasmine.SpyObj<UrlInterpolationService>;
   let windowRef: WindowRef;
+  let ngbModal: jasmine.SpyObj<NgbModal>;
 
   beforeEach(waitForAsync(() => {
     const urlInterpolationServiceSpy = jasmine.createSpyObj(
       'UrlInterpolationService',
       ['getStaticImageUrl']
     );
+    const ngbModalSpy = jasmine.createSpyObj('NgbModal', ['open']);
 
     TestBed.configureTestingModule({
       declarations: [TopicLessonCardComponent, MockTranslatePipe],
@@ -56,6 +60,10 @@ describe('TopicLessonCardComponent', () => {
           provide: WindowRef,
           useClass: MockWindowRef,
         },
+        {
+          provide: NgbModal,
+          useValue: ngbModalSpy,
+        },
       ],
     }).compileComponents();
 
@@ -65,6 +73,7 @@ describe('TopicLessonCardComponent', () => {
       UrlInterpolationService
     ) as jasmine.SpyObj<UrlInterpolationService>;
     windowRef = TestBed.inject(WindowRef);
+    ngbModal = TestBed.inject(NgbModal) as jasmine.SpyObj<NgbModal>;
   }));
 
   it('should be created', () => {
@@ -175,6 +184,94 @@ describe('TopicLessonCardComponent', () => {
       component.lessonProgressStatus = 'not_started';
       component.totalCheckpointsCount = 0;
       expect(component.showCheckpointBar).toBeFalse();
+    });
+  });
+
+  describe('onLessonAction', () => {
+    it('should navigate directly when lesson is not_started', () => {
+      spyOn(component, 'navigateTo');
+      component.startUrl = '/explore/123';
+      component.lessonProgressStatus = 'not_started';
+
+      component.onLessonAction();
+
+      expect(component.navigateTo).toHaveBeenCalledWith('/explore/123');
+    });
+
+    it('should open resume modal when lesson is in_progress', () => {
+      component.lessonProgressStatus = 'in_progress';
+      component.onLessonAction();
+      expect(ngbModal.open).toHaveBeenCalledWith(ResumeLessonModal, {
+        centered: true,
+        backdrop: 'static',
+      });
+    });
+
+    it('should emit resetProgress and navigate when resume modal returns start_over', () => {
+      const modalRef = jasmine.createSpyObj('NgbModalRef', ['result']);
+      modalRef.result = Promise.resolve('start_over');
+      ngbModal.open.and.returnValue(modalRef);
+
+      spyOn(component, 'navigateTo');
+      spyOn(component.resetProgress, 'emit');
+      component.startUrl = '/explore/123';
+      component.lessonProgressStatus = 'in_progress';
+
+      component.onLessonAction();
+
+      // Wait for promise to resolve.
+      fixture.whenStable().then(() => {
+        expect(component.resetProgress.emit).toHaveBeenCalled();
+        expect(component.navigateTo).toHaveBeenCalledWith('/explore/123');
+      });
+    });
+
+    it('should navigate without resetting when resume modal returns resume', () => {
+      const modalRef = jasmine.createSpyObj('NgbModalRef', ['result']);
+      modalRef.result = Promise.resolve('resume');
+      ngbModal.open.and.returnValue(modalRef);
+
+      spyOn(component, 'navigateTo');
+      spyOn(component.resetProgress, 'emit');
+      component.startUrl = '/explore/123';
+      component.lessonProgressStatus = 'in_progress';
+
+      component.onLessonAction();
+
+      fixture.whenStable().then(() => {
+        expect(component.resetProgress.emit).not.toHaveBeenCalled();
+        expect(component.navigateTo).toHaveBeenCalledWith('/explore/123');
+      });
+    });
+
+    it('should do nothing when modal is dismissed', () => {
+      const modalRef = jasmine.createSpyObj('NgbModalRef', ['result']);
+      modalRef.result = Promise.reject();
+      ngbModal.open.and.returnValue(modalRef);
+
+      spyOn(component, 'navigateTo');
+      spyOn(component.resetProgress, 'emit');
+      component.startUrl = '/explore/123';
+      component.lessonProgressStatus = 'in_progress';
+
+      component.onLessonAction();
+      // Catch the rejection so it doesn't bubble.
+      modalRef.result.catch(() => {});
+
+      expect(component.resetProgress.emit).not.toHaveBeenCalled();
+      expect(component.navigateTo).not.toHaveBeenCalled();
+    });
+
+    it('should emit resetProgress and navigate when lesson is completed', () => {
+      spyOn(component, 'navigateTo');
+      spyOn(component.resetProgress, 'emit');
+      component.startUrl = '/explore/123';
+      component.lessonProgressStatus = 'completed';
+
+      component.onLessonAction();
+
+      expect(component.resetProgress.emit).toHaveBeenCalled();
+      expect(component.navigateTo).toHaveBeenCalledWith('/explore/123');
     });
   });
 });

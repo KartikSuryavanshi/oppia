@@ -631,4 +631,46 @@ describe('TopicStorySectionComponent', () => {
     expect(component.lessonCards.length).toBe(1);
     expect(component.lessonCards[0].totalCheckpointsCount).toBe(0);
   });
+
+  it('should reset lesson progress on onLessonResetProgress', () => {
+    component.lessonCards = [
+      {
+        lessonNumber: 1,
+        lessonTitle: 'Lesson 1',
+        lessonDescription: 'Description',
+        thumbnailUrl: 'thumb.jpg',
+        startUrl: '/explore/123',
+        lessonProgressStatus: 'in_progress',
+        totalCheckpointsCount: 5,
+        visitedCheckpointsCount: 3,
+      },
+    ];
+
+    component.onLessonResetProgress(0);
+
+    expect(component.lessonCards[0].lessonProgressStatus).toBe('not_started');
+    expect(component.lessonCards[0].visitedCheckpointsCount).toBe(0);
+    expect(component.lessonCards[0].totalCheckpointsCount).toBe(5);
+  });
+
+  it('should not mutate lessonCards when onLessonResetProgress index is out of bounds', () => {
+    component.lessonCards = [
+      {
+        lessonNumber: 1,
+        lessonTitle: 'Lesson 1',
+        lessonDescription: 'Description',
+        thumbnailUrl: 'thumb.jpg',
+        startUrl: '/explore/123',
+        lessonProgressStatus: 'in_progress',
+        totalCheckpointsCount: 5,
+        visitedCheckpointsCount: 3,
+      },
+    ];
+
+    component.onLessonResetProgress(-1);
+    expect(component.lessonCards[0].lessonProgressStatus).toBe('in_progress');
+
+    component.onLessonResetProgress(5);
+    expect(component.lessonCards[0].lessonProgressStatus).toBe('in_progress');
+  });
 });

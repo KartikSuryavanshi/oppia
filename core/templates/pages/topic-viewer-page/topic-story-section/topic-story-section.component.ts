@@ -147,6 +147,17 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     );
   }
 
+  onLessonResetProgress(cardIndex: number): void {
+    if (cardIndex < 0 || cardIndex >= this.lessonCards.length) {
+      return;
+    }
+    this.lessonCards[cardIndex] = {
+      ...this.lessonCards[cardIndex],
+      lessonProgressStatus: 'not_started',
+      visitedCheckpointsCount: 0,
+    };
+  }
+
   isLanguageRTL(): boolean {
     return this.i18nLanguageCodeService.isCurrentLanguageRTL();
   }

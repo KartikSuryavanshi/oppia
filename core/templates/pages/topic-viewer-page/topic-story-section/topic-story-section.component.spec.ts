@@ -632,6 +632,74 @@ describe('TopicStorySectionComponent', () => {
     expect(component.lessonCards[0].totalCheckpointsCount).toBe(0);
   });
 
+  it('should use checkpoint summary to determine in_progress status when visited chapter titles are unavailable', async () => {
+    const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
+      'getTitle',
+      'getDescription',
+      'getThumbnailFilename',
+      'getExplorationId',
+      'getId',
+    ]);
+    storyNodeSpy.getTitle.and.returnValue('Node title 1');
+    storyNodeSpy.getDescription.and.returnValue('Node description 1');
+    storyNodeSpy.getThumbnailFilename.and.returnValue('thumb.png');
+    storyNodeSpy.getExplorationId.and.returnValue('exp_1');
+    storyNodeSpy.getId.and.returnValue('node_1');
+
+    const mockSummary = new ChapterProgressSummary('exp_1', 5, 2, false);
+    chapterProgressLoaderService.getChapterProgressSummary.and.returnValue(
+      mockSummary
+    );
+
+    const storySummary = createStorySummarySpy(
+      ['Node title 1'],
+      [storyNodeSpy]
+    );
+
+    component.storySummary = storySummary;
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+    await fixture.whenStable();
+
+    expect(component.lessonCards[0].lessonProgressStatus).toBe('in_progress');
+  });
+
+  it('should use checkpoint summary to determine completed status when chapter is complete', async () => {
+    const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
+      'getTitle',
+      'getDescription',
+      'getThumbnailFilename',
+      'getExplorationId',
+      'getId',
+    ]);
+    storyNodeSpy.getTitle.and.returnValue('Node title 1');
+    storyNodeSpy.getDescription.and.returnValue('Node description 1');
+    storyNodeSpy.getThumbnailFilename.and.returnValue('thumb.png');
+    storyNodeSpy.getExplorationId.and.returnValue('exp_1');
+    storyNodeSpy.getId.and.returnValue('node_1');
+
+    const mockSummary = new ChapterProgressSummary('exp_1', 5, 5, true);
+    chapterProgressLoaderService.getChapterProgressSummary.and.returnValue(
+      mockSummary
+    );
+
+    const storySummary = createStorySummarySpy(
+      ['Node title 1'],
+      [storyNodeSpy]
+    );
+
+    component.storySummary = storySummary;
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+    await fixture.whenStable();
+
+    expect(component.lessonCards[0].lessonProgressStatus).toBe('completed');
+  });
+
   it('should reset lesson progress on onLessonResetProgress', () => {
     component.lessonCards = [
       {

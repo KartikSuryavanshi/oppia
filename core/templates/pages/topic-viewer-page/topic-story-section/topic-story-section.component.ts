@@ -178,6 +178,22 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
       return 'in_progress';
     }
 
+    const explorationId = node.getExplorationId();
+    if (explorationId) {
+      const summary =
+        this.chapterProgressLoaderService.getChapterProgressSummary(
+          explorationId
+        );
+      if (summary) {
+        if (summary.isChapterComplete) {
+          return 'completed';
+        }
+        if (summary.visitedCheckpoints > 0) {
+          return 'in_progress';
+        }
+      }
+    }
+
     return 'not_started';
   }
 
@@ -197,6 +213,14 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
         explorationIds
       );
     } catch {
+      return;
+    }
+
+    const hasProgressData = explorationIds.some(
+      id =>
+        this.chapterProgressLoaderService.getChapterProgressSummary(id) !== null
+    );
+    if (!hasProgressData) {
       return;
     }
 

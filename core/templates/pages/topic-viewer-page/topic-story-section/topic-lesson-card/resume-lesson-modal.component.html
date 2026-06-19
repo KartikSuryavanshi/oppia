@@ -1,4 +1,4 @@
-<div class="modal-container">
+<div class="oppia-resume-lesson-modal">
   <div class="modal-header">
     <h2 class="modal-title">
       {{ 'I18N_TOPIC_VIEWER_LESSON_IN_PROGRESS_MODAL_TITLE' | translate }}
@@ -10,19 +10,13 @@
       &times;
     </button>
   </div>
-  <div class="modal-body">
+  <div class="modal-description">
     <p>{{ 'I18N_TOPIC_VIEWER_LESSON_IN_PROGRESS_MODAL_DESCRIPTION' | translate }}</p>
   </div>
-  <div class="modal-footer">
-    <button type="button"
-            (click)="confirm('start_over')"
-            class="btn start-over-btn">
-      {{ 'I18N_TOPIC_VIEWER_START_OVER' | translate }}
-    </button>
-    <button type="button"
-            (click)="confirm('resume')"
-            class="btn resume-btn">
-      {{ 'I18N_TOPIC_VIEWER_RESUME' | translate }}
-    </button>
-  </div>
+  <button class="resume-button" (click)="confirm('resume')">
+    {{ 'I18N_TOPIC_VIEWER_RESUME' | translate }}
+  </button>
+  <button class="restart-button" (click)="confirm('start_over')">
+    {{ 'I18N_TOPIC_VIEWER_START_OVER' | translate }}
+  </button>
 </div>

@@ -100,6 +100,7 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 'url_fragment': story_summary_dict['url_fragment'],
                 'story_is_published': True,
                 'completed_node_titles': completed_node_titles,
+                'visited_chapter_titles': [],
                 'all_node_dicts': [node.to_dict() for node in filtered_nodes],
             }
             canonical_story_dicts.append(canonical_story_dict)
@@ -127,6 +128,7 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 'url_fragment': story_summary_dict['url_fragment'],
                 'story_is_published': True,
                 'completed_node_titles': completed_node_titles,
+                'visited_chapter_titles': [],
                 'all_node_dicts': [node.to_dict() for node in all_nodes],
             }
             additional_story_dicts.append(additional_story_dict)

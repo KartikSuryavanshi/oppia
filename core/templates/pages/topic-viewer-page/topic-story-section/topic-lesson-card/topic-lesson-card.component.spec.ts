@@ -262,7 +262,7 @@ describe('TopicLessonCardComponent', () => {
       expect(component.navigateTo).not.toHaveBeenCalled();
     });
 
-    it('should emit resetProgress and navigate when lesson is completed', () => {
+    it('should emit resetProgress without navigating when lesson is completed', () => {
       spyOn(component, 'navigateTo');
       spyOn(component.resetProgress, 'emit');
       component.startUrl = '/explore/123';
@@ -271,7 +271,7 @@ describe('TopicLessonCardComponent', () => {
       component.onLessonAction();
 
       expect(component.resetProgress.emit).toHaveBeenCalled();
-      expect(component.navigateTo).toHaveBeenCalledWith('/explore/123');
+      expect(component.navigateTo).not.toHaveBeenCalled();
     });
   });
 });

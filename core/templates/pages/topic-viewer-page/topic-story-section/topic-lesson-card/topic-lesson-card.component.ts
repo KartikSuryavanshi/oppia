@@ -73,7 +73,6 @@ export class TopicLessonCardComponent implements OnInit {
       this.openResumeModal();
     } else if (this.lessonProgressStatus === 'completed') {
       this.resetProgress.emit();
-      this.navigateTo(this.startUrl);
     }
   }
 

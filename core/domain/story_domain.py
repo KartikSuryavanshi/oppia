@@ -1417,21 +1417,33 @@ class StoryContents:
         if len(arc_ids_list) > len(set(arc_ids_list)):
             raise utils.ValidationError('Expected all arc ids to be distinct.')
 
-        # It is valid for a story to have nodes and no arcs. If arcs are
-        # present, further validation below ensures they cover nodes.
+        if len(self.nodes) > 0 and len(self.arcs) == 0:
+            raise utils.ValidationError(
+                'Story with nodes must have at least one arc.'
+            )
 
         if len(self.arcs) > 0:
-            all_node_ids = set(node_id_list)
+            all_node_ids = list(node_id_list)
             for node_id in covered_node_ids:
                 if node_id not in all_node_ids:
                     raise utils.ValidationError(
                         'Arc refers to non-existent node %s.' % node_id
                     )
-            uncovered = all_node_ids - covered_node_ids
+            uncovered = set(all_node_ids) - covered_node_ids
             if uncovered:
                 raise utils.ValidationError(
                     'Nodes %s are not covered by any arc.' % sorted(uncovered)
                 )
+
+            node_id_to_index = {
+                node_id: idx for idx, node_id in enumerate(all_node_ids)
+            }
+            for arc in self.arcs:
+                indices = sorted(node_id_to_index[nid] for nid in arc.node_ids)
+                if indices[-1] - indices[0] + 1 != len(indices):
+                    raise utils.ValidationError(
+                        'Nodes in arc %s are not contiguous.' % arc.id
+                    )
 
     @overload
     def get_node_index(

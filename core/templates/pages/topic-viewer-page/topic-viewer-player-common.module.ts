@@ -26,6 +26,7 @@ import {StoriesListComponent} from './deprecations/stories-list/topic-viewer-sto
 import {TopicStorySectionComponent} from './topic-story-section/topic-story-section.component';
 import {TopicLessonCardComponent} from './topic-story-section/topic-lesson-card/topic-lesson-card.component';
 import {TopicArcTestCardComponent} from './topic-story-section/topic-arc-test/topic-arc-test-card.component';
+import {TopicMasteryChallengeCardComponent} from './topic-story-section/topic-mastery-challenge-card/topic-mastery-challenge-card.component';
 import {MatCardModule} from '@angular/material/card';
 import {SharedComponentsModule} from 'components/shared-component.module';
 
@@ -37,6 +38,7 @@ import {SharedComponentsModule} from 'components/shared-component.module';
     TopicStorySectionComponent,
     TopicLessonCardComponent,
     TopicArcTestCardComponent,
+    TopicMasteryChallengeCardComponent,
   ],
   entryComponents: [
     StoriesListComponent,
@@ -44,6 +46,7 @@ import {SharedComponentsModule} from 'components/shared-component.module';
     TopicStorySectionComponent,
     TopicLessonCardComponent,
     TopicArcTestCardComponent,
+    TopicMasteryChallengeCardComponent,
   ],
   exports: [
     StoriesListComponent,
@@ -51,6 +54,7 @@ import {SharedComponentsModule} from 'components/shared-component.module';
     TopicStorySectionComponent,
     TopicLessonCardComponent,
     TopicArcTestCardComponent,
+    TopicMasteryChallengeCardComponent,
   ],
 })
 export class TopicPlayerViewerCommonModule {}

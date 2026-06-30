@@ -1,0 +1,140 @@
+.topic-mastery-challenge-card {
+  align-items: center;
+  background: linear-gradient(90deg, #fff9ed 0%, #fff6ea 100%);
+  border: 1px solid #f0e0c0;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(111, 84, 31, 0.08);
+  display: flex;
+  gap: 14px;
+  overflow: hidden;
+  padding: 10px 18px 10px 10px;
+  width: 100%;
+}
+
+.topic-mastery-challenge-card-icon {
+  align-items: center;
+  background: transparent;
+  border-radius: 12px;
+  display: flex;
+  flex: 0 0 58px;
+  height: 58px;
+  justify-content: center;
+}
+
+.topic-mastery-challenge-card-icon svg {
+  height: 52px;
+  width: 52px;
+}
+
+.topic-mastery-challenge-card-content {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 16px;
+  min-width: 0;
+}
+
+.topic-mastery-challenge-card-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.topic-mastery-challenge-card-title {
+  color: #142536;
+  font-family: Capriola, Roboto, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.topic-mastery-challenge-card-description {
+  color: #45525e;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.topic-mastery-challenge-card-button {
+  align-items: center;
+  background: linear-gradient(180deg, #075e54 0%, #0a7a6d 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  height: 40px;
+  justify-content: center;
+  min-width: 210px;
+  padding: 0 18px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.topic-mastery-challenge-card-button-icon {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  margin-right: 8px;
+  width: 22px;
+}
+
+@media (max-width: 900px) {
+  .topic-mastery-challenge-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .topic-mastery-challenge-card-content {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .topic-mastery-challenge-card-button {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .topic-mastery-challenge-card-icon {
+    height: 60px;
+    flex-basis: 60px;
+    width: 60px;
+  }
+
+  .topic-mastery-challenge-card-icon svg {
+    height: 44px;
+    width: 44px;
+  }
+
+  .topic-mastery-challenge-card-title {
+    font-size: 16px;
+  }
+
+  .topic-mastery-challenge-card-description {
+    font-size: 12px;
+  }
+
+  .topic-mastery-challenge-card-button {
+    font-size: 13px;
+    height: 40px;
+    min-width: 0;
+    width: 100%;
+  }
+}

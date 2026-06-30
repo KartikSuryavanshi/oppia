@@ -30,10 +30,13 @@ const FALLBACK_THUMBNAIL_IMAGE_PATH = '/splash/student_desk1x.webp';
   styleUrls: ['./topic-lesson-card.component.css'],
 })
 export class TopicLessonCardComponent implements OnInit {
+  @Input() lessonNumber: number = 0;
   @Input() lessonTitle: string = '';
   @Input() lessonDescription: string = '';
   @Input() thumbnailUrl: string = '';
   @Input() startUrl: string = '';
+  @Input() practiceUrl: string = '';
+  @Input() studyUrl: string = '';
   @Input() lessonProgressStatus:
     | 'not_started'
     | 'in_progress'
@@ -41,6 +44,7 @@ export class TopicLessonCardComponent implements OnInit {
     | 'coming_soon' = 'not_started';
   @Input() totalCheckpointsCount: number = 0;
   @Input() visitedCheckpointsCount: number = 0;
+  @Input() isExpanded: boolean = false;
 
   resolvedThumbnailUrl: string = '';
 
@@ -54,6 +58,10 @@ export class TopicLessonCardComponent implements OnInit {
       this.thumbnailUrl || this.getFallbackThumbnailUrl();
   }
 
+  toggleExpanded(): void {
+    this.isExpanded = !this.isExpanded;
+  }
+
   get showCheckpointBar(): boolean {
     return (
       this.lessonProgressStatus !== 'coming_soon' &&
@@ -65,6 +73,12 @@ export class TopicLessonCardComponent implements OnInit {
     if (url) {
       this.windowRef.nativeWindow.location.assign(url);
     }
+  }
+
+  getHeaderAriaLabel(): string {
+    return this.lessonNumber > 0
+      ? 'Lesson ' + this.lessonNumber + ': ' + this.lessonTitle
+      : this.lessonTitle || 'Lesson card';
   }
 
   getThumbnailAltText(): string {

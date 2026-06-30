@@ -136,6 +136,14 @@ describe('TopicLessonCardComponent', () => {
     }).not.toThrowError();
   });
 
+  it('should toggle expanded state', () => {
+    component.isExpanded = false;
+
+    component.toggleExpanded();
+
+    expect(component.isExpanded).toBeTrue();
+  });
+
   it('should return thumbnail alt text with lesson title', () => {
     component.lessonTitle = 'Introduction to Fractions';
 
@@ -148,6 +156,15 @@ describe('TopicLessonCardComponent', () => {
     component.lessonTitle = '';
 
     expect(component.getThumbnailAltText()).toBe('Lesson thumbnail');
+  });
+
+  it('should build accessible header label with lesson number', () => {
+    component.lessonNumber = 2;
+    component.lessonTitle = 'Fractions of a Group';
+
+    expect(component.getHeaderAriaLabel()).toBe(
+      'Lesson 2: Fractions of a Group'
+    );
   });
 
   describe('showCheckpointBar', () => {

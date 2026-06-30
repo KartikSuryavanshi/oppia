@@ -159,6 +159,7 @@
   display: flex;
   justify-content: space-between;
   padding: 14px 18px;
+  -webkit-user-select: none;
   user-select: none;
 }
 

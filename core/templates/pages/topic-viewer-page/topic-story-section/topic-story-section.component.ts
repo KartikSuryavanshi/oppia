@@ -62,13 +62,12 @@ interface ArcGroupData {
   lessonCards: LessonCardData[];
 }
 
-interface PracticeCardData {
-  practiceTitle: string;
-  practiceDescription: string;
-  relatedLessonNumber: number | null;
+interface ArcTestCardData {
+  cardTitle: string;
+  cardDescription: string;
+  actionLabel: string;
   thumbnailUrl: string;
-  studyUrl: string;
-  practiceUrl: string;
+  actionUrl: string;
 }
 
 @Component({
@@ -91,8 +90,8 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
   studyGuideUrl: string = '#';
   lessonCards: LessonCardData[] = [];
   arcGroups: ArcGroupData[] = [];
-  practiceCard!: PracticeCardData;
-  isPracticeCardVisible: boolean = false;
+  arcTestCard!: ArcTestCardData;
+  isArcTestCardVisible: boolean = false;
   _expandedArcIndices: Set<number> = new Set();
 
   isArcExpanded(index: number): boolean {
@@ -104,6 +103,13 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
       this._expandedArcIndices.delete(index);
     } else {
       this._expandedArcIndices.add(index);
+    }
+  }
+
+  private setDefaultExpandedArc(): void {
+    this._expandedArcIndices.clear();
+    if (this.arcGroups.length > 0) {
+      this._expandedArcIndices.add(0);
     }
   }
 
@@ -243,6 +249,7 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
 
     const allNodes = this.storySummary.getAllNodes();
     this.arcGroups = this.buildArcGroups(allNodes);
+    this.setDefaultExpandedArc();
   }
 
   private buildArcGroups(allNodes: StoryNode[]): ArcGroupData[] {
@@ -304,21 +311,20 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     });
 
     this.arcGroups = this.buildArcGroups(allNodes);
+    this.setDefaultExpandedArc();
 
-    this.isPracticeCardVisible =
-      this.lessonCards.length === 0 && this.practiceCount >= 1;
-    this.practiceCard = this.getPracticeCardData();
+    this.isArcTestCardVisible = this.practiceCount >= 1;
+    this.arcTestCard = this.getArcTestCardData();
   }
 
-  private getPracticeCardData(): PracticeCardData {
+  private getArcTestCardData(): ArcTestCardData {
     return {
-      practiceTitle: 'Practice 1: ' + this.storyTitle,
-      practiceDescription: '',
-      relatedLessonNumber:
-        this.lessonCards.length > 0 ? this.lessonCards[0].lessonNumber : null,
+      cardTitle: 'Take the Mastery Challenge',
+      cardDescription:
+        'Review everything you learned across this story and prove mastery.',
+      actionLabel: 'Start Challenge',
       thumbnailUrl: this.getFallbackLessonThumbnailUrl(),
-      studyUrl: this.studyGuideUrl,
-      practiceUrl: this.getPracticeSessionUrl(),
+      actionUrl: this.getPracticeSessionUrl(),
     };
   }
 

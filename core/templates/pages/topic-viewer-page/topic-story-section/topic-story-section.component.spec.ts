@@ -244,7 +244,7 @@ describe('TopicStorySectionComponent', () => {
     );
   });
 
-  it('should build lesson cards from storySummary and not create practice card', () => {
+  it('should build lesson cards from storySummary and create the arc test card', () => {
     const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
       'getTitle',
       'getDescription',
@@ -273,7 +273,7 @@ describe('TopicStorySectionComponent', () => {
       '/thumbnail/story/story_id/thumb.png'
     );
     expect(component.lessonCards[0].lessonProgressStatus).toBe('not_started');
-    expect(component.isPracticeCardVisible).toBe(false);
+    expect(component.isArcTestCardVisible).toBe(true);
   });
 
   it('should mark lesson as completed when node is completed', () => {
@@ -376,7 +376,7 @@ describe('TopicStorySectionComponent', () => {
     expect(component.lessonCards[0].visitedCheckpointsCount).toBe(3);
   });
 
-  it('should not create practice card when lesson cards exist', () => {
+  it('should create arc test card when lesson cards exist', () => {
     const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
       'getTitle',
       'getDescription',
@@ -403,10 +403,10 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(1);
-    expect(component.isPracticeCardVisible).toBe(false);
+    expect(component.isArcTestCardVisible).toBe(true);
   });
 
-  it('should create practice card only when there are zero lessons', () => {
+  it('should create the arc test card even when there are zero lessons', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 1;
@@ -417,13 +417,11 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(0);
-    expect(component.isPracticeCardVisible).toBe(true);
-    expect(component.practiceCard.studyUrl).toBe(
-      '/learn/math/place-values/studyguide'
-    );
+    expect(component.isArcTestCardVisible).toBe(true);
+    expect(component.arcTestCard.cardTitle).toBe('Take the Mastery Challenge');
   });
 
-  it('should use fallback practice session url when fragments are missing', () => {
+  it('should use fallback arc test url when fragments are missing', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 1;
@@ -436,11 +434,11 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(0);
-    expect(component.isPracticeCardVisible).toBe(true);
-    expect(component.practiceCard.practiceUrl).toBe('#');
+    expect(component.isArcTestCardVisible).toBe(true);
+    expect(component.arcTestCard.actionUrl).toBe('#');
   });
 
-  it('should use fallback practice session url when no subtopic id present', () => {
+  it('should use fallback arc test url when no subtopic id present', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 1;
@@ -451,8 +449,8 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(0);
-    expect(component.isPracticeCardVisible).toBe(true);
-    expect(component.practiceCard.practiceUrl).toBe('#');
+    expect(component.isArcTestCardVisible).toBe(true);
+    expect(component.arcTestCard.actionUrl).toBe('#');
   });
 
   it('should build lesson start url with all fields when exploration id present', () => {
@@ -543,7 +541,7 @@ describe('TopicStorySectionComponent', () => {
     );
   });
 
-  it('should construct practice session url when fragments and subtopic id present', () => {
+  it('should construct arc test session url when fragments and subtopic id present', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 1;
@@ -557,11 +555,11 @@ describe('TopicStorySectionComponent', () => {
 
     component.ngOnInit();
 
-    expect(component.isPracticeCardVisible).toBe(true);
-    expect(component.practiceCard.practiceUrl).toContain('practice/session');
+    expect(component.isArcTestCardVisible).toBe(true);
+    expect(component.arcTestCard.actionUrl).toContain('practice/session');
   });
 
-  it('should not create practice card when practice count is zero', () => {
+  it('should not create the arc test card when practice count is zero', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 0;
@@ -572,7 +570,7 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(0);
-    expect(component.isPracticeCardVisible).toBe(false);
+    expect(component.isArcTestCardVisible).toBe(false);
   });
 
   it('should use empty string when story description is missing', () => {

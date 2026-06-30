@@ -18,21 +18,39 @@ from __future__ import annotations
 
 import logging
 
-from core import feconf, utils
+from core import feature_flag_list, feconf, utils
 from core.constants import constants
 from core.controllers import acl_decorators, base
 from core.domain import (
     classroom_config_services,
     email_manager,
+    feature_flag_services,
     platform_parameter_list,
     platform_parameter_services,
     skill_services,
+    story_domain,
     story_fetchers,
     topic_fetchers,
     topic_services,
 )
 
-from typing import Dict
+from typing import Dict, List, Optional, TypedDict
+
+
+class StoryDisplayDict(TypedDict, total=False):
+    """Type for the story dict displayed on the topic viewer page."""
+
+    id: str
+    title: str
+    description: str
+    node_titles: List[str]
+    thumbnail_bg_color: Optional[str]
+    thumbnail_filename: Optional[str]
+    url_fragment: str
+    story_is_published: bool
+    completed_node_titles: List[str]
+    all_node_dicts: List[story_domain.StoryNodeDict]
+    arcs: List[story_domain.ArcDict]
 
 
 class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
@@ -72,7 +90,11 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
             for additional_story_id in additional_story_ids
         ]
 
-        canonical_story_dicts = []
+        are_story_arcs_enabled = feature_flag_services.is_feature_flag_enabled(
+            feature_flag_list.FeatureNames.STORY_EDITOR_ARCS.value,
+            None,
+        )
+        canonical_story_dicts: List[StoryDisplayDict] = []
         for story_summary in canonical_story_summaries:
             all_nodes = story_fetchers.get_pending_and_all_nodes_in_story(
                 self.user_id, story_summary.id
@@ -90,7 +112,8 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 story_summary.node_titles, pending_node_titles
             )
             story_summary_dict = story_summary.to_human_readable_dict()
-            canonical_story_dict = {
+            story = story_fetchers.get_story_by_id(story_summary.id)
+            canonical_story_dict: StoryDisplayDict = {
                 'id': story_summary_dict['id'],
                 'title': story_summary_dict['title'],
                 'description': story_summary_dict['description'],
@@ -102,9 +125,13 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 'completed_node_titles': completed_node_titles,
                 'all_node_dicts': [node.to_dict() for node in filtered_nodes],
             }
+            if are_story_arcs_enabled:
+                canonical_story_dict['arcs'] = [
+                    arc.to_dict() for arc in story.story_contents.arcs
+                ]
             canonical_story_dicts.append(canonical_story_dict)
 
-        additional_story_dicts = []
+        additional_story_dicts: List[StoryDisplayDict] = []
         for story_summary in additional_story_summaries:
             all_nodes = story_fetchers.get_pending_and_all_nodes_in_story(
                 self.user_id, story_summary.id
@@ -117,7 +144,8 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 story_summary.node_titles, pending_node_titles
             )
             story_summary_dict = story_summary.to_human_readable_dict()
-            additional_story_dict = {
+            story = story_fetchers.get_story_by_id(story_summary.id)
+            additional_story_dict: StoryDisplayDict = {
                 'id': story_summary_dict['id'],
                 'title': story_summary_dict['title'],
                 'description': story_summary_dict['description'],
@@ -129,6 +157,10 @@ class TopicPageDataHandler(base.BaseHandler[Dict[str, str], Dict[str, str]]):
                 'completed_node_titles': completed_node_titles,
                 'all_node_dicts': [node.to_dict() for node in all_nodes],
             }
+            if are_story_arcs_enabled:
+                additional_story_dict['arcs'] = [
+                    arc.to_dict() for arc in story.story_contents.arcs
+                ]
             additional_story_dicts.append(additional_story_dict)
 
         uncategorized_skill_ids = topic.get_all_uncategorized_skill_ids()

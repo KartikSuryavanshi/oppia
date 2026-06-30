@@ -46,6 +46,7 @@ interface LessonCardData {
   lessonDescription: string;
   thumbnailUrl: string;
   startUrl: string;
+  nodeId: string;
   lessonProgressStatus:
     | 'not_started'
     | 'in_progress'
@@ -53,6 +54,12 @@ interface LessonCardData {
     | 'coming_soon';
   totalCheckpointsCount: number;
   visitedCheckpointsCount: number;
+}
+
+interface ArcGroupData {
+  arcTitle: string;
+  arcDescription: string;
+  lessonCards: LessonCardData[];
 }
 
 interface PracticeCardData {
@@ -83,8 +90,22 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
   oppiaAvatarImageUrl: string = '';
   studyGuideUrl: string = '#';
   lessonCards: LessonCardData[] = [];
+  arcGroups: ArcGroupData[] = [];
   practiceCard!: PracticeCardData;
   isPracticeCardVisible: boolean = false;
+  _expandedArcIndices: Set<number> = new Set();
+
+  isArcExpanded(index: number): boolean {
+    return this._expandedArcIndices.has(index);
+  }
+
+  toggleArc(index: number): void {
+    if (this._expandedArcIndices.has(index)) {
+      this._expandedArcIndices.delete(index);
+    } else {
+      this._expandedArcIndices.add(index);
+    }
+  }
 
   constructor(
     private assetsBackendApiService: AssetsBackendApiService,
@@ -216,8 +237,39 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
           lessonProgressStatus: this.getLessonProgressStatus(node),
           totalCheckpointsCount: totalCheckpoints,
           visitedCheckpointsCount: visitedCheckpoints,
+          nodeId: node.getId(),
         };
       });
+
+    const allNodes = this.storySummary.getAllNodes();
+    this.arcGroups = this.buildArcGroups(allNodes);
+  }
+
+  private buildArcGroups(allNodes: StoryNode[]): ArcGroupData[] {
+    const arcs = this.storySummary.getArcs();
+    if (!arcs || arcs.length === 0) {
+      return [];
+    }
+
+    const nodeIndexMap = new Map<string, number>();
+    allNodes.forEach((node, index) => {
+      nodeIndexMap.set(node.getId(), index);
+    });
+
+    return arcs.map(arc => {
+      const arcLessonCards: LessonCardData[] = [];
+      arc.node_ids.forEach(nodeId => {
+        const nodeIndex = nodeIndexMap.get(nodeId);
+        if (nodeIndex !== undefined && this.lessonCards[nodeIndex]) {
+          arcLessonCards.push(this.lessonCards[nodeIndex]);
+        }
+      });
+      return {
+        arcTitle: arc.title,
+        arcDescription: arc.description,
+        lessonCards: arcLessonCards,
+      };
+    });
   }
 
   private populateFromInputs(): void {
@@ -236,20 +288,22 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     this.storyTitle = this.storySummary.getTitle();
     this.storyDescription = this.storySummary.getDescription() || '';
     this.lessonCount = this.storySummary.getNodeTitles().length;
-    this.lessonCards = this.storySummary
-      .getAllNodes()
-      .map((node: StoryNode, index: number) => {
-        return {
-          lessonNumber: index + 1,
-          lessonTitle: 'Lesson ' + (index + 1) + ': ' + node.getTitle(),
-          lessonDescription: node.getDescription(),
-          thumbnailUrl: this.getLessonThumbnailUrl(node),
-          startUrl: this.getLessonStartUrl(node),
-          lessonProgressStatus: this.getLessonProgressStatus(node),
-          totalCheckpointsCount: 0,
-          visitedCheckpointsCount: 0,
-        };
-      });
+    const allNodes = this.storySummary.getAllNodes();
+    this.lessonCards = allNodes.map((node: StoryNode, index: number) => {
+      return {
+        lessonNumber: index + 1,
+        lessonTitle: 'Lesson ' + (index + 1) + ': ' + node.getTitle(),
+        lessonDescription: node.getDescription(),
+        thumbnailUrl: this.getLessonThumbnailUrl(node),
+        startUrl: this.getLessonStartUrl(node),
+        nodeId: node.getId(),
+        lessonProgressStatus: this.getLessonProgressStatus(node),
+        totalCheckpointsCount: 0,
+        visitedCheckpointsCount: 0,
+      };
+    });
+
+    this.arcGroups = this.buildArcGroups(allNodes);
 
     this.isPracticeCardVisible =
       this.lessonCards.length === 0 && this.practiceCount >= 1;

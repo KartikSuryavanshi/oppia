@@ -47,13 +47,12 @@ interface LessonCardData {
   startUrl: string;
 }
 
-interface PracticeCardData {
-  practiceTitle: string;
-  practiceDescription: string;
-  relatedLessonNumber: number | null;
+interface ArcTestCardData {
+  cardTitle: string;
+  cardDescription: string;
+  actionLabel: string;
   thumbnailUrl: string;
-  studyUrl: string;
-  practiceUrl: string;
+  actionUrl: string;
 }
 
 @Component({
@@ -75,8 +74,29 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
   oppiaAvatarImageUrl: string = '';
   studyGuideUrl: string = '#';
   lessonCards: LessonCardData[] = [];
-  practiceCard!: PracticeCardData;
-  isPracticeCardVisible: boolean = false;
+  arcGroups: ArcGroupData[] = [];
+  arcTestCard!: ArcTestCardData;
+  isArcTestCardVisible: boolean = false;
+  _expandedArcIndices: Set<number> = new Set();
+
+  isArcExpanded(index: number): boolean {
+    return this._expandedArcIndices.has(index);
+  }
+
+  toggleArc(index: number): void {
+    if (this._expandedArcIndices.has(index)) {
+      this._expandedArcIndices.delete(index);
+    } else {
+      this._expandedArcIndices.add(index);
+    }
+  }
+
+  private setDefaultExpandedArc(): void {
+    this._expandedArcIndices.clear();
+    if (this.arcGroups.length > 0) {
+      this._expandedArcIndices.add(0);
+    }
+  }
 
   constructor(
     private assetsBackendApiService: AssetsBackendApiService,
@@ -138,6 +158,107 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     return this.i18nLanguageCodeService.isCurrentLanguageRTL();
   }
 
+  private getLessonProgressStatus(
+    node: StoryNode
+  ): 'not_started' | 'in_progress' | 'completed' | 'coming_soon' {
+    const nodeTitle = node.getTitle();
+    if (this.storySummary.isNodeCompleted(nodeTitle)) {
+      return 'completed';
+    }
+
+    const visitedChapterTitles = this.storySummary.getVisitedChapterTitles();
+    if (
+      visitedChapterTitles &&
+      visitedChapterTitles.indexOf(nodeTitle) !== -1
+    ) {
+      return 'in_progress';
+    }
+
+    return 'not_started';
+  }
+
+  private async loadChapterProgress(): Promise<void> {
+    const explorationIds = this.storySummary
+      .getAllNodes()
+      .map(node => node.getExplorationId())
+      .filter(id => id !== null) as string[];
+
+    if (explorationIds.length === 0) {
+      return;
+    }
+
+    try {
+      await this.chapterProgressLoaderService.loadChapterProgressForStory(
+        this.storySummary.getId(),
+        explorationIds
+      );
+    } catch {
+      return;
+    }
+
+    this.lessonCards = this.storySummary
+      .getAllNodes()
+      .map((node: StoryNode, index: number) => {
+        const explorationId = node.getExplorationId();
+        let totalCheckpoints = 0;
+        let visitedCheckpoints = 0;
+
+        if (explorationId) {
+          const summary =
+            this.chapterProgressLoaderService.getChapterProgressSummary(
+              explorationId
+            );
+          if (summary) {
+            totalCheckpoints = summary.totalCheckpoints;
+            visitedCheckpoints = summary.visitedCheckpoints;
+          }
+        }
+
+        return {
+          lessonNumber: index + 1,
+          lessonTitle: 'Lesson ' + (index + 1) + ': ' + node.getTitle(),
+          lessonDescription: node.getDescription(),
+          thumbnailUrl: this.getLessonThumbnailUrl(node),
+          startUrl: this.getLessonStartUrl(node),
+          lessonProgressStatus: this.getLessonProgressStatus(node),
+          totalCheckpointsCount: totalCheckpoints,
+          visitedCheckpointsCount: visitedCheckpoints,
+          nodeId: node.getId(),
+        };
+      });
+
+    const allNodes = this.storySummary.getAllNodes();
+    this.arcGroups = this.buildArcGroups(allNodes);
+    this.setDefaultExpandedArc();
+  }
+
+  private buildArcGroups(allNodes: StoryNode[]): ArcGroupData[] {
+    const arcs = this.storySummary.getArcs();
+    if (!arcs || arcs.length === 0) {
+      return [];
+    }
+
+    const nodeIndexMap = new Map<string, number>();
+    allNodes.forEach((node, index) => {
+      nodeIndexMap.set(node.getId(), index);
+    });
+
+    return arcs.map(arc => {
+      const arcLessonCards: LessonCardData[] = [];
+      arc.node_ids.forEach(nodeId => {
+        const nodeIndex = nodeIndexMap.get(nodeId);
+        if (nodeIndex !== undefined && this.lessonCards[nodeIndex]) {
+          arcLessonCards.push(this.lessonCards[nodeIndex]);
+        }
+      });
+      return {
+        arcTitle: arc.title,
+        arcDescription: arc.description,
+        lessonCards: arcLessonCards,
+      };
+    });
+  }
+
   private populateFromInputs(): void {
     if (!this.classroomUrlFragment) {
       this.classroomUrlFragment =
@@ -154,32 +275,36 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     this.storyTitle = this.storySummary.getTitle();
     this.storyDescription = this.storySummary.getDescription() || '';
     this.lessonCount = this.storySummary.getNodeTitles().length;
-    this.lessonCards = this.storySummary
-      .getAllNodes()
-      .map((node: StoryNode, index: number) => {
-        return {
-          lessonNumber: index + 1,
-          lessonTitle: 'Lesson ' + (index + 1) + ': ' + node.getTitle(),
-          lessonDescription: node.getDescription(),
-          thumbnailUrl: this.getLessonThumbnailUrl(node),
-          startUrl: this.getLessonStartUrl(node),
-        };
-      });
+    const allNodes = this.storySummary.getAllNodes();
+    this.lessonCards = allNodes.map((node: StoryNode, index: number) => {
+      return {
+        lessonNumber: index + 1,
+        lessonTitle: 'Lesson ' + (index + 1) + ': ' + node.getTitle(),
+        lessonDescription: node.getDescription(),
+        thumbnailUrl: this.getLessonThumbnailUrl(node),
+        startUrl: this.getLessonStartUrl(node),
+        nodeId: node.getId(),
+        lessonProgressStatus: this.getLessonProgressStatus(node),
+        totalCheckpointsCount: 0,
+        visitedCheckpointsCount: 0,
+      };
+    });
 
-    this.isPracticeCardVisible =
-      this.lessonCards.length === 0 && this.practiceCount >= 1;
-    this.practiceCard = this.getPracticeCardData();
+    this.arcGroups = this.buildArcGroups(allNodes);
+    this.setDefaultExpandedArc();
+
+    this.isArcTestCardVisible = this.practiceCount >= 1;
+    this.arcTestCard = this.getArcTestCardData();
   }
 
-  private getPracticeCardData(): PracticeCardData {
+  private getArcTestCardData(): ArcTestCardData {
     return {
-      practiceTitle: 'Practice 1: ' + this.storyTitle,
-      practiceDescription: '',
-      relatedLessonNumber:
-        this.lessonCards.length > 0 ? this.lessonCards[0].lessonNumber : null,
+      cardTitle: 'Take the Mastery Challenge',
+      cardDescription:
+        'Review everything you learned across this story and prove mastery.',
+      actionLabel: 'Start Challenge',
       thumbnailUrl: this.getFallbackLessonThumbnailUrl(),
-      studyUrl: this.studyGuideUrl,
-      practiceUrl: this.getPracticeSessionUrl(),
+      actionUrl: this.getPracticeSessionUrl(),
     };
   }
 

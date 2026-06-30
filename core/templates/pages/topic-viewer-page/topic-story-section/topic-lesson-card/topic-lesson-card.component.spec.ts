@@ -134,6 +134,14 @@ describe('TopicLessonCardComponent', () => {
     }).not.toThrowError();
   });
 
+  it('should toggle expanded state', () => {
+    component.isExpanded = false;
+
+    component.toggleExpanded();
+
+    expect(component.isExpanded).toBeTrue();
+  });
+
   it('should return thumbnail alt text with lesson title', () => {
     component.lessonTitle = 'Introduction to Fractions';
 
@@ -146,5 +154,42 @@ describe('TopicLessonCardComponent', () => {
     component.lessonTitle = '';
 
     expect(component.getThumbnailAltText()).toBe('Lesson thumbnail');
+  });
+
+  it('should build accessible header label with lesson number', () => {
+    component.lessonNumber = 2;
+    component.lessonTitle = 'Fractions of a Group';
+
+    expect(component.getHeaderAriaLabel()).toBe(
+      'Lesson 2: Fractions of a Group'
+    );
+  });
+
+  describe('showCheckpointBar', () => {
+    it('should return true when not coming_soon and totalCheckpointsCount > 0', () => {
+      component.lessonProgressStatus = 'not_started';
+      component.totalCheckpointsCount = 5;
+      expect(component.showCheckpointBar).toBeTrue();
+
+      component.lessonProgressStatus = 'in_progress';
+      component.totalCheckpointsCount = 3;
+      expect(component.showCheckpointBar).toBeTrue();
+
+      component.lessonProgressStatus = 'completed';
+      component.totalCheckpointsCount = 1;
+      expect(component.showCheckpointBar).toBeTrue();
+    });
+
+    it('should return false when lesson is coming_soon', () => {
+      component.lessonProgressStatus = 'coming_soon';
+      component.totalCheckpointsCount = 5;
+      expect(component.showCheckpointBar).toBeFalse();
+    });
+
+    it('should return false when totalCheckpointsCount is 0', () => {
+      component.lessonProgressStatus = 'not_started';
+      component.totalCheckpointsCount = 0;
+      expect(component.showCheckpointBar).toBeFalse();
+    });
   });
 });

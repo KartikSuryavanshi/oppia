@@ -150,7 +150,72 @@ describe('TopicStorySectionComponent', () => {
     );
   });
 
-  it('should build lesson cards from storySummary and not create practice card', () => {
+  it('should build arc groups when story has arcs', () => {
+    const storyNodeSpy1 = jasmine.createSpyObj('StoryNode', [
+      'getTitle',
+      'getDescription',
+      'getThumbnailFilename',
+      'getExplorationId',
+      'getId',
+    ]);
+    storyNodeSpy1.getTitle.and.returnValue('Node title 1');
+    storyNodeSpy1.getDescription.and.returnValue('Node description 1');
+    storyNodeSpy1.getThumbnailFilename.and.returnValue(null);
+    storyNodeSpy1.getExplorationId.and.returnValue('exp_1');
+    storyNodeSpy1.getId.and.returnValue('node_1');
+
+    const storyNodeSpy2 = jasmine.createSpyObj('StoryNode', [
+      'getTitle',
+      'getDescription',
+      'getThumbnailFilename',
+      'getExplorationId',
+      'getId',
+    ]);
+    storyNodeSpy2.getTitle.and.returnValue('Node title 2');
+    storyNodeSpy2.getDescription.and.returnValue('Node description 2');
+    storyNodeSpy2.getThumbnailFilename.and.returnValue(null);
+    storyNodeSpy2.getExplorationId.and.returnValue('exp_2');
+    storyNodeSpy2.getId.and.returnValue('node_2');
+
+    const arcs = [
+      {
+        id: 'arc_1',
+        title: 'Arc 1',
+        description: 'First arc',
+        node_ids: ['node_1'],
+      },
+      {
+        id: 'arc_2',
+        title: 'Arc 2',
+        description: 'Second arc',
+        node_ids: ['node_2'],
+      },
+    ];
+
+    component.storySummary = createStorySummarySpy(
+      ['Node title 1', 'Node title 2'],
+      [storyNodeSpy1, storyNodeSpy2],
+      arcs
+    );
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+
+    expect(component.arcGroups.length).toBe(2);
+    expect(component.arcGroups[0].arcTitle).toBe('Arc 1');
+    expect(component.arcGroups[0].lessonCards.length).toBe(1);
+    expect(component.arcGroups[0].lessonCards[0].lessonTitle).toContain(
+      'Node title 1'
+    );
+    expect(component.arcGroups[1].arcTitle).toBe('Arc 2');
+    expect(component.arcGroups[1].lessonCards.length).toBe(1);
+    expect(component.arcGroups[1].lessonCards[0].lessonTitle).toContain(
+      'Node title 2'
+    );
+  });
+
+  it('should build lesson cards from storySummary and create the arc test card', () => {
     const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
       'getTitle',
       'getDescription',
@@ -178,10 +243,141 @@ describe('TopicStorySectionComponent', () => {
     expect(component.lessonCards[0].thumbnailUrl).toBe(
       '/thumbnail/story/story_id/thumb.png'
     );
-    expect(component.isPracticeCardVisible).toBeFalse();
+    expect(component.lessonCards[0].lessonProgressStatus).toBe('not_started');
+    expect(component.isArcTestCardVisible).toBe(true);
   });
 
-  it('should create practice card only when there are zero lessons', () => {
+  it('should mark lesson as completed when node is completed', () => {
+    const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
+      'getTitle',
+      'getDescription',
+      'getThumbnailFilename',
+      'getExplorationId',
+      'getId',
+    ]);
+    storyNodeSpy.getTitle.and.returnValue('Node title 1');
+    storyNodeSpy.getDescription.and.returnValue('Node description 1');
+    storyNodeSpy.getThumbnailFilename.and.returnValue('thumb.png');
+    storyNodeSpy.getExplorationId.and.returnValue('exp_1');
+    storyNodeSpy.getId.and.returnValue('node_1');
+
+    const storySummary = createStorySummarySpy(
+      ['Node title 1'],
+      [storyNodeSpy]
+    );
+    storySummary.isNodeCompleted.and.callFake(
+      (title: string) => title === 'Node title 1'
+    );
+    storySummary.getCompletedNodeTitles.and.returnValue(['Node title 1']);
+
+    component.storySummary = storySummary;
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+
+    expect(component.lessonCards.length).toBe(1);
+    expect(component.lessonCards[0].lessonProgressStatus).toBe('completed');
+  });
+
+  it('should mark lesson as in_progress when node is visited but not completed', () => {
+    const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
+      'getTitle',
+      'getDescription',
+      'getThumbnailFilename',
+      'getExplorationId',
+      'getId',
+    ]);
+    storyNodeSpy.getTitle.and.returnValue('Node title 1');
+    storyNodeSpy.getDescription.and.returnValue('Node description 1');
+    storyNodeSpy.getThumbnailFilename.and.returnValue('thumb.png');
+    storyNodeSpy.getExplorationId.and.returnValue('exp_1');
+    storyNodeSpy.getId.and.returnValue('node_1');
+
+    const storySummary = createStorySummarySpy(
+      ['Node title 1'],
+      [storyNodeSpy]
+    );
+    storySummary.getVisitedChapterTitles.and.returnValue(['Node title 1']);
+
+    component.storySummary = storySummary;
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+
+    expect(component.lessonCards.length).toBe(1);
+    expect(component.lessonCards[0].lessonProgressStatus).toBe('in_progress');
+  });
+
+  it('should load checkpoint counts from chapter progress service on init', async () => {
+    const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
+      'getTitle',
+      'getDescription',
+      'getThumbnailFilename',
+      'getExplorationId',
+      'getId',
+    ]);
+    storyNodeSpy.getTitle.and.returnValue('Node title 1');
+    storyNodeSpy.getDescription.and.returnValue('Node description 1');
+    storyNodeSpy.getThumbnailFilename.and.returnValue('thumb.png');
+    storyNodeSpy.getExplorationId.and.returnValue('exp_1');
+    storyNodeSpy.getId.and.returnValue('node_1');
+
+    const mockSummary = new ChapterProgressSummary('exp_1', 5, 3, false);
+    chapterProgressLoaderService.getChapterProgressSummary.and.returnValue(
+      mockSummary
+    );
+
+    const storySummary = createStorySummarySpy(
+      ['Node title 1'],
+      [storyNodeSpy]
+    );
+
+    component.storySummary = storySummary;
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.lessonCards.length).toBe(1);
+    expect(component.lessonCards[0].totalCheckpointsCount).toBe(5);
+    expect(component.lessonCards[0].visitedCheckpointsCount).toBe(3);
+  });
+
+  it('should create arc test card when lesson cards exist', () => {
+    const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
+      'getTitle',
+      'getDescription',
+      'getThumbnailFilename',
+      'getExplorationId',
+      'getId',
+    ]);
+    storyNodeSpy.getTitle.and.returnValue('Node title 1');
+    storyNodeSpy.getDescription.and.returnValue('Node description 1');
+    storyNodeSpy.getThumbnailFilename.and.returnValue('thumb.png');
+    storyNodeSpy.getExplorationId.and.returnValue('exp_1');
+    storyNodeSpy.getId.and.returnValue('node_1');
+
+    component.storySummary = createStorySummarySpy(
+      ['Node title 1'],
+      [storyNodeSpy]
+    );
+    component.lessonCount = 1;
+    component.practiceCount = 1;
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+    component.practiceSubtopicIds = [1];
+
+    component.ngOnInit();
+
+    expect(component.lessonCards.length).toBe(1);
+    expect(component.isArcTestCardVisible).toBe(true);
+  });
+
+  it('should create the arc test card even when there are zero lessons', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 1;
@@ -192,13 +388,11 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(0);
-    expect(component.isPracticeCardVisible).toBeTrue();
-    expect(component.practiceCard.studyUrl).toBe(
-      '/learn/math/place-values/studyguide'
-    );
+    expect(component.isArcTestCardVisible).toBe(true);
+    expect(component.arcTestCard.cardTitle).toBe('Take the Mastery Challenge');
   });
 
-  it('should use fallback practice session url when fragments are missing', () => {
+  it('should use fallback arc test url when fragments are missing', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 1;
@@ -211,11 +405,11 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(0);
-    expect(component.isPracticeCardVisible).toBeTrue();
-    expect(component.practiceCard.practiceUrl).toBe('#');
+    expect(component.isArcTestCardVisible).toBe(true);
+    expect(component.arcTestCard.actionUrl).toBe('#');
   });
 
-  it('should use fallback practice session url when no subtopic id present', () => {
+  it('should use fallback arc test url when no subtopic id present', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 1;
@@ -226,8 +420,8 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(0);
-    expect(component.isPracticeCardVisible).toBeTrue();
-    expect(component.practiceCard.practiceUrl).toBe('#');
+    expect(component.isArcTestCardVisible).toBe(true);
+    expect(component.arcTestCard.actionUrl).toBe('#');
   });
 
   it('should build lesson start url with all fields when exploration id present', () => {
@@ -318,7 +512,7 @@ describe('TopicStorySectionComponent', () => {
     );
   });
 
-  it('should construct practice session url when fragments and subtopic id present', () => {
+  it('should construct arc test session url when fragments and subtopic id present', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 1;
@@ -332,11 +526,11 @@ describe('TopicStorySectionComponent', () => {
 
     component.ngOnInit();
 
-    expect(component.isPracticeCardVisible).toBeTrue();
-    expect(component.practiceCard.practiceUrl).toContain('practice/session');
+    expect(component.isArcTestCardVisible).toBe(true);
+    expect(component.arcTestCard.actionUrl).toContain('practice/session');
   });
 
-  it('should not create practice card when practice count is zero', () => {
+  it('should not create the arc test card when practice count is zero', () => {
     component.storySummary = createStorySummarySpy([], []);
     component.lessonCount = 0;
     component.practiceCount = 0;
@@ -347,7 +541,7 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.lessonCards.length).toBe(0);
-    expect(component.isPracticeCardVisible).toBeFalse();
+    expect(component.isArcTestCardVisible).toBe(false);
   });
 
   it('should use empty string when story description is missing', () => {

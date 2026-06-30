@@ -1,0 +1,26 @@
+<div class="topic-mastery-challenge-card" [attr.aria-label]="cardTitle || 'Mastery challenge card'">
+  <div class="topic-mastery-challenge-card-icon" aria-hidden="true">
+    <svg viewBox="0 0 64 64" role="presentation" focusable="false">
+      <path d="M20 12h24v8c0 7.2-4.8 13.3-11.5 15V41h6.5c2 0 3.5 1.6 3.5 3.5V46H22v-1.5c0-1.9 1.6-3.5 3.5-3.5h6.5v-6c-6.7-1.7-11.5-7.8-11.5-15v-8Z" fill="#F1B425"/>
+      <path d="M22 14h-6c0 5 2.4 9.1 7 11V21c-1.4-1.2-1.8-3.1-1-7Z" fill="#F8C94D"/>
+      <path d="M42 14h6c0 5-2.4 9.1-7 11V21c1.4-1.2 1.8-3.1 1-7Z" fill="#F8C94D"/>
+      <circle cx="32" cy="23.5" r="5" fill="#FFF2AE"/>
+      <path d="M32 19.5l1.2 2.4 2.6.4-1.9 1.8.4 2.6-2.3-1.2-2.3 1.2.4-2.6-1.9-1.8 2.6-.4L32 19.5Z" fill="#F7A61B"/>
+    </svg>
+  </div>
+
+  <div class="topic-mastery-challenge-card-content">
+    <div class="topic-mastery-challenge-card-copy">
+      <h3 class="topic-mastery-challenge-card-title">{{ cardTitle }}</h3>
+      <p class="topic-mastery-challenge-card-description">{{ cardDescription }}</p>
+    </div>
+
+    <button class="topic-mastery-challenge-card-button"
+            type="button"
+            [disabled]="!actionUrl"
+            (click)="navigateTo(actionUrl)">
+      <span class="topic-mastery-challenge-card-button-icon" aria-hidden="true">★</span>
+      <span>{{ actionLabel }}</span>
+    </button>
+  </div>
+</div>

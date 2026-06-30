@@ -91,14 +91,12 @@
 
       <div class="story-practice-card-wrapper"
         *ngIf="isArcTestCardVisible">
-        <topic-arc-test-card
+        <topic-mastery-challenge-card
           [cardTitle]="arcTestCard.cardTitle"
           [cardDescription]="arcTestCard.cardDescription"
-          [thumbnailUrl]="arcTestCard.thumbnailUrl"
           [actionLabel]="arcTestCard.actionLabel"
-          [actionUrl]="arcTestCard.actionUrl"
-          themeClass="topic-arc-test-card--purple">
-        </topic-arc-test-card>
+          [actionUrl]="arcTestCard.actionUrl">
+        </topic-mastery-challenge-card>
       </div>
     </div>
   </div>

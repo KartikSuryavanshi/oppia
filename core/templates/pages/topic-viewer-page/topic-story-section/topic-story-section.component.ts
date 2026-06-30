@@ -313,16 +313,16 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     this.arcGroups = this.buildArcGroups(allNodes);
     this.setDefaultExpandedArc();
 
-    this.isArcTestCardVisible = this.practiceCount >= 1;
+    this.isArcTestCardVisible = this.lessonCards.length > 0;
     this.arcTestCard = this.getArcTestCardData();
   }
 
   private getArcTestCardData(): ArcTestCardData {
     return {
-      cardTitle: 'Take the Mastery Challenge',
+      cardTitle: 'MASTERY CHALLENGE',
       cardDescription:
-        'Review everything you learned across this story and prove mastery.',
-      actionLabel: 'Start Challenge',
+        "Test your knowledge with a challenge that covers everything you've learned in this topic.",
+      actionLabel: 'Take the Mastery Challenge',
       thumbnailUrl: this.getFallbackLessonThumbnailUrl(),
       actionUrl: this.getPracticeSessionUrl(),
     };
@@ -333,8 +333,7 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
       return '#';
     }
 
-    const practiceSubtopicId = this.practiceSubtopicIds[0];
-    if (practiceSubtopicId === undefined) {
+    if (this.practiceSubtopicIds.length === 0) {
       return '#';
     }
 
@@ -343,7 +342,7 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
       {
         classroom_url_fragment: this.classroomUrlFragment,
         topic_url_fragment: this.topicUrlFragment,
-        stringified_subtopic_ids: JSON.stringify([practiceSubtopicId]),
+        stringified_subtopic_ids: JSON.stringify(this.practiceSubtopicIds),
       }
     );
   }

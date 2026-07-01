@@ -17,16 +17,14 @@
  */
 
 import {
-  AfterViewInit,
   Component,
   ElementRef,
+  HostListener,
   Input,
   OnChanges,
   OnInit,
-  QueryList,
-  SimpleChanges,
   ViewChild,
-  ViewChildren,
+  SimpleChanges,
 } from '@angular/core';
 
 import {AppConstants} from 'app.constants';
@@ -38,7 +36,6 @@ import {PracticeSessionPageConstants} from 'pages/practice-session-page/practice
 import {AssetsBackendApiService} from 'services/assets-backend-api.service';
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {UrlService} from 'services/contextual/url.service';
-import {WindowRef} from 'services/contextual/window-ref.service';
 import {ChapterProgressLoaderService} from 'services/chapter-progress-loader.service';
 
 import './topic-story-section.component.css';
@@ -79,10 +76,13 @@ interface ArcTestCardData {
   actionUrl: string;
 }
 
-interface LessonProgressNavItem {
-  nodeId: string;
+interface ProgressNodeData {
   lessonNumber: number;
+  lessonTitle: string;
+  nodeId: string;
   arcPalette: (typeof StoryDomainConstants.ARC_COLOR_PALETTE)[number];
+  arcIndex: number;
+  isArcEnd: boolean;
   lessonProgressStatus:
     | 'not_started'
     | 'in_progress'
@@ -95,9 +95,7 @@ interface LessonProgressNavItem {
   templateUrl: './topic-story-section.component.html',
   styleUrls: ['./topic-story-section.component.css'],
 })
-export class TopicStorySectionComponent
-  implements OnInit, OnChanges, AfterViewInit
-{
+export class TopicStorySectionComponent implements OnInit, OnChanges {
   @Input() storySummary!: StorySummary;
   @Input() storyTitle!: string;
   @Input() storyDescription!: string;
@@ -113,16 +111,26 @@ export class TopicStorySectionComponent
   studyGuideUrl: string = '#';
   lessonCards: LessonCardData[] = [];
   arcGroups: ArcGroupData[] = [];
-  progressNavItems: LessonProgressNavItem[] = [];
+  progressNodes: ProgressNodeData[] = [];
   masteryChallengeCard!: ArcTestCardData;
   isMasteryChallengeVisible: boolean = false;
-  activeLessonNodeId: string | null = null;
   _expandedArcIndices: Set<number> = new Set();
+  activeArcIndex: number = 0;
+  progressDockIsDragging: boolean = false;
+  progressDockDidDrag: boolean = false;
+  progressDockDragStartX: number = 0;
+  progressDockScrollLeftStart: number = 0;
 
-  @ViewChildren('lessonCardAnchor') lessonCardAnchors!: QueryList<ElementRef>;
-  @ViewChild('progressTrack') progressTrack!: ElementRef;
+  @ViewChild('progressDockTrack')
+  progressDockTrack?: ElementRef<HTMLDivElement>;
 
-  private readonly LESSON_SCROLL_OFFSET_PX = 160;
+  get isArcTestCardVisible(): boolean {
+    return this.isMasteryChallengeVisible;
+  }
+
+  get arcTestCard(): ArcTestCardData {
+    return this.masteryChallengeCard;
+  }
 
   isArcExpanded(index: number): boolean {
     return this._expandedArcIndices.has(index);
@@ -136,6 +144,116 @@ export class TopicStorySectionComponent
     }
   }
 
+  trackArcGroupByIndex(index: number): number {
+    return index;
+  }
+
+  trackProgressNodeByIndex(index: number): number {
+    return index;
+  }
+
+  getArcSectionId(index: number): string {
+    return 'topic-story-arc-' + index;
+  }
+
+  getLessonSectionId(index: number): string {
+    return 'topic-story-lesson-' + index;
+  }
+
+  getLessonProgressLabel(index: number): string {
+    return 'Go to Lesson ' + (index + 1);
+  }
+
+  onProgressDockButtonClick(index: number, event: MouseEvent): void {
+    if (this.progressDockDidDrag) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.progressDockDidDrag = false;
+      return;
+    }
+    this.scrollToLesson(index);
+  }
+
+  scrollToLesson(index: number): void {
+    const progressNode = this.progressNodes[index];
+    if (!progressNode) {
+      return;
+    }
+
+    if (!this.isArcExpanded(progressNode.arcIndex)) {
+      this._expandedArcIndices.add(progressNode.arcIndex);
+    }
+
+    window.setTimeout(() => {
+      const lessonSection = document.getElementById(
+        this.getLessonSectionId(index)
+      );
+      if (!lessonSection) {
+        return;
+      }
+
+      lessonSection.scrollIntoView({behavior: 'smooth', block: 'start'});
+      this.activeArcIndex = index;
+    }, 0);
+  }
+
+  scrollProgressDock(direction: number): void {
+    const track = this.progressDockTrack?.nativeElement;
+    if (!track) {
+      return;
+    }
+
+    track.scrollBy({left: direction * 240, behavior: 'smooth'});
+  }
+
+  startProgressDockDrag(event: MouseEvent): void {
+    if (event.button !== 0) {
+      return;
+    }
+
+    const track = event.currentTarget as HTMLElement | null;
+    if (!track || track.scrollWidth <= track.clientWidth) {
+      return;
+    }
+
+    this.progressDockIsDragging = true;
+    this.progressDockDidDrag = false;
+    this.progressDockDragStartX = event.pageX;
+    this.progressDockScrollLeftStart = track.scrollLeft;
+  }
+
+  dragProgressDock(event: MouseEvent): void {
+    if (!this.progressDockIsDragging) {
+      return;
+    }
+
+    const track = event.currentTarget as HTMLElement | null;
+    if (!track) {
+      return;
+    }
+
+    event.preventDefault();
+    const horizontalDistance = event.pageX - this.progressDockDragStartX;
+    if (Math.abs(horizontalDistance) > 4) {
+      this.progressDockDidDrag = true;
+    }
+    track.scrollLeft = this.progressDockScrollLeftStart - horizontalDistance;
+  }
+
+  stopProgressDockDrag(): void {
+    this.progressDockIsDragging = false;
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.updateActiveArcIndex();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateActiveArcIndex();
+  }
+
   private setDefaultExpandedArc(): void {
     this._expandedArcIndices.clear();
     if (this.arcGroups.length > 0) {
@@ -143,17 +261,52 @@ export class TopicStorySectionComponent
     }
   }
 
+  private getProgressDockOffset(): number {
+    return window.innerWidth < 768 ? 128 : 160;
+  }
+
+  private updateActiveArcIndex(): void {
+    if (this.progressNodes.length === 0) {
+      this.activeArcIndex = 0;
+      return;
+    }
+
+    const lessonTopOffsets = this.progressNodes
+      .map((_, index) => {
+        const element = document.getElementById(this.getLessonSectionId(index));
+        if (!element) {
+          return null;
+        }
+        return element.getBoundingClientRect().top + window.scrollY;
+      })
+      .filter((value): value is number => value !== null);
+
+    if (!lessonTopOffsets.length) {
+      return;
+    }
+
+    const activeLine = window.scrollY + this.getProgressDockOffset();
+    let nextActiveArcIndex = 0;
+    lessonTopOffsets.forEach((topOffset, index) => {
+      if (topOffset <= activeLine) {
+        nextActiveArcIndex = index;
+      }
+    });
+    this.activeArcIndex = nextActiveArcIndex;
+  }
+
   constructor(
     private assetsBackendApiService: AssetsBackendApiService,
     private urlInterpolationService: UrlInterpolationService,
     private urlService: UrlService,
     private i18nLanguageCodeService: I18nLanguageCodeService,
-    private chapterProgressLoaderService: ChapterProgressLoaderService,
-    private windowRef: WindowRef
+    private chapterProgressLoaderService: ChapterProgressLoaderService
   ) {}
 
   ngOnInit(): void {
     this.populateFromInputs();
+    this.loadChapterProgress();
+    this.updateActiveArcIndex();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -168,12 +321,6 @@ export class TopicStorySectionComponent
       changes.practiceCount
     ) {
       this.populateFromInputs();
-    }
-  }
-
-  ngAfterViewInit(): void {
-    if (!this.activeLessonNodeId && this.lessonCards.length > 0) {
-      this.activeLessonNodeId = this.lessonCards[0].nodeId;
     }
   }
 
@@ -223,51 +370,6 @@ export class TopicStorySectionComponent
       arcGroup.lessonCards.length +
       ' completed'
     );
-  }
-
-  isProgressNodeActive(nodeId: string): boolean {
-    return this.activeLessonNodeId === nodeId;
-  }
-
-  getProgressNodeAriaLabel(navItem: LessonProgressNavItem): string {
-    return 'Go to Lesson ' + navItem.lessonNumber;
-  }
-
-  scrollProgressTrack(direction: 'left' | 'right'): void {
-    if (!this.progressTrack) {
-      return;
-    }
-
-    const delta = direction === 'left' ? -240 : 240;
-    this.progressTrack.nativeElement.scrollBy({
-      left: delta,
-      behavior: 'smooth',
-    });
-  }
-
-  scrollToLesson(nodeId: string): void {
-    this.activeLessonNodeId = nodeId;
-    const lessonCardAnchor = this.lessonCardAnchors.find(anchor => {
-      return anchor.nativeElement?.dataset?.nodeId === nodeId;
-    });
-
-    if (!lessonCardAnchor) {
-      return;
-    }
-
-    const boundingRect = lessonCardAnchor.nativeElement.getBoundingClientRect();
-    const scrollTop = this.windowRef.nativeWindow.pageYOffset;
-    const targetTop =
-      boundingRect.top + scrollTop - this.LESSON_SCROLL_OFFSET_PX;
-
-    this.windowRef.nativeWindow.scrollTo({
-      top: Math.max(targetTop, 0),
-      behavior: 'smooth',
-    });
-  }
-
-  getProgressSegmentWidth(arcGroup: ArcGroupData): string {
-    return Math.max(arcGroup.lessonCards.length - 1, 0) * 72 + 'px';
   }
 
   private getArcPalette(
@@ -348,9 +450,46 @@ export class TopicStorySectionComponent
 
     const allNodes = this.storySummary.getAllNodes();
     this.arcGroups = this.buildArcGroups(allNodes);
+    this.progressNodes = this.buildProgressNodes(allNodes);
     this.setDefaultExpandedArc();
     this.isMasteryChallengeVisible = this.lessonCards.length > 0;
     this.masteryChallengeCard = this.getMasteryChallengeCardData();
+  }
+
+  private buildProgressNodes(allNodes: StoryNode[]): ProgressNodeData[] {
+    const arcs = this.storySummary.getArcs();
+    const nodeIdToArcIndex = new Map<string, number>();
+    const arcEndNodeIds = new Set<string>();
+    const nodeIdToLessonCard = new Map<string, LessonCardData>();
+
+    this.lessonCards.forEach(lessonCard => {
+      nodeIdToLessonCard.set(lessonCard.nodeId, lessonCard);
+    });
+
+    arcs.forEach((arc, arcIndex) => {
+      arc.node_ids.forEach(nodeId => {
+        nodeIdToArcIndex.set(nodeId, arcIndex);
+      });
+      const lastNodeId = arc.node_ids[arc.node_ids.length - 1];
+      if (lastNodeId) {
+        arcEndNodeIds.add(lastNodeId);
+      }
+    });
+
+    return allNodes.map((node: StoryNode, index: number) => {
+      const arcIndex = nodeIdToArcIndex.get(node.getId()) || 0;
+      return {
+        lessonNumber: index + 1,
+        lessonTitle: 'Lesson ' + (index + 1) + ': ' + node.getTitle(),
+        nodeId: node.getId(),
+        arcPalette: this.getArcPalette(arcIndex),
+        arcIndex,
+        isArcEnd: arcEndNodeIds.has(node.getId()),
+        lessonProgressStatus:
+          nodeIdToLessonCard.get(node.getId())?.lessonProgressStatus ||
+          'not_started',
+      };
+    });
   }
 
   private buildArcGroups(allNodes: StoryNode[]): ArcGroupData[] {
@@ -364,7 +503,7 @@ export class TopicStorySectionComponent
       nodeIndexMap.set(node.getId(), index);
     });
 
-    const arcGroups = arcs.map((arc, arcIndex) => {
+    return arcs.map((arc, arcIndex) => {
       const arcLessonCards: LessonCardData[] = [];
       const arcNodes: StoryNode[] = [];
       arc.node_ids.forEach(nodeId => {
@@ -391,19 +530,6 @@ export class TopicStorySectionComponent
           : null,
       };
     });
-
-    this.progressNavItems = arcGroups.flatMap(arcGroup => {
-      return arcGroup.lessonCards.map(lessonCard => {
-        return {
-          nodeId: lessonCard.nodeId,
-          lessonNumber: lessonCard.lessonNumber,
-          arcPalette: arcGroup.arcPalette,
-          lessonProgressStatus: lessonCard.lessonProgressStatus,
-        };
-      });
-    });
-
-    return arcGroups;
   }
 
   private populateFromInputs(): void {
@@ -438,10 +564,9 @@ export class TopicStorySectionComponent
     });
 
     this.arcGroups = this.buildArcGroups(allNodes);
+    this.progressNodes = this.buildProgressNodes(allNodes);
     this.setDefaultExpandedArc();
-    if (this.lessonCards.length > 0 && !this.activeLessonNodeId) {
-      this.activeLessonNodeId = this.lessonCards[0].nodeId;
-    }
+    this.updateActiveArcIndex();
   }
 
   private getArcTestCardData(

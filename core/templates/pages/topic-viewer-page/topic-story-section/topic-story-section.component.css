@@ -154,17 +154,17 @@
 
 .arc-header {
   align-items: center;
-  background: #f5fafa;
+  border: 1px solid transparent;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
-  padding: 14px 18px;
+  padding: 18px 20px;
   -webkit-user-select: none;
   user-select: none;
 }
 
 .arc-header:hover {
-  background: #eaf6f8;
+  filter: brightness(0.99);
 }
 
 .arc-header:focus {
@@ -175,31 +175,67 @@
 .arc-header-left {
   align-items: center;
   display: flex;
-  gap: 10px;
+  gap: 14px;
+  min-width: 0;
 }
 
-.arc-chevron {
-  color: #00645c;
-  font-size: 12px;
-  transition: transform 0.2s ease;
+.arc-flag-badge {
+  align-items: center;
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 48px;
+  font-size: 20px;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
 }
 
-.arc-chevron.expanded {
-  transform: rotate(90deg);
+.arc-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .arc-title {
-  color: #00645c;
+  color: #163535;
   font-family: Capriola, Roboto, Arial, sans-serif;
   font-size: 18px;
   font-weight: 600;
+  line-height: 1.2;
   margin: 0;
 }
 
-.arc-lesson-count {
-  color: #777;
+.arc-progress-text {
+  color: #4b4b4b;
   font-family: Roboto, Arial, sans-serif;
   font-size: 14px;
+  font-weight: 500;
+}
+
+.arc-chevron-button {
+  align-items: center;
+  background: #fff;
+  border: 2px solid #93c89c;
+  border-radius: 999px;
+  color: #2e7d32;
+  display: inline-flex;
+  flex: 0 0 44px;
+  height: 44px;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  width: 44px;
+}
+
+.arc-chevron {
+  font-size: 14px;
+  line-height: 1;
+  transform: rotate(-90deg);
+}
+
+.arc-chevron-button.expanded .arc-chevron {
+  transform: rotate(90deg);
 }
 
 .arc-description {
@@ -231,6 +267,22 @@
 
 .arc-lessons .story-lesson-card-wrapper:first-child {
   margin-top: 0;
+}
+
+.arc-end-test-section {
+  border-top: 1px solid #e0e0e0;
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+.arc-end-test-section .story-practice-card-wrapper {
+  margin-top: 0;
+}
+
+.story-mastery-challenge-wrapper {
+  border-top: 1px solid #e0e0e0;
+  margin-top: 24px;
+  padding-top: 24px;
 }
 
 @media (max-width: 768px) {

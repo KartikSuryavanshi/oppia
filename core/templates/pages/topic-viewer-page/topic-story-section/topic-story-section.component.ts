@@ -17,21 +17,28 @@
  */
 
 import {
+  AfterViewInit,
   Component,
+  ElementRef,
   Input,
   OnChanges,
   OnInit,
+  QueryList,
   SimpleChanges,
+  ViewChild,
+  ViewChildren,
 } from '@angular/core';
 
 import {AppConstants} from 'app.constants';
 import {StoryNode} from 'domain/story/story-node.model';
+import {StoryDomainConstants} from 'domain/story/story-domain.constants';
 import {StorySummary} from 'domain/story/story-summary.model';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {PracticeSessionPageConstants} from 'pages/practice-session-page/practice-session-page.constants';
 import {AssetsBackendApiService} from 'services/assets-backend-api.service';
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {UrlService} from 'services/contextual/url.service';
+import {WindowRef} from 'services/contextual/window-ref.service';
 import {ChapterProgressLoaderService} from 'services/chapter-progress-loader.service';
 
 import './topic-story-section.component.css';
@@ -60,6 +67,8 @@ interface ArcGroupData {
   arcTitle: string;
   arcDescription: string;
   lessonCards: LessonCardData[];
+  arcTestCard: ArcTestCardData | null;
+  arcPalette: (typeof StoryDomainConstants.ARC_COLOR_PALETTE)[number];
 }
 
 interface ArcTestCardData {
@@ -70,18 +79,32 @@ interface ArcTestCardData {
   actionUrl: string;
 }
 
+interface LessonProgressNavItem {
+  nodeId: string;
+  lessonNumber: number;
+  arcPalette: (typeof StoryDomainConstants.ARC_COLOR_PALETTE)[number];
+  lessonProgressStatus:
+    | 'not_started'
+    | 'in_progress'
+    | 'completed'
+    | 'coming_soon';
+}
+
 @Component({
   selector: 'topic-story-section',
   templateUrl: './topic-story-section.component.html',
   styleUrls: ['./topic-story-section.component.css'],
 })
-export class TopicStorySectionComponent implements OnInit, OnChanges {
+export class TopicStorySectionComponent
+  implements OnInit, OnChanges, AfterViewInit
+{
   @Input() storySummary!: StorySummary;
   @Input() storyTitle!: string;
   @Input() storyDescription!: string;
   @Input() classroomUrlFragment: string = '';
   @Input() topicUrlFragment: string = '';
   @Input() practiceSubtopicIds: number[] = [];
+  @Input() skillIdToSubtopicId: {[skillId: string]: number} = {};
 
   @Input() practiceCount: number = 0;
   @Input() lessonCount: number = 0;
@@ -90,9 +113,16 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
   studyGuideUrl: string = '#';
   lessonCards: LessonCardData[] = [];
   arcGroups: ArcGroupData[] = [];
-  arcTestCard!: ArcTestCardData;
-  isArcTestCardVisible: boolean = false;
+  progressNavItems: LessonProgressNavItem[] = [];
+  masteryChallengeCard!: ArcTestCardData;
+  isMasteryChallengeVisible: boolean = false;
+  activeLessonNodeId: string | null = null;
   _expandedArcIndices: Set<number> = new Set();
+
+  @ViewChildren('lessonCardAnchor') lessonCardAnchors!: QueryList<ElementRef>;
+  @ViewChild('progressTrack') progressTrack!: ElementRef;
+
+  private readonly LESSON_SCROLL_OFFSET_PX = 160;
 
   isArcExpanded(index: number): boolean {
     return this._expandedArcIndices.has(index);
@@ -118,7 +148,8 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     private urlInterpolationService: UrlInterpolationService,
     private urlService: UrlService,
     private i18nLanguageCodeService: I18nLanguageCodeService,
-    private chapterProgressLoaderService: ChapterProgressLoaderService
+    private chapterProgressLoaderService: ChapterProgressLoaderService,
+    private windowRef: WindowRef
   ) {}
 
   ngOnInit(): void {
@@ -133,6 +164,7 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
       changes.storyDescription ||
       changes.classroomUrlFragment ||
       changes.topicUrlFragment ||
+      changes.skillIdToSubtopicId ||
       changes.lessonCount ||
       changes.practiceCount
     ) {
@@ -140,6 +172,12 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     }
     if (changes.storySummary && !changes.storySummary.firstChange) {
       void this.loadChapterProgress();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (!this.activeLessonNodeId && this.lessonCards.length > 0) {
+      this.activeLessonNodeId = this.lessonCards[0].nodeId;
     }
   }
 
@@ -176,6 +214,71 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
 
   isLanguageRTL(): boolean {
     return this.i18nLanguageCodeService.isCurrentLanguageRTL();
+  }
+
+  getArcCompletedText(arcGroup: ArcGroupData): string {
+    const completedLessonsCount = arcGroup.lessonCards.filter(lessonCard => {
+      return lessonCard.lessonProgressStatus === 'completed';
+    }).length;
+
+    return (
+      completedLessonsCount +
+      ' of ' +
+      arcGroup.lessonCards.length +
+      ' completed'
+    );
+  }
+
+  isProgressNodeActive(nodeId: string): boolean {
+    return this.activeLessonNodeId === nodeId;
+  }
+
+  getProgressNodeAriaLabel(navItem: LessonProgressNavItem): string {
+    return 'Go to Lesson ' + navItem.lessonNumber;
+  }
+
+  scrollProgressTrack(direction: 'left' | 'right'): void {
+    if (!this.progressTrack) {
+      return;
+    }
+
+    const delta = direction === 'left' ? -240 : 240;
+    this.progressTrack.nativeElement.scrollBy({
+      left: delta,
+      behavior: 'smooth',
+    });
+  }
+
+  scrollToLesson(nodeId: string): void {
+    this.activeLessonNodeId = nodeId;
+    const lessonCardAnchor = this.lessonCardAnchors.find(anchor => {
+      return anchor.nativeElement?.dataset?.nodeId === nodeId;
+    });
+
+    if (!lessonCardAnchor) {
+      return;
+    }
+
+    const boundingRect = lessonCardAnchor.nativeElement.getBoundingClientRect();
+    const scrollTop = this.windowRef.nativeWindow.pageYOffset;
+    const targetTop =
+      boundingRect.top + scrollTop - this.LESSON_SCROLL_OFFSET_PX;
+
+    this.windowRef.nativeWindow.scrollTo({
+      top: Math.max(targetTop, 0),
+      behavior: 'smooth',
+    });
+  }
+
+  getProgressSegmentWidth(arcGroup: ArcGroupData): string {
+    return Math.max(arcGroup.lessonCards.length - 1, 0) * 72 + 'px';
+  }
+
+  private getArcPalette(
+    arcIndex: number
+  ): (typeof StoryDomainConstants.ARC_COLOR_PALETTE)[number] {
+    const palette = StoryDomainConstants.ARC_COLOR_PALETTE;
+    return palette[arcIndex % palette.length];
   }
 
   private getLessonProgressStatus(
@@ -250,6 +353,8 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
     const allNodes = this.storySummary.getAllNodes();
     this.arcGroups = this.buildArcGroups(allNodes);
     this.setDefaultExpandedArc();
+    this.isMasteryChallengeVisible = this.lessonCards.length > 0;
+    this.masteryChallengeCard = this.getMasteryChallengeCardData();
   }
 
   private buildArcGroups(allNodes: StoryNode[]): ArcGroupData[] {
@@ -263,20 +368,46 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
       nodeIndexMap.set(node.getId(), index);
     });
 
-    return arcs.map(arc => {
+    const arcGroups = arcs.map((arc, arcIndex) => {
       const arcLessonCards: LessonCardData[] = [];
+      const arcNodes: StoryNode[] = [];
       arc.node_ids.forEach(nodeId => {
         const nodeIndex = nodeIndexMap.get(nodeId);
         if (nodeIndex !== undefined && this.lessonCards[nodeIndex]) {
           arcLessonCards.push(this.lessonCards[nodeIndex]);
+          arcNodes.push(allNodes[nodeIndex]);
         }
       });
+      const nextArc = arcs[arcIndex + 1];
+      const arcPracticeSubtopicIds =
+        this.getPracticeSubtopicIdsForNodes(arcNodes);
       return {
         arcTitle: arc.title,
         arcDescription: arc.description,
         lessonCards: arcLessonCards,
+        arcPalette: this.getArcPalette(arcIndex),
+        arcTestCard: arcLessonCards.length
+          ? this.getArcTestCardData(
+              arc.title,
+              nextArc ? nextArc.title : null,
+              arcPracticeSubtopicIds
+            )
+          : null,
       };
     });
+
+    this.progressNavItems = arcGroups.flatMap(arcGroup => {
+      return arcGroup.lessonCards.map(lessonCard => {
+        return {
+          nodeId: lessonCard.nodeId,
+          lessonNumber: lessonCard.lessonNumber,
+          arcPalette: arcGroup.arcPalette,
+          lessonProgressStatus: lessonCard.lessonProgressStatus,
+        };
+      });
+    });
+
+    return arcGroups;
   }
 
   private populateFromInputs(): void {
@@ -312,28 +443,50 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
 
     this.arcGroups = this.buildArcGroups(allNodes);
     this.setDefaultExpandedArc();
-
-    this.isArcTestCardVisible = this.lessonCards.length > 0;
-    this.arcTestCard = this.getArcTestCardData();
+    if (this.lessonCards.length > 0 && !this.activeLessonNodeId) {
+      this.activeLessonNodeId = this.lessonCards[0].nodeId;
+    }
   }
 
-  private getArcTestCardData(): ArcTestCardData {
+  private getArcTestCardData(
+    arcTitle: string,
+    nextArcTitle: string | null,
+    practiceSubtopicIds: number[]
+  ): ArcTestCardData {
+    const cardDescription = nextArcTitle
+      ? "Test what you've learned in " +
+        arcTitle +
+        ' to unlock ' +
+        nextArcTitle +
+        '.'
+      : "Test what you've learned in " + arcTitle + '.';
+
+    return {
+      cardTitle: arcTitle + ' Review & Test',
+      cardDescription,
+      actionLabel: 'Practice',
+      thumbnailUrl: this.getFallbackLessonThumbnailUrl(),
+      actionUrl: this.getPracticeSessionUrl(practiceSubtopicIds),
+    };
+  }
+
+  private getMasteryChallengeCardData(): ArcTestCardData {
     return {
       cardTitle: 'MASTERY CHALLENGE',
       cardDescription:
         "Test your knowledge with a challenge that covers everything you've learned in this topic.",
       actionLabel: 'Take the Mastery Challenge',
       thumbnailUrl: this.getFallbackLessonThumbnailUrl(),
-      actionUrl: this.getPracticeSessionUrl(),
+      actionUrl: this.getPracticeSessionUrl(this.practiceSubtopicIds),
     };
   }
 
-  private getPracticeSessionUrl(): string {
+  private getPracticeSessionUrl(practiceSubtopicIds: number[]): string {
     if (!this.classroomUrlFragment || !this.topicUrlFragment) {
       return '#';
     }
 
-    if (this.practiceSubtopicIds.length === 0) {
+    if (practiceSubtopicIds.length === 0) {
       return '#';
     }
 
@@ -342,9 +495,24 @@ export class TopicStorySectionComponent implements OnInit, OnChanges {
       {
         classroom_url_fragment: this.classroomUrlFragment,
         topic_url_fragment: this.topicUrlFragment,
-        stringified_subtopic_ids: JSON.stringify(this.practiceSubtopicIds),
+        stringified_subtopic_ids: JSON.stringify(practiceSubtopicIds),
       }
     );
+  }
+
+  private getPracticeSubtopicIdsForNodes(nodes: StoryNode[]): number[] {
+    const subtopicIds = new Set<number>();
+
+    nodes.forEach(node => {
+      node.getAcquiredSkillIds().forEach(skillId => {
+        const subtopicId = this.skillIdToSubtopicId[skillId];
+        if (subtopicId !== undefined) {
+          subtopicIds.add(subtopicId);
+        }
+      });
+    });
+
+    return Array.from(subtopicIds);
   }
 
   private getLessonThumbnailUrl(node: StoryNode): string {

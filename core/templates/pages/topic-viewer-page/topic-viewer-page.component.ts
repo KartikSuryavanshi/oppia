@@ -43,6 +43,7 @@ interface TopicViewerStorySectionData {
   storyDescription: string;
   storySummary: StorySummary;
   practiceSubtopicIds: number[];
+  skillIdToSubtopicId: {[skillId: string]: number};
   classroomUrlFragment: string;
   topicUrlFragment: string;
   lessonCount: number;
@@ -172,6 +173,13 @@ export class TopicViewerPageComponent implements OnInit, OnDestroy {
   private getCanonicalStorySectionData(
     readOnlyTopic: ReadOnlyTopic
   ): readonly TopicViewerStorySectionData[] {
+    const skillIdToSubtopicId: {[skillId: string]: number} = {};
+    readOnlyTopic.getSubtopics().forEach(subtopic => {
+      subtopic.getSkillSummaries().forEach(skillSummary => {
+        skillIdToSubtopicId[skillSummary.getId()] = subtopic.getId();
+      });
+    });
+
     const practiceSubtopicIds = readOnlyTopic
       .getSubtopics()
       .filter(subtopic => {
@@ -188,6 +196,7 @@ export class TopicViewerPageComponent implements OnInit, OnDestroy {
         storyDescription: storySummary.getDescription() || '',
         storySummary,
         practiceSubtopicIds,
+        skillIdToSubtopicId,
         classroomUrlFragment: this.classroomUrlFragment,
         topicUrlFragment: this.topicUrlFragment,
         lessonCount: storySummary.getNodeTitles().length,

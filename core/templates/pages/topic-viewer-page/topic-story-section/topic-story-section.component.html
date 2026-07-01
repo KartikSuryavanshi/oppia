@@ -34,23 +34,89 @@
     </div>
 
     <div class="story-card-body">
+      <div class="story-progress-dock" *ngIf="progressNavItems.length > 0">
+        <div class="story-progress-dock-inner">
+          <button
+            class="story-progress-arrow"
+            type="button"
+            aria-label="Previous lessons"
+            (click)="scrollProgressTrack('left')">
+            <span aria-hidden="true">&#8249;</span>
+          </button>
+
+          <div
+            #progressTrack
+            class="story-progress-track"
+            role="navigation"
+            aria-label="Lesson progress navigation">
+            <div
+              class="story-progress-arc"
+              *ngFor="let arcGroup of arcGroups"
+              [style.--arc-color]="arcGroup.arcPalette.flagBg">
+              <div class="story-progress-nodes">
+                <button
+                  class="story-progress-node"
+                  *ngFor="let lessonCard of arcGroup.lessonCards"
+                  type="button"
+                  [class.story-progress-node-active]="isProgressNodeActive(lessonCard.nodeId)"
+                  [style.border-color]="arcGroup.arcPalette.flagBg"
+                  [style.color]="isProgressNodeActive(lessonCard.nodeId) ? '#fff' : arcGroup.arcPalette.flagBg"
+                  [style.background-color]="isProgressNodeActive(lessonCard.nodeId) ? arcGroup.arcPalette.flagBg : '#fff'"
+                  [attr.aria-label]="getProgressNodeAriaLabel({ nodeId: lessonCard.nodeId, lessonNumber: lessonCard.lessonNumber, arcPalette: arcGroup.arcPalette, lessonProgressStatus: lessonCard.lessonProgressStatus })"
+                  (click)="scrollToLesson(lessonCard.nodeId)">
+                  {{ lessonCard.lessonNumber }}
+                </button>
+              </div>
+              <div
+                class="story-progress-segment"
+                *ngIf="arcGroup.lessonCards.length > 1"
+                [style.background-color]="arcGroup.arcPalette.flagBg"
+                [style.width]="getProgressSegmentWidth(arcGroup)">
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="story-progress-arrow"
+            type="button"
+            aria-label="Next lessons"
+            (click)="scrollProgressTrack('right')">
+            <span aria-hidden="true">&#8250;</span>
+          </button>
+        </div>
+      </div>
+
       <ng-container *ngIf="arcGroups.length > 0; else flatLessonList">
         <div class="arc-group" *ngFor="let arcGroup of arcGroups; index as arcIdx">
-          <div class="arc-header" (click)="toggleArc(arcIdx)" role="button" tabindex="0"
+          <div class="arc-header"
+               [style.background-color]="arcGroup.arcPalette.headerBg"
+               [style.border-color]="arcGroup.arcPalette.headerBorder"
+               (click)="toggleArc(arcIdx)" role="button" tabindex="0"
                [attr.aria-expanded]="isArcExpanded(arcIdx)"
                (keydown.enter)="toggleArc(arcIdx)"
                (keydown.space)="toggleArc(arcIdx); $event.preventDefault()">
             <div class="arc-header-left">
-              <span class="arc-chevron" [class.expanded]="isArcExpanded(arcIdx)">&#9654;</span>
-              <h4 class="arc-title">{{ arcGroup.arcTitle }}</h4>
+              <span class="arc-flag-badge"
+                    [style.background-color]="arcGroup.arcPalette.flagBg"
+                    aria-hidden="true">
+                <i class="fa fa-flag"></i>
+              </span>
+              <div class="arc-header-text">
+                <h4 class="arc-title">{{ arcGroup.arcTitle }}</h4>
+                <span class="arc-progress-text">{{ getArcCompletedText(arcGroup) }}</span>
+              </div>
             </div>
-            <span class="arc-lesson-count">{{ arcGroup.lessonCards.length }} lesson{{ arcGroup.lessonCards.length !== 1 ? 's' : '' }}</span>
+            <span class="arc-chevron-button" [class.expanded]="isArcExpanded(arcIdx)">
+              <span class="arc-chevron">&#9654;</span>
+            </span>
           </div>
           <p *ngIf="arcGroup.arcDescription && isArcExpanded(arcIdx)" class="arc-description">
             {{ arcGroup.arcDescription }}
           </p>
           <div *ngIf="isArcExpanded(arcIdx)" class="arc-lessons">
             <div class="story-lesson-card-wrapper"
+                 #lessonCardAnchor
+                 [attr.data-node-id]="lessonCard.nodeId"
                  *ngFor="let lessonCard of arcGroup.lessonCards">
               <topic-lesson-card
                 [lessonNumber]="lessonCard.lessonNumber"
@@ -66,12 +132,27 @@
                 [isExpanded]="isArcExpanded(arcIdx)">
               </topic-lesson-card>
             </div>
+
+            <div class="arc-end-test-section" *ngIf="arcGroup.arcTestCard">
+              <div class="story-practice-card-wrapper">
+                <topic-arc-test-card
+                  [cardTitle]="arcGroup.arcTestCard.cardTitle"
+                  [cardDescription]="arcGroup.arcTestCard.cardDescription"
+                  [thumbnailUrl]="arcGroup.arcTestCard.thumbnailUrl"
+                  [actionLabel]="arcGroup.arcTestCard.actionLabel"
+                  [actionUrl]="arcGroup.arcTestCard.actionUrl"
+                  themeClass="topic-arc-test-card--purple">
+                </topic-arc-test-card>
+              </div>
+            </div>
           </div>
         </div>
       </ng-container>
 
       <ng-template #flatLessonList>
         <div class="story-lesson-card-wrapper"
+             #lessonCardAnchor
+             [attr.data-node-id]="lessonCard.nodeId"
              *ngFor="let lessonCard of lessonCards">
           <topic-lesson-card
             [lessonNumber]="lessonCard.lessonNumber"
@@ -89,13 +170,13 @@
         </div>
       </ng-template>
 
-      <div class="story-practice-card-wrapper"
-        *ngIf="isArcTestCardVisible">
+      <div class="story-practice-card-wrapper story-mastery-challenge-wrapper"
+           *ngIf="isMasteryChallengeVisible">
         <topic-mastery-challenge-card
-          [cardTitle]="arcTestCard.cardTitle"
-          [cardDescription]="arcTestCard.cardDescription"
-          [actionLabel]="arcTestCard.actionLabel"
-          [actionUrl]="arcTestCard.actionUrl">
+          [cardTitle]="masteryChallengeCard.cardTitle"
+          [cardDescription]="masteryChallengeCard.cardDescription"
+          [actionLabel]="masteryChallengeCard.actionLabel"
+          [actionUrl]="masteryChallengeCard.actionUrl">
         </topic-mastery-challenge-card>
       </div>
     </div>

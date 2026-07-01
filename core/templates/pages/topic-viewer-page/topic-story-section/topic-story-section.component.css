@@ -6,6 +6,119 @@
   width: 100%;
 }
 
+.story-progress-dock {
+  position: sticky;
+  top: 72px;
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 16px;
+  z-index: 8;
+}
+
+.story-progress-dock-track {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: grid;
+  gap: 10px;
+  grid-auto-flow: column;
+  grid-auto-columns: 56px;
+  overflow-x: auto;
+  padding: 2px 0 10px;
+  -webkit-user-select: none;
+  user-select: none;
+  position: relative;
+  flex: 1 1 auto;
+}
+
+.story-progress-dock-track::-webkit-scrollbar {
+  display: none;
+}
+
+.story-progress-dock-track::before {
+  content: none;
+}
+
+.story-progress-node {
+  align-items: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 54px;
+  min-width: 0;
+  padding: 0;
+  position: relative;
+  transition: transform 0.18s ease;
+  z-index: 1;
+}
+
+.story-progress-chevron {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #12234d;
+  display: inline-flex;
+  flex: 0 0 30px;
+  font-size: 18px;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
+  width: 30px;
+}
+
+.story-progress-chevron:hover,
+.story-progress-chevron:focus {
+  opacity: 0.85;
+}
+
+.story-progress-chevron:focus {
+  outline: none;
+}
+
+.story-progress-node:hover,
+.story-progress-node:focus {
+  transform: translateY(-1px);
+}
+
+.story-progress-node:focus {
+  outline: none;
+}
+
+.story-progress-node--active {
+  transform: translateY(-1px);
+}
+
+.story-progress-node-number {
+  align-items: center;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 44px;
+  font-family: Capriola, Roboto, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  height: 44px;
+  justify-content: center;
+  position: relative;
+  width: 44px;
+  z-index: 1;
+}
+
+.story-progress-node--muted {
+  cursor: default;
+}
+
+.story-progress-node--muted .story-progress-node-number {
+  background: #fff;
+}
+
 .story-callout-row {
   align-items: flex-start;
   display: flex;
@@ -148,8 +261,9 @@
 .arc-group {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  margin-top: 16px;
+  margin-top: 20px;
   overflow: hidden;
+  scroll-margin-top: 152px;
 }
 
 .arc-header {
@@ -285,7 +399,42 @@
   padding-top: 24px;
 }
 
+@media (min-width: 1100px) {
+  .story-progress-dock-track {
+    grid-auto-columns: 58px;
+    overflow: visible;
+  }
+}
+
 @media (max-width: 768px) {
+  .story-progress-dock {
+    top: 64px;
+    gap: 6px;
+  }
+
+  .story-progress-dock-track {
+    gap: 8px;
+    grid-auto-columns: 50px;
+    padding: 2px 0 10px;
+  }
+
+  .story-progress-node {
+    min-height: 48px;
+  }
+
+  .story-progress-chevron {
+    flex-basis: 28px;
+    height: 28px;
+    width: 28px;
+  }
+
+  .story-progress-node-number {
+    flex-basis: 36px;
+    font-size: 14px;
+    height: 36px;
+    width: 36px;
+  }
+
   .story-callout-row {
     align-items: flex-start;
     gap: 16px;
@@ -357,6 +506,17 @@
 @media (max-width: 475px) {
   .topic-story-section {
     width: 100%;
+  }
+
+  .story-progress-dock-track {
+    grid-auto-columns: 42px;
+  }
+
+  .story-progress-node-number {
+    flex-basis: 32px;
+    font-size: 13px;
+    height: 32px;
+    width: 32px;
   }
 
   .story-callout-row {

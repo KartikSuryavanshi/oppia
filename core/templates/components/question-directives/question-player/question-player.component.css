@@ -103,6 +103,21 @@
   text-align: center;
 }
 
+.arc-completion-banner {
+  align-items: center;
+  background: #ebfff1;
+  border: 1px solid #cdebd7;
+  border-radius: 8px;
+  color: #146b3a;
+  display: inline-flex;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 6px;
+  margin: 4px auto 12px;
+  padding: 8px 12px;
+}
+
 .oppia-practice-session {
   color: #01645c;
   font-family: 'Capriola', 'Roboto', Arial, sans-serif;
@@ -314,6 +329,59 @@
   display: flex;
   flex-wrap: wrap;
   padding-top: 2px;
+}
+
+.arc-remediation-workout-plan {
+  background: #fff8ec;
+  border: 1px solid #f1dcc0;
+  border-radius: 10px;
+  margin-top: 16px;
+  padding: 12px;
+}
+
+.arc-remediation-title {
+  color: #7a4b18;
+  font-family: 'Capriola', 'Roboto', Arial, sans-serif;
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+
+.arc-remediation-subtitle {
+  color: #5f4526;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.arc-remediation-list {
+  margin-bottom: 10px;
+  padding-left: 22px;
+}
+
+.arc-remediation-list li {
+  color: #3f3f3f;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.arc-retry-lockout {
+  color: #914012;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.arc-retry-test-button {
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.arc-retry-test-button:disabled {
+  opacity: 0.7;
+}
+
+.arc-finish-test-button {
+  border: none;
 }
 
 .oppia-question-player-container .question-player-results-footer > span:last-child {

@@ -21,6 +21,7 @@ import {Injectable} from '@angular/core';
 
 interface PracticeSessionsData {
   skill_ids_to_descriptions_map: Record<string, string>;
+  skill_ids_to_arc_chapter_titles_map?: Record<string, string[]>;
   topic_name: string;
 }
 

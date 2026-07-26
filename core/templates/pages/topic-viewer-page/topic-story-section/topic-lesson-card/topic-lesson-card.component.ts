@@ -70,6 +70,11 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
   selectedTextLanguageCode: string | null = null;
   selectedVoiceoverLanguageCode: string | null = null;
   isExpanded: boolean = false;
+  private previousLessonProgressStatus:
+    | 'not_started'
+    | 'in_progress'
+    | 'completed'
+    | 'coming_soon' = 'not_started';
 
   constructor(
     private urlInterpolationService: UrlInterpolationService,
@@ -86,8 +91,9 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
     // Expand the first lesson by default, or the navigated lesson.
     this.isExpanded =
       !this.isComingSoonSectionCard &&
-      (this.lessonNumber === 1 ||
-        this.navigatedLessonNumber === this.lessonNumber);
+      (this.navigatedLessonNumber === this.lessonNumber ||
+        (this.lessonNumber === 1 && this.lessonProgressStatus !== 'completed'));
+    this.previousLessonProgressStatus = this.lessonProgressStatus;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -106,6 +112,22 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
         this.isExpanded = true;
       }
     }
+
+    if (changes.lessonProgressStatus) {
+      const currentStatus = changes.lessonProgressStatus.currentValue as
+        | 'not_started'
+        | 'in_progress'
+        | 'completed'
+        | 'coming_soon';
+      if (
+        currentStatus === 'completed' &&
+        this.previousLessonProgressStatus !== 'completed' &&
+        !this.isComingSoonSectionCard
+      ) {
+        this.isExpanded = false;
+      }
+      this.previousLessonProgressStatus = currentStatus;
+    }
   }
 
   get showCheckpointBar(): boolean {
@@ -117,6 +139,10 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
 
   get isComingSoonLesson(): boolean {
     return this.lessonProgressStatus === 'coming_soon';
+  }
+
+  get isCompletedLesson(): boolean {
+    return this.lessonProgressStatus === 'completed';
   }
 
   navigateTo(url: string): void {
@@ -162,6 +188,12 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
       return;
     }
     this.isExpanded = !this.isExpanded;
+  }
+
+  onPlayAgainClick(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.onStartButtonClick();
   }
 
   onSelectedTextLanguageCodeChange(newLanguageCode: string | null): void {

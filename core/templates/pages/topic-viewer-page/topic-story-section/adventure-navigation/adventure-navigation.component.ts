@@ -48,6 +48,8 @@ export class AdventureNavigationComponent
 {
   @Input() adventureGroups: AdventureNavigationGroup[] = [];
   @Input() activeLessonNumber: number | null = null;
+  @Input() selectedPracticeAdventureIndex: number | null = null;
+  @Input() isPinned: boolean = false;
   @Output() lessonSelected = new EventEmitter<number>();
   @Output() practiceSelected = new EventEmitter<number>();
 
@@ -56,14 +58,22 @@ export class AdventureNavigationComponent
   showLeftArrow: boolean = false;
   showRightArrow: boolean = false;
   hasHorizontalOverflow: boolean = false;
+  isDraggingToScroll: boolean = false;
+  isDesktopWideLayout: boolean = false;
 
   private scrollCheckTimeouts: ReturnType<typeof setTimeout>[] = [];
+  private dragStartClientX: number = 0;
+  private dragStartScrollLeft: number = 0;
 
   ngAfterViewInit(): void {
+    this.updateLayoutMode();
     // Defer checks to allow DOM to fully render.
     this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 50));
     this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 200));
     this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 500));
+    this.scrollCheckTimeouts.push(
+      setTimeout(() => this.centerSelectedNodeInView(), 220)
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -71,6 +81,16 @@ export class AdventureNavigationComponent
       // When adventureGroups changes, schedule arrow updates.
       this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 100));
       this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 300));
+    }
+
+    if (
+      changes.activeLessonNumber ||
+      changes.selectedPracticeAdventureIndex ||
+      changes.adventureGroups
+    ) {
+      this.scrollCheckTimeouts.push(
+        setTimeout(() => this.centerSelectedNodeInView(), 100)
+      );
     }
   }
 
@@ -81,38 +101,56 @@ export class AdventureNavigationComponent
 
   @HostListener('window:resize')
   onWindowResize(): void {
+    this.updateLayoutMode();
     this.updateArrows();
+  }
+
+  @HostListener('window:mouseup')
+  onGlobalMouseUp(): void {
+    this.isDraggingToScroll = false;
   }
 
   onScroll(): void {
     this.updateArrows();
   }
 
-  private updateArrows(): void {
-    const el = this.scrollWrapper?.nativeElement;
-    if (!el) {
-      this.hasHorizontalOverflow = false;
+  onWrapperMouseDown(event: MouseEvent): void {
+    if (
+      this.shouldForceAllNodesVisibleOnDesktop() ||
+      !this.hasHorizontalOverflow ||
+      event.button !== 0
+    ) {
       return;
     }
 
-    const hasOverflow = el.scrollWidth > el.clientWidth;
-    this.hasHorizontalOverflow = hasOverflow;
+    this.isDraggingToScroll = true;
+    this.dragStartClientX = event.clientX;
+    this.dragStartScrollLeft = this.scrollWrapper.nativeElement.scrollLeft;
+  }
 
-    if (!hasOverflow) {
-      // No overflow, hide both arrows.
-      this.showLeftArrow = false;
-      this.showRightArrow = false;
+  onWrapperMouseMove(event: MouseEvent): void {
+    if (!this.isDraggingToScroll) {
       return;
     }
 
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    const currentScroll = el.scrollLeft;
+    const wrapperEl = this.scrollWrapper?.nativeElement;
+    if (!wrapperEl) {
+      return;
+    }
 
-    this.showLeftArrow = currentScroll > 5;
-    this.showRightArrow = currentScroll < maxScroll - 5;
+    const deltaX = event.clientX - this.dragStartClientX;
+    wrapperEl.scrollLeft = this.dragStartScrollLeft - deltaX;
+    this.updateArrows();
+  }
+
+  onWrapperMouseUp(): void {
+    this.isDraggingToScroll = false;
   }
 
   scrollLeft(): void {
+    if (this.shouldForceAllNodesVisibleOnDesktop()) {
+      return;
+    }
     const el = this.scrollWrapper?.nativeElement;
     if (el) {
       el.scrollBy({left: -200, behavior: 'smooth'});
@@ -121,6 +159,9 @@ export class AdventureNavigationComponent
   }
 
   scrollRight(): void {
+    if (this.shouldForceAllNodesVisibleOnDesktop()) {
+      return;
+    }
     const el = this.scrollWrapper?.nativeElement;
     if (el) {
       el.scrollBy({left: 200, behavior: 'smooth'});
@@ -142,5 +183,84 @@ export class AdventureNavigationComponent
 
   onPracticeClick(adventureIndex: number): void {
     this.practiceSelected.emit(adventureIndex);
+  }
+
+  shouldForceAllNodesVisibleOnDesktop(): boolean {
+    return this.isDesktopWideLayout;
+  }
+
+  private centerSelectedNodeInView(): void {
+    if (this.shouldForceAllNodesVisibleOnDesktop()) {
+      return;
+    }
+
+    const wrapperEl = this.scrollWrapper?.nativeElement;
+    if (!wrapperEl || typeof wrapperEl.querySelector !== 'function') {
+      return;
+    }
+
+    let selectedNode: HTMLElement | null = null;
+    if (this.selectedPracticeAdventureIndex !== null) {
+      selectedNode = wrapperEl.querySelector(
+        `[data-practice-index="${this.selectedPracticeAdventureIndex}"]`
+      );
+    } else if (this.activeLessonNumber !== null) {
+      selectedNode = wrapperEl.querySelector(
+        `[data-lesson-number="${this.activeLessonNumber}"]`
+      );
+    }
+
+    if (!selectedNode) {
+      return;
+    }
+
+    const targetLeft =
+      selectedNode.offsetLeft -
+      (wrapperEl.clientWidth - selectedNode.clientWidth) / 2;
+    if (typeof wrapperEl.scrollTo === 'function') {
+      wrapperEl.scrollTo({left: Math.max(targetLeft, 0), behavior: 'smooth'});
+    } else {
+      wrapperEl.scrollLeft = Math.max(targetLeft, 0);
+    }
+    this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 220));
+  }
+
+  private updateLayoutMode(): void {
+    this.isDesktopWideLayout = window.innerWidth >= 1280;
+  }
+
+  private shouldShowHorizontalOverflowControls(): boolean {
+    return !this.shouldForceAllNodesVisibleOnDesktop();
+  }
+
+  private updateArrows(): void {
+    const el = this.scrollWrapper?.nativeElement;
+    if (!el) {
+      this.hasHorizontalOverflow = false;
+      return;
+    }
+
+    if (!this.shouldShowHorizontalOverflowControls()) {
+      this.hasHorizontalOverflow = false;
+      this.showLeftArrow = false;
+      this.showRightArrow = false;
+      return;
+    }
+
+    const hasOverflow = el.scrollWidth > el.clientWidth;
+    this.hasHorizontalOverflow = hasOverflow;
+
+    if (!hasOverflow) {
+      // No overflow, hide both arrows.
+      this.showLeftArrow = false;
+      this.showRightArrow = false;
+      return;
+    }
+
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const currentScroll = el.scrollLeft;
+
+    this.showLeftArrow = currentScroll > 5;
+    this.showRightArrow = currentScroll < maxScroll - 5;
   }
 }

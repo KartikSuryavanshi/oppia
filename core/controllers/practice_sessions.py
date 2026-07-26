@@ -89,6 +89,7 @@ class PracticeSessionsPageDataHandler(
         arc_id = self.request.route_kwargs.get('arc_id')
 
         selected_skill_ids: List[str] = []
+        skill_ids_to_arc_chapter_titles_map: Dict[str, List[str]] = {}
         if selected_subtopic_ids is not None:
             for subtopic in topic.subtopics:
                 if subtopic.id in selected_subtopic_ids:
@@ -97,6 +98,9 @@ class PracticeSessionsPageDataHandler(
             selected_skill_ids = self._get_skill_ids_for_node(topic, node_id)
         elif arc_id is not None:
             selected_skill_ids = self._get_skill_ids_for_arc(topic, arc_id)
+            skill_ids_to_arc_chapter_titles_map = (
+                self._get_arc_skill_ids_to_chapter_titles_map(topic, arc_id)
+            )
         else:
             # Mastery challenge: collect all skills from all subtopics.
             for subtopic in topic.subtopics:
@@ -114,6 +118,9 @@ class PracticeSessionsPageDataHandler(
             {
                 'topic_name': topic.name,
                 'skill_ids_to_descriptions_map': skill_ids_to_descriptions_map,
+                'skill_ids_to_arc_chapter_titles_map': (
+                    skill_ids_to_arc_chapter_titles_map
+                ),
             }
         )
         self.render_json(self.values)
@@ -176,3 +183,41 @@ class PracticeSessionsPageDataHandler(
             if arc.id == target_arc_id:
                 return story.get_acquired_skill_ids_for_node_ids(arc.node_ids)
         return []
+
+    def _get_arc_skill_ids_to_chapter_titles_map(
+        self, topic: topic_domain.Topic, arc_id: str
+    ) -> Dict[str, List[str]]:
+        """Returns chapter titles grouped by skill IDs for nodes in an arc.
+
+        Args:
+            topic: Topic. The topic object.
+            arc_id: str. The arc index (e.g., '1').
+
+        Returns:
+            dict(str, list(str)). Mapping from skill ID to chapter titles.
+        """
+        arcs_with_stories = story_fetchers.get_all_arcs_with_stories_for_topic(
+            topic
+        )
+        target_arc_id = 'arc_%s' % arc_id
+        for story, arc in arcs_with_stories:
+            if arc.id != target_arc_id:
+                continue
+
+            skill_ids_to_chapter_titles_map: Dict[str, List[str]] = {}
+            for node in story.story_contents.nodes:
+                if node.id not in arc.node_ids:
+                    continue
+                for skill_id in node.acquired_skill_ids:
+                    if skill_id not in skill_ids_to_chapter_titles_map:
+                        skill_ids_to_chapter_titles_map[skill_id] = []
+                    if (
+                        node.title
+                        not in skill_ids_to_chapter_titles_map[skill_id]
+                    ):
+                        skill_ids_to_chapter_titles_map[skill_id].append(
+                            node.title
+                        )
+            return skill_ids_to_chapter_titles_map
+
+        return {}

@@ -1,13 +1,44 @@
 .adventure-navigation-container {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding: 4px 8px 0;
+  position: sticky;
+  top: 66px;
+  transition: box-shadow 0.25s ease, transform 0.25s ease, backdrop-filter 0.25s ease;
+  z-index: 14;
+}
+
+.adventure-navigation-container.desktop-fixed-header {
+  border: 1px solid #d8e2ef;
+  border-radius: 14px;
+  left: 50%;
+  max-width: min(960px, calc(100vw - 32px));
+  position: fixed;
+  top: 74px;
+  transform: translateX(-50%);
+  width: min(960px, calc(100vw - 32px));
+  z-index: 40;
+}
+
+.adventure-navigation-container.pinned {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 18px rgba(20, 29, 40, 0.14);
+  transform: translateY(0);
+}
+
+.adventure-navigation-container.desktop-fixed-header.pinned {
+  transform: translateX(-50%);
 }
 
 .adventure-navigation-scroll-area {
   align-items: center;
   display: flex;
   gap: 8px;
+  overflow: hidden;
   position: relative;
 }
 
@@ -22,11 +53,32 @@
   overflow-x: auto;
   padding-bottom: 4px;
   /* Hide native scrollbar — arrows replace it */
-  scrollbar-width: none;
+}
+
+.adventure-navigation-wrapper.dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+}
+
+.adventure-navigation-wrapper:not(.dragging) {
+  cursor: grab;
+}
+
+.adventure-navigation-wrapper--all-visible,
+.adventure-navigation-wrapper--all-visible.dragging,
+.adventure-navigation-wrapper--all-visible:not(.dragging) {
+  cursor: default;
 }
 
 .adventure-navigation-wrapper--centered {
   justify-content: center;
+}
+
+.adventure-navigation-wrapper--all-visible {
+  flex-wrap: wrap;
+  justify-content: center;
+  overflow: visible;
+  row-gap: 8px;
 }
 
 .adventure-navigation-wrapper::-webkit-scrollbar {
@@ -48,6 +100,25 @@
   padding: 0;
   width: 34px;
   z-index: 2;
+}
+
+.adventure-navigation-edge-fade {
+  bottom: 4px;
+  pointer-events: none;
+  position: absolute;
+  top: 6px;
+  width: 18px;
+  z-index: 1;
+}
+
+.adventure-navigation-edge-fade-left {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
+  left: 34px;
+}
+
+.adventure-navigation-edge-fade-right {
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
+  right: 34px;
 }
 
 .adventure-navigation-arrow:hover {
@@ -119,10 +190,68 @@
   outline-offset: 2px;
 }
 
+.adventure-navigation-node-button {
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.adventure-navigation-node-button:focus-visible {
+  outline: 2px solid #3730a3;
+  outline-offset: 2px;
+}
+
+@media (min-width: 1280px) {
+  .adventure-navigation-group,
+  .adventure-navigation-mastery-group {
+    padding: 6px 11px;
+  }
+
+  .adventure-navigation-wrapper {
+    margin: 6px 0 2px;
+  }
+}
+
 @media (max-width: 768px) {
+  .adventure-navigation-container {
+    border-radius: 10px;
+    top: 0;
+  }
+
+  .adventure-navigation-container.desktop-fixed-header {
+    left: auto;
+    max-width: none;
+    position: sticky;
+    top: 0;
+    transform: none;
+    width: auto;
+    z-index: 14;
+  }
+
+  .adventure-navigation-container.pinned {
+    box-shadow: 0 6px 18px rgba(20, 29, 40, 0.12);
+  }
+
   .adventure-navigation-wrapper {
     gap: 8px;
     margin: 6px 0 4px;
+  }
+
+  .adventure-navigation-wrapper:not(.dragging) {
+    cursor: auto;
+  }
+
+  .adventure-navigation-edge-fade {
+    width: 14px;
+  }
+
+  .adventure-navigation-edge-fade-left {
+    left: 26px;
+  }
+
+  .adventure-navigation-edge-fade-right {
+    right: 26px;
   }
 
   .adventure-navigation-group {
@@ -151,9 +280,26 @@
 }
 
 @media (max-width: 450px) {
+  .adventure-navigation-container {
+    border-radius: 8px;
+    padding: 2px 6px 0;
+  }
+
   .adventure-navigation-wrapper {
     gap: 6px;
     margin: 4px 0 2px;
+  }
+
+  .adventure-navigation-edge-fade {
+    width: 10px;
+  }
+
+  .adventure-navigation-edge-fade-left {
+    left: 22px;
+  }
+
+  .adventure-navigation-edge-fade-right {
+    right: 22px;
   }
 
   .adventure-navigation-group {

@@ -145,11 +145,204 @@
   padding: 0 24px 24px;
 }
 
+.skipped-arc-summary-block {
+  align-items: center;
+  background: linear-gradient(92deg, #eef3f8 0%, #f6f9fc 52%, #eef3f8 100%);
+  background-size: 180% 100%;
+  border: 1px solid #d2dde8;
+  border-radius: 8px;
+  color: #39424e;
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 16px;
+  overflow: hidden;
+  padding: 8px 12px;
+  position: relative;
+  animation: skippedSummaryShimmer 3.8s linear infinite;
+}
+
+.skipped-arc-summary-icon {
+  color: #5a6472;
+  font-size: 18px;
+  animation: skippedIconNudge 1.4s ease-in-out infinite;
+}
+
+.skipped-arc-summary-text {
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.skipped-adventure-compact-row {
+  align-items: center;
+  background: linear-gradient(120deg, #ffffff 0%, #f9fcff 100%);
+  border: 1px solid #cfdae6;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(27, 46, 78, 0.05);
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  min-height: 44px;
+  opacity: 0;
+  padding: 8px 12px;
+  position: relative;
+  transform: translateY(8px) scale(0.99);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+  animation: skippedRowEnter 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--skip-index, 0) * 45ms);
+}
+
+.skipped-adventure-compact-row:hover {
+  border-color: #b7c7d9;
+  box-shadow: 0 8px 18px rgba(27, 46, 78, 0.12);
+  transform: translateY(-1px);
+}
+
+.skipped-adventure-status-bar {
+  border-radius: 999px;
+  flex: 0 0 56px;
+  height: 4px;
+  position: relative;
+}
+
+.skipped-adventure-status-bar::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.86) 48%, transparent 100%);
+  border-radius: 999px;
+  content: '';
+  inset: -1px;
+  position: absolute;
+  transform: translateX(-120%);
+  animation: skippedStatusSweep 2.4s ease-in-out infinite;
+}
+
+.skipped-adventure-compact-main {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  min-width: 0;
+}
+
+.skipped-adventure-title {
+  color: #2f3a46;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skipped-adventure-pill {
+  background: #e9eeff;
+  border-radius: 999px;
+  color: #38447a;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  animation: skippedPillPulse 2.8s ease-in-out infinite;
+}
+
+.skipped-adventure-review-button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #93a7bd;
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(19, 34, 56, 0.08);
+  color: #3f4a57;
+  display: inline-flex;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 5px;
+  padding: 5px 10px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.skipped-adventure-review-button .material-icons {
+  font-size: 14px;
+}
+
+.skipped-adventure-review-button:hover,
+.skipped-adventure-review-button:focus-visible {
+  background: #f4f8fd;
+  border-color: #748ca6;
+  color: #293847;
+}
+
+@keyframes skippedSummaryShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 180% 50%;
+  }
+}
+
+@keyframes skippedIconNudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes skippedRowEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes skippedStatusSweep {
+  0%,
+  24% {
+    transform: translateX(-120%);
+  }
+
+  58% {
+    transform: translateX(120%);
+  }
+
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes skippedPillPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(56, 68, 122, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 3px rgba(56, 68, 122, 0.12);
+  }
+}
+
 .adventure-group {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   margin-top: 16px;
   overflow: hidden;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.adventure-group.arc-completed {
+  border-color: #c9e8d3;
+}
+
+.adventure-group.arc-celebrating {
+  animation: arcCelebratePulse 1.8s ease;
+  box-shadow: 0 8px 24px rgba(26, 148, 88, 0.18);
 }
 
 .adventure-header {
@@ -245,6 +438,26 @@
 
 .adventure-chevron-badge.expanded {
   transform: rotate(180deg);
+}
+
+.arc-mastered-banner {
+  align-items: center;
+  background: #edfff2;
+  border-top: 1px solid #d5f4df;
+  color: #1a7a46;
+  display: inline-flex;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 6px;
+  letter-spacing: 0.2px;
+  padding: 10px 18px;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.arc-mastered-banner .material-icons {
+  font-size: 16px;
 }
 
 .adventure-description {
@@ -344,6 +557,89 @@ topic-mastery-challenge-card {
   display: block;
 }
 
+.arc-skip-confirmation-modal-backdrop {
+  align-items: center;
+  background: rgba(16, 24, 40, 0.52);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  padding: 16px;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1200;
+}
+
+.arc-skip-confirmation-modal {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 540px;
+  padding: 20px;
+  width: 100%;
+}
+
+.arc-skip-confirmation-title {
+  color: #113a35;
+  font-family: Capriola, Roboto, Arial, sans-serif;
+  font-size: 26px;
+  margin: 0 0 10px;
+}
+
+.arc-skip-confirmation-message {
+  color: #2f3d4d;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.arc-skip-confirmation-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.arc-skip-confirmation-cancel,
+.arc-skip-confirmation-proceed {
+  border-radius: 999px;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 120px;
+  padding: 10px 14px;
+}
+
+.arc-skip-confirmation-cancel {
+  background: #fff;
+  border: 1px solid #b8c2cf;
+  color: #2f3d4d;
+}
+
+.arc-skip-confirmation-proceed {
+  background: #00645c;
+  border: 1px solid #00645c;
+  color: #fff;
+}
+
+@keyframes arcCelebratePulse {
+  0% {
+    box-shadow: 0 0 0 rgba(26, 148, 88, 0);
+    transform: translateY(0);
+  }
+
+  35% {
+    box-shadow: 0 10px 28px rgba(26, 148, 88, 0.26);
+    transform: translateY(-2px);
+  }
+
+  100% {
+    box-shadow: 0 8px 24px rgba(26, 148, 88, 0.18);
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
   .story-callout-row {
     align-items: flex-start;
@@ -415,6 +711,25 @@ topic-mastery-challenge-card {
 
   .adventure-group {
     margin-top: 12px;
+  }
+
+  .skipped-arc-summary-block {
+    margin-top: 12px;
+  }
+
+  .skipped-adventure-compact-row {
+    margin-top: 8px;
+    min-height: 40px;
+    padding: 7px 10px;
+  }
+
+  .skipped-adventure-title {
+    font-size: 13px;
+  }
+
+  .arc-mastered-banner {
+    font-size: 12px;
+    padding: 9px 14px;
   }
 
   .coming-soon-chapters-title {
@@ -635,7 +950,43 @@ topic-mastery-challenge-card {
     margin-top: 8px;
   }
 
+  .skipped-adventure-compact-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .skipped-adventure-status-bar {
+    flex-basis: 42px;
+  }
+
+  .skipped-adventure-review-button {
+    width: 100%;
+  }
+
   .story-practice-card-wrapper {
     margin-top: 8px;
+  }
+
+  .arc-skip-confirmation-modal {
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .arc-skip-confirmation-title {
+    font-size: 22px;
+  }
+
+  .arc-skip-confirmation-message {
+    font-size: 14px;
+  }
+
+  .arc-skip-confirmation-actions {
+    flex-direction: column;
+  }
+
+  .arc-skip-confirmation-cancel,
+  .arc-skip-confirmation-proceed {
+    width: 100%;
   }
 }

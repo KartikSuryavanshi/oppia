@@ -18,6 +18,8 @@
 
 import {
   Component,
+  ElementRef,
+  HostListener,
   Input,
   OnChanges,
   OnDestroy,
@@ -136,7 +138,18 @@ export class TopicStorySectionComponent
   masteryChallengeUrl: string = '#';
   isPracticeCardVisible: boolean = false;
   _expandedAdventureIndices: Set<number> = new Set();
+  skippedAdventureIndices: Set<number> = new Set();
+  celebratingAdventureIndices: Set<number> = new Set();
   navigatedLessonNumber: number | null = null;
+  selectedPracticeAdventureIndex: number | null = null;
+  isProgressDockPinned: boolean = false;
+  showArcSkipConfirmationModal: boolean = false;
+  pendingArcSkipTargetLabel: string = '';
+  private pendingNavigationLessonNumber: number | null = null;
+  private pendingNavigationAdventureIndex: number | null = null;
+
+  private previouslyCompletedAdventureIndices: Set<number> = new Set();
+  private celebrationTimeouts: ReturnType<typeof setTimeout>[] = [];
 
   private directiveSubscriptions: Subscription = new Subscription();
 
@@ -149,18 +162,64 @@ export class TopicStorySectionComponent
       this._expandedAdventureIndices.delete(index);
     } else {
       this._expandedAdventureIndices.add(index);
+      this.skippedAdventureIndices.delete(index);
     }
   }
 
   onNavigationLessonSelected(lessonNumber: number): void {
-    this.activeLessonNumber = lessonNumber;
-    this.navigatedLessonNumber = lessonNumber;
-
     // Expand the adventure that contains this lesson.
     const adventureIndex = this.visibleAdventureGroups.findIndex(group =>
       group.lessonCards.some(card => card.lessonNumber === lessonNumber)
     );
+
+    if (adventureIndex !== -1 && this.shouldConfirmArcSkip(adventureIndex)) {
+      this.pendingNavigationLessonNumber = lessonNumber;
+      this.pendingNavigationAdventureIndex = adventureIndex;
+      this.pendingArcSkipTargetLabel = `Arc ${adventureIndex + 1}`;
+      this.showArcSkipConfirmationModal = true;
+      return;
+    }
+
+    this.selectLessonFromNavigation(lessonNumber, adventureIndex);
+  }
+
+  onArcSkipConfirmationCancel(): void {
+    this.showArcSkipConfirmationModal = false;
+    this.pendingNavigationLessonNumber = null;
+    this.pendingNavigationAdventureIndex = null;
+    this.pendingArcSkipTargetLabel = '';
+  }
+
+  onArcSkipConfirmationProceed(): void {
+    if (
+      this.pendingNavigationLessonNumber === null ||
+      this.pendingNavigationAdventureIndex === null
+    ) {
+      this.onArcSkipConfirmationCancel();
+      return;
+    }
+
+    this.showArcSkipConfirmationModal = false;
+    this.selectLessonFromNavigation(
+      this.pendingNavigationLessonNumber,
+      this.pendingNavigationAdventureIndex
+    );
+
+    this.pendingNavigationLessonNumber = null;
+    this.pendingNavigationAdventureIndex = null;
+    this.pendingArcSkipTargetLabel = '';
+  }
+
+  private selectLessonFromNavigation(
+    lessonNumber: number,
+    adventureIndex: number
+  ): void {
+    this.activeLessonNumber = lessonNumber;
+    this.navigatedLessonNumber = lessonNumber;
+    this.selectedPracticeAdventureIndex = null;
+
     if (adventureIndex !== -1) {
+      this.markSkippedAdventuresBefore(adventureIndex);
       this._expandedAdventureIndices.add(adventureIndex);
     }
 
@@ -176,6 +235,7 @@ export class TopicStorySectionComponent
   }
 
   onNavigationPracticeSelected(adventureIndex: number): void {
+    this.selectedPracticeAdventureIndex = adventureIndex;
     // Scroll to the practice card of the specific adventure after Angular finishes updating the DOM.
     setTimeout(() => {
       const el = document.getElementById('practice-card-' + adventureIndex);
@@ -186,6 +246,7 @@ export class TopicStorySectionComponent
   }
 
   constructor(
+    private elementRef: ElementRef<HTMLElement>,
     private assetsBackendApiService: AssetsBackendApiService,
     private urlInterpolationService: UrlInterpolationService,
     private urlService: UrlService,
@@ -199,6 +260,8 @@ export class TopicStorySectionComponent
   ngOnInit(): void {
     this.populateFromInputs();
     void this.loadChapterProgress();
+    this.applyArcCompletionTransitionFromQueryParams();
+    this.updateProgressDockPinnedState();
     this.directiveSubscriptions.add(
       this.i18nLanguageCodeService.onI18nLanguageCodeChange.subscribe(() => {
         this.topicSessionFallbackLanguageService.clearSelection();
@@ -208,6 +271,8 @@ export class TopicStorySectionComponent
 
   ngOnDestroy(): void {
     this.directiveSubscriptions.unsubscribe();
+    this.celebrationTimeouts.forEach(timeout => clearTimeout(timeout));
+    this.celebrationTimeouts = [];
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -269,8 +334,62 @@ export class TopicStorySectionComponent
     return `${completedCount} of ${totalCount} completed`;
   }
 
+  isAdventureCompleted(adventureIndex: number): boolean {
+    const adventureGroup = this.visibleAdventureGroups[adventureIndex];
+    if (!adventureGroup || adventureGroup.lessonCards.length === 0) {
+      return false;
+    }
+
+    return adventureGroup.lessonCards.every(
+      card => card.lessonProgressStatus === 'completed'
+    );
+  }
+
+  isAdventureSkipped(adventureIndex: number): boolean {
+    return this.skippedAdventureIndices.has(adventureIndex);
+  }
+
+  shouldShowSkippedSummaryBefore(adventureIndex: number): boolean {
+    const firstSkippedIndex = this.getFirstSkippedAdventureIndex();
+    return firstSkippedIndex !== null && adventureIndex === firstSkippedIndex;
+  }
+
+  getSkippedArcSummaryText(): string {
+    const sortedSkippedIndices = Array.from(this.skippedAdventureIndices).sort(
+      (a, b) => a - b
+    );
+    if (!sortedSkippedIndices.length) {
+      return '';
+    }
+
+    const first = sortedSkippedIndices[0] + 1;
+    const last = sortedSkippedIndices[sortedSkippedIndices.length - 1] + 1;
+    return first === last
+      ? `Arc ${first}: skipped`
+      : `Arc ${first}-${last}: skipped`;
+  }
+
+  isAdventureCelebrating(adventureIndex: number): boolean {
+    return this.celebratingAdventureIndices.has(adventureIndex);
+  }
+
+  isMasteryChallengeUnlocked(): boolean {
+    return (
+      this.availableLessonCards.length > 0 &&
+      this.availableLessonCards.every(
+        lesson => lesson.lessonProgressStatus === 'completed'
+      )
+    );
+  }
+
   isLanguageRTL(): boolean {
     return this.i18nLanguageCodeService.isCurrentLanguageRTL();
+  }
+
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  onWindowScrollOrResize(): void {
+    this.updateProgressDockPinnedState();
   }
 
   private getLessonProgressStatus(
@@ -603,7 +722,7 @@ export class TopicStorySectionComponent
     this.adventureNavigationGroups = this.adventureGroups
       .map(group => {
         const visibleLessons = group.lessonCards.filter(
-          card => !card.isComingSoon
+          card => !card.isComingSoon && card.isPublished
         );
 
         return {
@@ -618,12 +737,138 @@ export class TopicStorySectionComponent
       })
       .filter(group => group.lessons.length > 0);
 
+    this.applyAdventurePresentationState();
+    this.applyArcCompletionTransitionFromQueryParams();
+  }
+
+  private applyArcCompletionTransitionFromQueryParams(): void {
+    const arcMasteredQueryValues =
+      this.urlService.getQueryFieldValuesAsList('arc_mastered');
+    const hasArcTestPassedQuery =
+      this.urlService
+        .getQueryFieldValuesAsList('arc_test')
+        .indexOf('passed') !== -1;
+
     if (
-      this.visibleAdventureGroups.length &&
-      this._expandedAdventureIndices.size === 0
+      !hasArcTestPassedQuery ||
+      !arcMasteredQueryValues.length ||
+      !this.visibleAdventureGroups.length
     ) {
-      this._expandedAdventureIndices = new Set([0]);
+      return;
     }
+
+    const arcMasteredId = arcMasteredQueryValues[0];
+    const masteredAdventureIndex = this.visibleAdventureGroups.findIndex(
+      group => group.arcId === arcMasteredId
+    );
+    if (masteredAdventureIndex === -1) {
+      return;
+    }
+
+    if (this.celebratingAdventureIndices.has(masteredAdventureIndex)) {
+      return;
+    }
+
+    this._expandedAdventureIndices.delete(masteredAdventureIndex);
+    this.celebratingAdventureIndices.add(masteredAdventureIndex);
+
+    const nextAdventureIndex = masteredAdventureIndex + 1;
+    if (nextAdventureIndex < this.visibleAdventureGroups.length) {
+      this._expandedAdventureIndices.add(nextAdventureIndex);
+    }
+
+    const timeout = setTimeout(() => {
+      this.celebratingAdventureIndices.delete(masteredAdventureIndex);
+    }, 2200);
+    this.celebrationTimeouts.push(timeout);
+  }
+
+  private applyAdventurePresentationState(): void {
+    if (!this.visibleAdventureGroups.length) {
+      this._expandedAdventureIndices.clear();
+      this.skippedAdventureIndices.clear();
+      return;
+    }
+
+    const completedIndices = new Set<number>();
+    this.visibleAdventureGroups.forEach((_, index) => {
+      if (this.isAdventureCompleted(index)) {
+        completedIndices.add(index);
+      }
+    });
+
+    completedIndices.forEach(index => {
+      if (!this.previouslyCompletedAdventureIndices.has(index)) {
+        this.celebratingAdventureIndices.add(index);
+        const timeout = setTimeout(() => {
+          this.celebratingAdventureIndices.delete(index);
+        }, 2200);
+        this.celebrationTimeouts.push(timeout);
+      }
+    });
+    this.previouslyCompletedAdventureIndices = completedIndices;
+
+    completedIndices.forEach(index => {
+      this._expandedAdventureIndices.delete(index);
+    });
+
+    let firstIncompleteIndex: number | null = null;
+    for (let index = 0; index < this.visibleAdventureGroups.length; index++) {
+      if (!completedIndices.has(index)) {
+        firstIncompleteIndex = index;
+        break;
+      }
+    }
+
+    if (firstIncompleteIndex !== null) {
+      this._expandedAdventureIndices.add(firstIncompleteIndex);
+    }
+  }
+
+  private markSkippedAdventuresBefore(targetAdventureIndex: number): void {
+    if (targetAdventureIndex <= 0) {
+      return;
+    }
+
+    for (let index = 0; index < targetAdventureIndex; index++) {
+      if (!this.isAdventureCompleted(index)) {
+        this.skippedAdventureIndices.add(index);
+        this._expandedAdventureIndices.delete(index);
+      }
+    }
+  }
+
+  private shouldConfirmArcSkip(targetAdventureIndex: number): boolean {
+    if (targetAdventureIndex <= 0) {
+      return false;
+    }
+
+    for (let index = 0; index < targetAdventureIndex; index++) {
+      if (!this.isAdventureCompleted(index)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private getFirstSkippedAdventureIndex(): number | null {
+    if (!this.skippedAdventureIndices.size) {
+      return null;
+    }
+
+    return Math.min(...Array.from(this.skippedAdventureIndices));
+  }
+
+  private updateProgressDockPinnedState(): void {
+    const sectionEl = this.elementRef.nativeElement;
+    const cardHeader = sectionEl.querySelector('.story-card-header');
+    if (!cardHeader) {
+      this.isProgressDockPinned = false;
+      return;
+    }
+
+    const headerRect = cardHeader.getBoundingClientRect();
+    this.isProgressDockPinned = headerRect.bottom <= 72;
   }
 
   private isSerialChapterFeatureLearnerFlagEnabled(): boolean {
@@ -648,6 +893,10 @@ export class TopicStorySectionComponent
   }
 
   private isChapterDisplayedAsComingSoon(node: StoryNode): boolean {
+    if (this.isChapterReadyToPublish(node)) {
+      return true;
+    }
+
     if (this.isSerialChapterFeatureLearnerFlagEnabled()) {
       return this.isChapterReadyToPublish(node);
     }

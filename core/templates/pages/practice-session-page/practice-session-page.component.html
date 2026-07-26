@@ -2,6 +2,15 @@
 <background-banner *ngIf="!isNewLessonPlayerEnabled()"></background-banner>
 <div class="oppia-practice-session-container position-relative e2e-test-practice-session-container"
      [ngClass]="{'new-oppia-practice-session-container': isNewLessonPlayerEnabled()}">
+  <section *ngIf="isArcSessionType()"
+           class="arc-test-focus-panel"
+           aria-live="polite"
+           [attr.aria-label]="arcSessionTitle">
+    <h2 class="arc-test-focus-title">{{ arcSessionTitle }}</h2>
+    <p class="arc-test-focus-distribution">{{ arcFocusDistributionText }}</p>
+    <p class="arc-test-focus-prompt">{{ arcUnlockPromptText }}</p>
+  </section>
+
   <oppia-question-player *ngIf="questionPlayerConfig && questionPlayerConfig.skillList.length > 0"
                          [questionPlayerConfig]="questionPlayerConfig">
   </oppia-question-player>
@@ -44,6 +53,40 @@
     z-index: -1;
   }
 
+  .arc-test-focus-panel {
+    background: linear-gradient(120deg, #fff4db 0%, #fffaf0 100%);
+    border: 1px solid #f1dcc0;
+    border-radius: 10px;
+    margin: 24px auto 14px;
+    max-width: 800px;
+    padding: 14px 18px;
+  }
+
+  .arc-test-focus-title {
+    color: #704214;
+    font-family: 'Capriola', 'Roboto', Arial, sans-serif;
+    font-size: 24px;
+    margin: 0 0 6px;
+  }
+
+  .arc-test-focus-distribution {
+    color: #7f4e1d;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    margin: 0 0 4px;
+    text-transform: uppercase;
+  }
+
+  .arc-test-focus-prompt {
+    color: #5b3f1d;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+    margin: 0;
+  }
+
   @media(max-width: 925px) {
     .oppia-practice-session-container {
       max-width: 95%;
@@ -51,6 +94,15 @@
 
     .new-oppia-practice-session-container {
       max-width: 100%;
+    }
+
+    .arc-test-focus-panel {
+      margin: 16px 12px 10px;
+      padding: 12px 14px;
+    }
+
+    .arc-test-focus-title {
+      font-size: 20px;
     }
   }
 

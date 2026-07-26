@@ -55,6 +55,10 @@
     <div class="oppia-result-header">
       <h3 class="oppia-question-result-header e2e-test-practice-complete-message" *ngIf="testIsPassed" translate="I18N_QUESTION_PLAYER_TEST_PASSED" tabindex="0"></h3>
       <h3 class="oppia-question-result-header" *ngIf="!testIsPassed" translate="I18N_QUESTION_PLAYER_TEST_FAILED" tabindex="0"></h3>
+      <div class="arc-completion-banner" *ngIf="isArcPassFailSession() && testIsPassed">
+        <i class="material-icons" aria-hidden="true">celebration</i>
+        {{ questionPlayerConfig.arcMasteredBannerText || 'Arc Mastered' }}
+      </div>
     </div>
 
     <div class="oppia-result-body">
@@ -106,16 +110,52 @@
                 (click)="reviewConceptCardAndRetryTest()">
           Review and Retry
         </button>
+
+        <div *ngIf="isArcPassFailSession() && !testIsPassed" class="arc-remediation-workout-plan">
+          <h4 class="arc-remediation-title">Remediation Workout Plan</h4>
+          <p class="arc-remediation-subtitle">
+            Revisit the exact chapters connected to missed questions, then retry this Arc Test.
+          </p>
+          <ul class="arc-remediation-list" *ngIf="getRemediationChapterTitles().length > 0">
+            <li *ngFor="let chapterTitle of getRemediationChapterTitles()">{{ chapterTitle }}</li>
+          </ul>
+          <p class="arc-remediation-subtitle" *ngIf="getRemediationChapterTitles().length === 0">
+            Review your lowest scoring skills and try again.
+          </p>
+
+          <div class="arc-retry-lockout" *ngIf="retakeCooldownSecondsRemaining > 0">
+            Retake unlocks in {{ getRetakeCooldownDisplayText() }}.
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-secondary arc-retry-test-button"
+            [disabled]="retakeCooldownSecondsRemaining > 0"
+            (click)="retryArcTestAfterCooldown()">
+            {{ retakeCooldownSecondsRemaining > 0 ? 'Retry Locked' : 'Retry Arc Test' }}
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="results-footer">
+      <div class="question-player-results-footer" *ngIf="isArcPassFailSession() && testIsPassed">
+        <button
+          type="button"
+          class="action-button-inner my-dashboard-inner arc-finish-test-button"
+          (click)="finishArcTest()">
+          <i class="material-icons md-18 action-button-icon" aria-hidden="true">done_all</i>
+          <span class="action-button-text">Finish Test</span>
+        </button>
+      </div>
+
       <div class="question-player-results-footer" *ngIf="showActionButtonsFooter()">
         <ng-container *ngFor="let actionButton of questionPlayerConfig.resultActionButtons">
           <span *ngIf="!(actionButton.type === 'RETRY_SESSION') && !(actionButton.type === 'DASHBOARD' && !userIsLoggedIn) && !(actionButton.type === 'REVIEW_LOWEST_SCORED_SKILL' && getWorstSkillIds().length === 0)"
                 (click)="performAction(actionButton)">
             <div class="action-button-inner {{getActionButtonInnerClass(actionButton.type)}}"
                  role="button"
+                title="Question result action"
                  tabindex="0">
               <span [innerHTML]="getActionButtonIconHtml(actionButton.type)"></span>
               <span class="action-button-text" translate="{{actionButton.i18nId}}"></span>
@@ -129,6 +169,7 @@
           <div *ngIf="actionButton.type === 'RETRY_SESSION'"
                class="action-button-inner {{getActionButtonInnerClass(actionButton.type)}}"
                tabindex="0"
+            title="Retry session"
                aria-label="Retry"
                role="button">
             <span [innerHTML]="getActionButtonIconHtml(actionButton.type)"></span>

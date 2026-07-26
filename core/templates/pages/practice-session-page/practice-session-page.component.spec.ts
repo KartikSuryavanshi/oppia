@@ -179,6 +179,14 @@ describe('Practice session page', () => {
         skillList: ['skill_1', 'skill_2'],
         skillDescriptions: ['Description 1', 'Description 2'],
         questionCount: 20,
+        questionPlayerMode: undefined,
+        practiceSessionType: 'legacy',
+        skillIdToChapterTitlesMap: {},
+        retakeCooldownMins: undefined,
+        returnToTopicUrl: undefined,
+        arcFocusDistributionText: undefined,
+        arcUnlockPromptText: undefined,
+        arcMasteredBannerText: undefined,
         questionsSortedByDifficulty: false,
       });
       expect(component.subscribeToOnLanguageCodeChange).toHaveBeenCalled();

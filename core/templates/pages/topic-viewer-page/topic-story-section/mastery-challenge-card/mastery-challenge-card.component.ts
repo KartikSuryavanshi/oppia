@@ -28,10 +28,25 @@ import './mastery-challenge-card.component.css';
 })
 export class MasteryChallengeCardComponent {
   @Input() actionUrl: string = '#';
+  @Input() isUnlocked: boolean = false;
+
+  showHelperTooltip: boolean = false;
+  private helperTooltipTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private windowRef: WindowRef) {}
 
   navigateToAction(): void {
+    if (!this.isUnlocked) {
+      this.showHelperTooltip = true;
+      if (this.helperTooltipTimeout) {
+        clearTimeout(this.helperTooltipTimeout);
+      }
+      this.helperTooltipTimeout = setTimeout(() => {
+        this.showHelperTooltip = false;
+      }, 3500);
+      return;
+    }
+
     if (this.actionUrl) {
       this.windowRef.nativeWindow.location.assign(this.actionUrl);
     }

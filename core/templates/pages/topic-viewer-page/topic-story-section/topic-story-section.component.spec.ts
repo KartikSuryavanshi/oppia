@@ -36,6 +36,7 @@ import {AssetsBackendApiService} from 'services/assets-backend-api.service';
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {ChapterLabelVisibilityService} from 'services/chapter-label-visibility.service';
 import {PlatformFeatureService} from 'services/platform-feature.service';
+import {WindowRef} from 'services/contextual/window-ref.service';
 import {MockTranslatePipe} from 'tests/unit-test-utils';
 import {ChapterProgressLoaderService} from 'services/chapter-progress-loader.service';
 
@@ -62,12 +63,18 @@ describe('TopicStorySectionComponent', () => {
       };
     };
   };
+  let windowRef: {
+    nativeWindow: {
+      confirm: jasmine.Spy;
+    };
+  };
 
   beforeEach(waitForAsync(() => {
     urlService = jasmine.createSpyObj('UrlService', [
       'getLearnerTopicStudyGuideUrl',
       'getClassroomUrlFragmentFromLearnerUrl',
       'getTopicUrlFragmentFromLearnerUrl',
+      'getQueryFieldValuesAsList',
       'addField',
     ]);
     urlInterpolationService = jasmine.createSpyObj('UrlInterpolationService', [
@@ -110,6 +117,11 @@ describe('TopicStorySectionComponent', () => {
         },
       },
     };
+    windowRef = {
+      nativeWindow: {
+        confirm: jasmine.createSpy('confirm').and.returnValue(true),
+      },
+    };
 
     TestBed.configureTestingModule({
       declarations: [TopicStorySectionComponent, MockTranslatePipe],
@@ -134,6 +146,10 @@ describe('TopicStorySectionComponent', () => {
           provide: PlatformFeatureService,
           useValue: platformFeatureService,
         },
+        {
+          provide: WindowRef,
+          useValue: windowRef,
+        },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -148,6 +164,7 @@ describe('TopicStorySectionComponent', () => {
     );
     urlService.getClassroomUrlFragmentFromLearnerUrl.and.returnValue('math');
     urlService.getTopicUrlFragmentFromLearnerUrl.and.returnValue('topic');
+    urlService.getQueryFieldValuesAsList.and.returnValue([]);
     urlService.addField.and.callFake(
       (url: string, key: string, value: string | number) =>
         `${url}?${key}=${value}`

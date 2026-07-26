@@ -23,6 +23,7 @@ import {UrlService} from 'services/contextual/url.service';
 import {PracticeSessionPageConstants} from 'pages/practice-session-page/practice-session-page.constants';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {QuestionPlayerConfig} from 'pages/exploration-player-page/current-lesson-player/learner-experience/ratings-and-recommendations.component';
+import {QuestionPlayerConstants} from 'components/question-directives/question-player/question-player.constants';
 import {LoaderService} from 'services/loader.service';
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {PageTitleService} from 'services/page-title.service';
@@ -49,6 +50,9 @@ export class PracticeSessionPageComponent implements OnInit, OnDestroy {
   stringifiedSubtopicIds!: string;
   questionPlayerConfig!: QuestionPlayerConfig;
   loadingMessage: string = 'Loading';
+  arcSessionTitle: string = '';
+  arcFocusDistributionText: string = '';
+  arcUnlockPromptText: string = '';
   private sessionType: PracticeSessionType = PracticeSessionType.Mastery;
   private nodeId: string = '';
   private arcId: string = '';
@@ -184,6 +188,18 @@ export class PracticeSessionPageComponent implements OnInit, OnDestroy {
           this.urlService.getClassroomUrlFragmentFromLearnerUrl(),
       }
     );
+    const topicViewerWithArcCompletionParams =
+      this.sessionType === PracticeSessionType.Arc && this.arcId
+        ? this.urlService.addField(
+            this.urlService.addField(
+              topicViewerUrl,
+              'arc_mastered',
+              this.arcId
+            ),
+            'arc_test',
+            'passed'
+          )
+        : topicViewerUrl;
 
     this.practiceSessionsBackendApiService
       .fetchPracticeSessionsData(practiceSessionsDataUrl)
@@ -203,7 +219,7 @@ export class PracticeSessionPageComponent implements OnInit, OnDestroy {
             {
               type: 'DASHBOARD',
               i18nId: 'I18N_QUESTION_PLAYER_MY_DASHBOARD',
-              url: topicViewerUrl,
+              url: topicViewerWithArcCompletionParams,
             },
             {
               type: 'RETRY_SESSION',
@@ -214,9 +230,45 @@ export class PracticeSessionPageComponent implements OnInit, OnDestroy {
           skillList: skillList,
           skillDescriptions: skillDescriptions,
           questionCount: PracticeSessionPageConstants.TOTAL_QUESTIONS,
+          questionPlayerMode:
+            this.sessionType === PracticeSessionType.Arc
+              ? {
+                  modeType:
+                    QuestionPlayerConstants.QUESTION_PLAYER_MODE.PASS_FAIL_MODE,
+                  passCutoff: 0.8,
+                }
+              : undefined,
+          practiceSessionType: this.sessionType,
+          skillIdToChapterTitlesMap:
+            result.skill_ids_to_arc_chapter_titles_map || {},
+          retakeCooldownMins:
+            this.sessionType === PracticeSessionType.Arc ? 15 : undefined,
+          returnToTopicUrl:
+            this.sessionType === PracticeSessionType.Arc
+              ? topicViewerWithArcCompletionParams
+              : undefined,
+          arcFocusDistributionText:
+            this.sessionType === PracticeSessionType.Arc
+              ? '70% Current Arc / 30% Prior Concepts'
+              : undefined,
+          arcUnlockPromptText:
+            this.sessionType === PracticeSessionType.Arc
+              ? "Let's see what you remember from this Arc! Finish this quick check-in to unlock the next Arc."
+              : undefined,
+          arcMasteredBannerText:
+            this.sessionType === PracticeSessionType.Arc
+              ? `Arc ${this.arcId} Mastered`
+              : undefined,
           questionsSortedByDifficulty: false,
         };
         this.topicName = result.topic_name;
+        if (this.sessionType === PracticeSessionType.Arc) {
+          this.arcSessionTitle = `Arc ${this.arcId} Review & Test`;
+          this.arcFocusDistributionText =
+            '70% Current Arc / 30% Prior Concepts';
+          this.arcUnlockPromptText =
+            "Let's see what you remember from this Arc! Finish this quick check-in to unlock the next Arc.";
+        }
         this.setPageTitle();
         this.subscribeToOnLanguageCodeChange();
         this.loaderService.hideLoadingScreen();
@@ -262,6 +314,10 @@ export class PracticeSessionPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.directiveSubscriptions.unsubscribe();
+  }
+
+  isArcSessionType(): boolean {
+    return this.sessionType === PracticeSessionType.Arc;
   }
 
   isNewLessonPlayerEnabled(): boolean {

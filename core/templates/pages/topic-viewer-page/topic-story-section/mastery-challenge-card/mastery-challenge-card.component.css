@@ -4,9 +4,16 @@
   border: 1px solid #f0e4d2;
   border-radius: 12px;
   display: flex;
+  flex-wrap: wrap;
   gap: 26px;
   margin-top: 18px;
   padding: 26px 30px;
+  position: relative;
+}
+
+.mastery-challenge-card-unlocked {
+  border-color: #cfead8;
+  box-shadow: 0 8px 22px rgba(21, 136, 82, 0.12);
 }
 
 .mastery-challenge-icon {
@@ -64,6 +71,10 @@
   padding: 0 24px;
 }
 
+.mastery-challenge-button.locked {
+  background: #4f5b66;
+}
+
 .mastery-challenge-button-icon {
   align-items: center;
   background: #fbbc04;
@@ -76,6 +87,35 @@
   justify-content: center;
   line-height: 1;
   width: 32px;
+}
+
+.mastery-challenge-button-icon-material {
+  font-size: 18px;
+}
+
+.mastery-challenge-helper-tooltip {
+  animation: masteryHelperTooltipEnter 220ms ease;
+  background: #1f2937;
+  border-radius: 8px;
+  color: #fff;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  margin-left: auto;
+  max-width: 360px;
+  padding: 10px 12px;
+}
+
+@keyframes masteryHelperTooltipEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
@@ -116,6 +156,12 @@
     padding: 0 16px;
   }
 
+  .mastery-challenge-helper-tooltip {
+    font-size: 12px;
+    margin-left: 0;
+    max-width: 100%;
+  }
+
   .mastery-challenge-button-icon {
     font-size: 16px;
     height: 26px;
@@ -146,6 +192,10 @@
 
   .mastery-challenge-button {
     height: 44px;
+    width: 100%;
+  }
+
+  .mastery-challenge-helper-tooltip {
     width: 100%;
   }
 }

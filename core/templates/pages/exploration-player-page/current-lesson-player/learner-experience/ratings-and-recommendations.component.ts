@@ -55,6 +55,13 @@ export interface QuestionPlayerConfig {
     modeType: string;
     passCutoff: number;
   };
+  practiceSessionType?: 'lesson' | 'arc' | 'mastery' | 'legacy';
+  skillIdToChapterTitlesMap?: Record<string, string[]>;
+  retakeCooldownMins?: number;
+  returnToTopicUrl?: string;
+  arcFocusDistributionText?: string;
+  arcUnlockPromptText?: string;
+  arcMasteredBannerText?: string;
   questionsSortedByDifficulty: boolean;
 }
 

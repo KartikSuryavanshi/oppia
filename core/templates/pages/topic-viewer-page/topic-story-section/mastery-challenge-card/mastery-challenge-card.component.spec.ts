@@ -59,6 +59,7 @@ describe('MasteryChallengeCardComponent', () => {
   it('should navigate when action URL is provided', () => {
     spyOn(windowRef.nativeWindow.location, 'assign');
     component.actionUrl = '/practice/session/1';
+    component.isUnlocked = true;
 
     component.navigateToAction();
 
@@ -70,9 +71,21 @@ describe('MasteryChallengeCardComponent', () => {
   it('should not navigate when action URL is empty', () => {
     spyOn(windowRef.nativeWindow.location, 'assign');
     component.actionUrl = '';
+    component.isUnlocked = true;
 
     component.navigateToAction();
 
+    expect(windowRef.nativeWindow.location.assign).not.toHaveBeenCalled();
+  });
+
+  it('should show helper tooltip and avoid navigation when locked', () => {
+    spyOn(windowRef.nativeWindow.location, 'assign');
+    component.actionUrl = '/practice/session/1';
+    component.isUnlocked = false;
+
+    component.navigateToAction();
+
+    expect(component.showHelperTooltip).toBeTrue();
     expect(windowRef.nativeWindow.location.assign).not.toHaveBeenCalled();
   });
 });

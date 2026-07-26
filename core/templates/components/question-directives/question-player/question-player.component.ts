@@ -89,6 +89,13 @@ export interface QuestionPlayerConfig {
     modeType: string;
     passCutoff: number;
   };
+  practiceSessionType?: 'lesson' | 'arc' | 'mastery' | 'legacy';
+  skillIdToChapterTitlesMap?: Record<string, string[]>;
+  retakeCooldownMins?: number;
+  returnToTopicUrl?: string;
+  arcFocusDistributionText?: string;
+  arcUnlockPromptText?: string;
+  arcMasteredBannerText?: string;
   questionsSortedByDifficulty: boolean;
 }
 
@@ -113,10 +120,14 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
   testIsPassed!: boolean;
   masteryPerSkillMapping!: MasteryPerSkillMapping;
   failedSkillIds!: string[];
+  retakeCooldownSecondsRemaining: number = 0;
+  retrySessionUrlOnFail: string | null = null;
   userIsLoggedIn!: boolean;
   canCreateCollections!: boolean;
   componentSubscription = new Subscription();
   questionsLoading!: boolean;
+  private retakeCooldownIntervalId: ReturnType<typeof setInterval> | null =
+    null;
 
   constructor(
     private pageContextService: PageContextService,
@@ -289,10 +300,85 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
     }
 
     if (!testIsPassed) {
-      this.questionPlayerConfig.resultActionButtons = [];
       this.failedSkillIds = failedSkillIds;
+      if (this.isArcPassFailSession()) {
+        this.retrySessionUrlOnFail =
+          this.questionPlayerConfig.resultActionButtons.find(
+            actionButton => actionButton.type === 'RETRY_SESSION'
+          )?.url || null;
+        this.questionPlayerConfig.resultActionButtons = [];
+        this.startRetakeCooldownTimer();
+      } else {
+        this.questionPlayerConfig.resultActionButtons = [];
+      }
     }
     return testIsPassed;
+  }
+
+  isArcPassFailSession(): boolean {
+    if (!this.questionPlayerConfig) {
+      return false;
+    }
+
+    return (
+      this.isInPassOrFailMode() &&
+      this.questionPlayerConfig.practiceSessionType === 'arc'
+    );
+  }
+
+  getPassingThresholdPercent(): number {
+    if (!this.questionPlayerConfig) {
+      return 80;
+    }
+
+    const passCutoff = this.questionPlayerConfig.questionPlayerMode?.passCutoff;
+    return passCutoff ? Math.round(passCutoff * 100) : 80;
+  }
+
+  getRetakeCooldownDisplayText(): string {
+    const minutes = Math.floor(this.retakeCooldownSecondsRemaining / 60);
+    const seconds = this.retakeCooldownSecondsRemaining % 60;
+    const minuteText = minutes.toString().padStart(2, '0');
+    const secondText = seconds.toString().padStart(2, '0');
+    return `${minuteText}:${secondText}`;
+  }
+
+  getRemediationChapterTitles(): string[] {
+    if (!this.failedSkillIds || this.failedSkillIds.length === 0) {
+      return [];
+    }
+
+    if (!this.questionPlayerConfig) {
+      return [];
+    }
+
+    const skillIdToChapterTitlesMap =
+      this.questionPlayerConfig.skillIdToChapterTitlesMap || {};
+    const chapterTitles = new Set<string>();
+
+    this.failedSkillIds.forEach(skillId => {
+      const mappedTitles = skillIdToChapterTitlesMap[skillId] || [];
+      mappedTitles.forEach(title => chapterTitles.add(title));
+    });
+
+    return Array.from(chapterTitles);
+  }
+
+  finishArcTest(): void {
+    const returnToTopicUrl = this.questionPlayerConfig.returnToTopicUrl;
+    if (returnToTopicUrl) {
+      this.windowRef.nativeWindow.location.href = returnToTopicUrl;
+    }
+  }
+
+  retryArcTestAfterCooldown(): void {
+    if (
+      this.retakeCooldownSecondsRemaining > 0 ||
+      !this.retrySessionUrlOnFail
+    ) {
+      return;
+    }
+    this.windowRef.nativeWindow.location.href = this.retrySessionUrlOnFail;
   }
 
   getScorePercentage(scorePerSkill: ScorePerSkill): number {
@@ -411,10 +497,14 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
   }
 
   isSortByDifficulty(): boolean {
-    return this.questionPlayerConfig.questionsSortedByDifficulty ?? false;
+    return this.questionPlayerConfig?.questionsSortedByDifficulty ?? false;
   }
 
   isInPassOrFailMode(): boolean {
+    if (!this.questionPlayerConfig) {
+      return false;
+    }
+
     return (
       this.questionPlayerConfig.questionPlayerMode?.modeType ===
       QuestionPlayerConstants.QUESTION_PLAYER_MODE.PASS_FAIL_MODE
@@ -490,6 +580,11 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
   performAction(actionButton: ActionButton): void {
     if (actionButton.type === 'REVIEW_LOWEST_SCORED_SKILL') {
       this.reviewLowestScoredSkillsModal();
+    } else if (
+      actionButton.type === 'RETRY_SESSION' &&
+      this.retakeCooldownSecondsRemaining > 0
+    ) {
+      return;
     } else if (actionButton.url) {
       this.windowRef.nativeWindow.location.href = actionButton.url;
     }
@@ -497,7 +592,7 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
 
   showActionButtonsFooter(): boolean {
     return (
-      this.questionPlayerConfig.resultActionButtons &&
+      this.questionPlayerConfig?.resultActionButtons &&
       this.questionPlayerConfig.resultActionButtons.length > 0
     );
   }
@@ -556,6 +651,7 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
     this.scorePerSkillMapping = {};
     this.testIsPassed = true;
     this.questionsLoading = true;
+    this.retrySessionUrlOnFail = null;
   }
 
   ngOnInit(): void {
@@ -632,6 +728,7 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
       // The initResults function is written separately since it is also
       // called in ngOnInit when some external events are triggered.
       this.initResults();
+      this.restoreRetakeCooldownTimerFromStorage();
       this.questionPlayerEngineService.resultsPageIsLoadedEventEmitter.emit(
         this.resultsLoaded
       );
@@ -643,9 +740,76 @@ export class QuestionPlayerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.componentSubscription.unsubscribe();
+    this.clearRetakeCooldownTimer();
   }
 
   isNewLessonPlayerEnabled(): boolean {
     return this.platformFeatureService.status.NewLessonPlayer.isEnabled;
+  }
+
+  private startRetakeCooldownTimer(): void {
+    const durationInMins = this.questionPlayerConfig.retakeCooldownMins || 15;
+    const lockoutUntilMs = Date.now() + durationInMins * 60 * 1000;
+    this.windowRef.nativeWindow.localStorage.setItem(
+      this.getRetakeCooldownStorageKey(),
+      lockoutUntilMs.toString()
+    );
+    this.beginRetakeCountdownFromLockoutTimestamp(lockoutUntilMs);
+  }
+
+  private restoreRetakeCooldownTimerFromStorage(): void {
+    if (!this.isArcPassFailSession()) {
+      return;
+    }
+
+    const storedLockout = this.windowRef.nativeWindow.localStorage.getItem(
+      this.getRetakeCooldownStorageKey()
+    );
+    if (!storedLockout) {
+      return;
+    }
+
+    const lockoutUntilMs = Number(storedLockout);
+    if (isNaN(lockoutUntilMs)) {
+      return;
+    }
+
+    this.beginRetakeCountdownFromLockoutTimestamp(lockoutUntilMs);
+  }
+
+  private beginRetakeCountdownFromLockoutTimestamp(
+    lockoutUntilMs: number
+  ): void {
+    this.clearRetakeCooldownTimer();
+
+    const updateRemainingTime = () => {
+      const seconds = Math.max(
+        0,
+        Math.ceil((lockoutUntilMs - Date.now()) / 1000)
+      );
+      this.retakeCooldownSecondsRemaining = seconds;
+      if (seconds <= 0) {
+        this.windowRef.nativeWindow.localStorage.removeItem(
+          this.getRetakeCooldownStorageKey()
+        );
+        this.clearRetakeCooldownTimer();
+      }
+    };
+
+    updateRemainingTime();
+    if (this.retakeCooldownSecondsRemaining > 0) {
+      this.retakeCooldownIntervalId = setInterval(updateRemainingTime, 1000);
+    }
+  }
+
+  private clearRetakeCooldownTimer(): void {
+    if (this.retakeCooldownIntervalId) {
+      clearInterval(this.retakeCooldownIntervalId);
+      this.retakeCooldownIntervalId = null;
+    }
+  }
+
+  private getRetakeCooldownStorageKey(): string {
+    return `arc-test-lockout:${this.urlService.getPathname()}`;
   }
 }

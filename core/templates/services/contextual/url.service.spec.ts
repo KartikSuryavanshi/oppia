@@ -448,6 +448,9 @@ describe('Url Service', () => {
     mockLocation.pathname = '/learn/math/fractions/test/arc/1';
     expect(urlService.getArcIdFromUrl()).toBe('1');
 
+    mockLocation.pathname = '/learn/math/fractions/test/arc/default_arc';
+    expect(urlService.getArcIdFromUrl()).toBe('default_arc');
+
     mockLocation.pathname = '/learn/math/fractions/practice';
     expect(urlService.getArcIdFromUrl()).toBe('');
   });

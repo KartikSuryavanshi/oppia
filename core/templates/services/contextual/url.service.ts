@@ -276,7 +276,7 @@ export class UrlService {
    */
   getArcIdFromUrl(): string {
     const pathname = this.getPathname();
-    const match = pathname.match(/\/test\/arc\/(\d+)/);
+    const match = pathname.match(/\/test\/arc\/([^\/]+)/);
     if (match) {
       return decodeURIComponent(match[1]);
     }

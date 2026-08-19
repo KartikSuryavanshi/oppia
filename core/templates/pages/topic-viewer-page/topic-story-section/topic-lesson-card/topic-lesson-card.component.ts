@@ -18,9 +18,11 @@
 
 import {
   Component,
+  EventEmitter,
   Input,
   OnChanges,
   OnInit,
+  Output,
   SimpleChanges,
 } from '@angular/core';
 import {LanguageUtilService} from 'domain/utilities/language-util.service';
@@ -29,14 +31,25 @@ import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {WindowRef} from 'services/contextual/window-ref.service';
 import {AppConstants} from 'app.constants';
-
 import './topic-lesson-card.component.css';
 
 const FALLBACK_THUMBNAIL_IMAGE_PATH = '/splash/student_desk1x.webp';
 const INITIAL_CONTENT_LANGUAGE_CODE_URL_PARAM = 'initialContentLanguageCode';
 const INITIAL_VOICEOVER_LANGUAGE_CODE_URL_PARAM =
   'initialVoiceoverLanguageCode';
-const LESSON_PROGRESS_STATUS_COMING_SOON = 'coming_soon';
+const LESSON_THUMBNAIL_ALT_TEXT_PREFIX = 'Lesson thumbnail for ';
+const DEFAULT_LESSON_THUMBNAIL_ALT_TEXT = 'Lesson thumbnail';
+const STORY_NOT_IN_PREFERRED_LANGUAGE_MESSAGE_PREFIX =
+  'This story is still in ';
+const STORY_NOT_IN_PREFERRED_LANGUAGE_MESSAGE_SUFFIX =
+  ', but you can still play it!';
+const STORY_PLAYBACK_LANGUAGE_MESSAGE_PREFIX = 'The story will be played in ';
+
+export type LessonProgressStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'completed'
+  | 'coming_soon';
 
 @Component({
   selector: 'topic-lesson-card',
@@ -53,11 +66,7 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
   @Input() practiceUrl: string = '';
   @Input() adventureAccentColor: string = '#00645c';
   @Input() isActiveLesson: boolean = false;
-  @Input() lessonProgressStatus:
-    | 'not_started'
-    | 'in_progress'
-    | 'completed'
-    | 'coming_soon' = 'not_started';
+  @Input() lessonProgressStatus: LessonProgressStatus = 'not_started';
   @Input() totalCheckpointsCount: number = 0;
   @Input() visitedCheckpointsCount: number = 0;
   @Input() availableTextLanguageCodes: string[] = [];
@@ -68,11 +77,13 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
   @Input() isNewLessonLabelVisible: boolean = false;
   @Input() isComingSoonSectionCard: boolean = false;
   @Input() navigatedLessonNumber: number | null = null;
+  @Output() startLessonClick = new EventEmitter<number>();
 
   resolvedThumbnailUrl: string = '';
   selectedTextLanguageCode: string | null = null;
   selectedVoiceoverLanguageCode: string | null = null;
   isExpanded: boolean = false;
+  private previousLessonProgressStatus: LessonProgressStatus = 'not_started';
 
   constructor(
     private urlInterpolationService: UrlInterpolationService,
@@ -89,8 +100,9 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
     // Expand the first lesson by default, or the navigated lesson.
     this.isExpanded =
       !this.isComingSoonSectionCard &&
-      (this.lessonNumber === 1 ||
-        this.navigatedLessonNumber === this.lessonNumber);
+      (this.navigatedLessonNumber === this.lessonNumber ||
+        (this.lessonNumber === 1 && this.lessonProgressStatus !== 'completed'));
+    this.previousLessonProgressStatus = this.lessonProgressStatus;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -109,17 +121,34 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
         this.isExpanded = true;
       }
     }
+
+    if (changes.lessonProgressStatus) {
+      const currentStatus = changes.lessonProgressStatus
+        .currentValue as LessonProgressStatus;
+      if (
+        currentStatus === 'completed' &&
+        this.previousLessonProgressStatus !== 'completed' &&
+        !this.isComingSoonSectionCard
+      ) {
+        this.isExpanded = false;
+      }
+      this.previousLessonProgressStatus = currentStatus;
+    }
   }
 
   get showCheckpointBar(): boolean {
     return (
-      this.lessonProgressStatus !== LESSON_PROGRESS_STATUS_COMING_SOON &&
+      this.lessonProgressStatus !== 'coming_soon' &&
       this.totalCheckpointsCount > 0
     );
   }
 
   get isComingSoonLesson(): boolean {
-    return this.lessonProgressStatus === LESSON_PROGRESS_STATUS_COMING_SOON;
+    return this.lessonProgressStatus === 'coming_soon';
+  }
+
+  get isCompletedLesson(): boolean {
+    return this.lessonProgressStatus === 'completed';
   }
 
   navigateTo(url: string): void {
@@ -132,6 +161,8 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
     if (!this.startUrl || this.isComingSoonLesson) {
       return;
     }
+
+    this.startLessonClick.emit(this.lessonNumber);
 
     if (!this.selectedTextLanguageCode) {
       this.navigateTo(this.startUrl);
@@ -165,6 +196,10 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
       return;
     }
     this.isExpanded = !this.isExpanded;
+  }
+
+  onPlayAgainClick(): void {
+    this.onStartButtonClick();
   }
 
   onSelectedTextLanguageCodeChange(newLanguageCode: string | null): void {
@@ -212,19 +247,21 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
 
     if (this.isLessonUnavailableInPreferredLanguage()) {
       return (
-        'This story is still in ' +
+        STORY_NOT_IN_PREFERRED_LANGUAGE_MESSAGE_PREFIX +
         selectedLanguageDescription +
-        ', but you can still play it!'
+        STORY_NOT_IN_PREFERRED_LANGUAGE_MESSAGE_SUFFIX
       );
     }
 
-    return 'The story will be played in ' + selectedLanguageDescription + '.';
+    return (
+      STORY_PLAYBACK_LANGUAGE_MESSAGE_PREFIX + selectedLanguageDescription + '.'
+    );
   }
 
   getThumbnailAltText(): string {
     return this.lessonTitle
-      ? 'Lesson thumbnail for ' + this.lessonTitle
-      : 'Lesson thumbnail';
+      ? LESSON_THUMBNAIL_ALT_TEXT_PREFIX + this.lessonTitle
+      : DEFAULT_LESSON_THUMBNAIL_ALT_TEXT;
   }
 
   private initializeLanguageSelection(): void {

@@ -384,15 +384,23 @@ export class TopicStorySectionComponent
       this._expandedAdventureIndices.add(adventureIndex);
     }
 
-    // Scroll to the lesson card after Angular finishes updating the DOM.
     setTimeout(() => {
       const el =
         document.getElementById('lesson-' + lessonNumber) ||
         document.getElementById('coming-soon-lesson-' + lessonNumber);
       if (el) {
-        el.scrollIntoView({behavior: 'smooth', block: 'start'});
+        const navbarHeight = 56;
+        const adventureNav = document.querySelector(
+          '.adventure-navigation-container'
+        );
+        const adventureNavHeight = adventureNav
+          ? adventureNav.getBoundingClientRect().height
+          : 0;
+        const offset = navbarHeight + adventureNavHeight + 16;
+        const elTop = el.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({top: elTop, behavior: 'smooth'});
       }
-    }, 300);
+    }, 400);
   }
 
   private shouldConfirmArcSkip(targetAdventureIndex: number): boolean {
@@ -423,6 +431,10 @@ export class TopicStorySectionComponent
   }
 
   private restoreSkippedAdventures(): void {
+    if (this.isInTopicEditorPreview) {
+      this.skippedAdventureIndices = new Set();
+      return;
+    }
     const storyId = this.storySummary.getId();
     if (!storyId) {
       return;
@@ -472,6 +484,23 @@ export class TopicStorySectionComponent
         el.scrollIntoView({behavior: 'smooth', block: 'start'});
       }
     }, 300);
+  }
+
+  onLessonStartClick(lessonNumber: number): void {
+    for (
+      let advIdx = 0;
+      advIdx < this.visibleAdventureGroups.length;
+      advIdx++
+    ) {
+      const group = this.visibleAdventureGroups[advIdx];
+      const matchingCard = group.lessonCards.find(
+        card => card.lessonNumber === lessonNumber
+      );
+      if (matchingCard) {
+        this.markSkippedAdventuresBefore(advIdx);
+        break;
+      }
+    }
   }
 
   constructor(

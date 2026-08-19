@@ -2,6 +2,10 @@ topic-viewer-content .oppia-navbar.headroom--unpinned {
   transform: translateY(0%);
 }
 
+.oppia-main-body .oppia-navbar.headroom--unpinned {
+  transform: translateY(0%);
+}
+
 topic-viewer-content .oppia-redesigned-topic-viewer-container {
   background-color: #fff;
   min-height: 100vh;

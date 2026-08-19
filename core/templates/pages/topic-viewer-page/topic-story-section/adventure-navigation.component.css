@@ -13,8 +13,16 @@
   z-index: 30;
 }
 
+.adventure-navigation-container.topic-editor-preview {
+  top: 126px;
+}
+
 @media (max-width: 800px) {
   .adventure-navigation-container {
+    top: 56px;
+  }
+
+  .adventure-navigation-container.topic-editor-preview {
     top: 56px;
   }
 }

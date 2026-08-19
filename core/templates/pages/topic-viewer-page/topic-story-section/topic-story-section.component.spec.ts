@@ -1370,7 +1370,7 @@ describe('TopicStorySectionComponent', () => {
     expect(component.navigatedLessonNumber).toBe(2);
     expect(component.isAdventureExpanded(0)).toBe(true);
 
-    tick(300);
+    tick(400);
   }));
 
   it('should restore skipped adventures from localStorage on init', () => {
@@ -1526,7 +1526,7 @@ describe('TopicStorySectionComponent', () => {
       [0]
     );
 
-    tick(300);
+    tick(400);
   }));
 
   it('should clear skip confirmation state on cancel', () => {
@@ -1602,7 +1602,7 @@ describe('TopicStorySectionComponent', () => {
     expect(component.navigatedLessonNumber).toBe(2);
     expect(component.isAdventureExpanded(1)).toBe(true);
 
-    tick(300);
+    tick(400);
   }));
 
   it('should persist un-skipping when a skipped adventure is expanded', () => {
@@ -2284,7 +2284,7 @@ describe('TopicStorySectionComponent', () => {
     expect(component.activeLessonNumber).toBe(999);
     expect(component.navigatedLessonNumber).toBe(999);
 
-    tick(300);
+    tick(400);
   }));
 
   it('should set masteryChallengeUrl from mastery challenge url', () => {
@@ -3068,20 +3068,21 @@ describe('TopicStorySectionComponent', () => {
 
   it('should scroll to lesson element when found by getElementById', fakeAsync(() => {
     const lessonElement = jasmine.createSpyObj<HTMLElement>('lessonElement', [
-      'scrollIntoView',
+      'getBoundingClientRect',
     ]);
+    lessonElement.getBoundingClientRect.and.returnValue({top: 500} as DOMRect);
     spyOn(document, 'getElementById').and.returnValue(lessonElement);
+    spyOn(window, 'scrollTo');
 
     component.onNavigationLessonSelected({
       lessonNumber: 1,
       adventureIndex: 0,
     });
-    tick(300);
+    tick(400);
 
-    expect(lessonElement.scrollIntoView).toHaveBeenCalledWith({
-      behavior: 'smooth',
-      block: 'start',
-    });
+    expect(window.scrollTo).toHaveBeenCalledWith(
+      jasmine.objectContaining({behavior: 'smooth'})
+    );
   }));
 
   it('should scroll to practice card element when found by getElementById', fakeAsync(() => {
@@ -3266,6 +3267,135 @@ describe('TopicStorySectionComponent', () => {
     expect(component.isAdventurePracticeCompleted(0)).toBe(true);
     expect(component.isAdventurePracticeCompleted(1)).toBe(true);
     expect(component.isAdventurePracticeCompleted(2)).toBe(false);
+  });
+
+  it('should call markSkippedAdventuresBefore on onLessonStartClick', () => {
+    const storyNodeSpy1 = createStoryNodeSpy(
+      'Node 1',
+      'Desc 1',
+      'exp_1',
+      'node_1',
+      null
+    );
+    const storyNodeSpy2 = createStoryNodeSpy(
+      'Node 2',
+      'Desc 2',
+      'exp_2',
+      'node_2',
+      null
+    );
+
+    component.storySummary = createStorySummarySpy(
+      ['Node 1', 'Node 2'],
+      [storyNodeSpy1, storyNodeSpy2],
+      [
+        {
+          id: 'arc_1',
+          title: 'Adventure 1',
+          description: 'First adventure',
+          node_ids: ['node_1'],
+        },
+        {
+          id: 'arc_2',
+          title: 'Adventure 2',
+          description: 'Second adventure',
+          node_ids: ['node_2'],
+        },
+      ]
+    );
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+
+    component.onLessonStartClick(2);
+
+    expect(component.isAdventureSkipped(0)).toBe(true);
+    expect(localStorageService.updateSkippedAdventures).toHaveBeenCalledWith(
+      'story_id_1',
+      [0]
+    );
+  });
+
+  it('should not skip adventures when lesson is in the first adventure', () => {
+    const storyNodeSpy1 = createStoryNodeSpy(
+      'Node 1',
+      'Desc 1',
+      'exp_1',
+      'node_1',
+      null
+    );
+
+    component.storySummary = createStorySummarySpy(
+      ['Node 1'],
+      [storyNodeSpy1],
+      [
+        {
+          id: 'arc_1',
+          title: 'Adventure 1',
+          description: 'First adventure',
+          node_ids: ['node_1'],
+        },
+      ]
+    );
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+
+    localStorageService.updateSkippedAdventures.calls.reset();
+
+    component.onLessonStartClick(1);
+
+    expect(component.isAdventureSkipped(0)).toBe(false);
+    expect(localStorageService.updateSkippedAdventures).not.toHaveBeenCalled();
+  });
+
+  it('should return empty set from restoreSkippedAdventures in topic editor preview', () => {
+    localStorageService.getSkippedAdventures.and.returnValue([0]);
+    component.isInTopicEditorPreview = true;
+
+    const storyNodeSpy1 = createStoryNodeSpy(
+      'Node 1',
+      'Desc 1',
+      'exp_1',
+      'node_1',
+      null
+    );
+    const storyNodeSpy2 = createStoryNodeSpy(
+      'Node 2',
+      'Desc 2',
+      'exp_2',
+      'node_2',
+      null
+    );
+
+    component.storySummary = createStorySummarySpy(
+      ['Node 1', 'Node 2'],
+      [storyNodeSpy1, storyNodeSpy2],
+      [
+        {
+          id: 'arc_1',
+          title: 'Adventure 1',
+          description: 'First adventure',
+          node_ids: ['node_1'],
+        },
+        {
+          id: 'arc_2',
+          title: 'Adventure 2',
+          description: 'Second adventure',
+          node_ids: ['node_2'],
+        },
+      ]
+    );
+    component.classroomUrlFragment = 'math';
+    component.topicUrlFragment = 'topic';
+
+    component.ngOnInit();
+
+    expect(localStorageService.getSkippedAdventures).not.toHaveBeenCalled();
+    expect(component.isAdventureSkipped(0)).toBe(false);
+    expect(component.isAdventureSkipped(1)).toBe(false);
   });
 
   it('should not persist or restore mastered adventures when story id is missing', () => {

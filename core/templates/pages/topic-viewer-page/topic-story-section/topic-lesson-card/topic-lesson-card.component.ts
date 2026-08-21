@@ -67,8 +67,6 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
   @Input() adventureAccentColor: string = '#00645c';
   @Input() isActiveLesson: boolean = false;
   @Input() lessonProgressStatus: LessonProgressStatus = 'not_started';
-  @Input() totalCheckpointsCount: number = 0;
-  @Input() visitedCheckpointsCount: number = 0;
   @Input() availableTextLanguageCodes: string[] = [];
   @Input() availableVoiceoverLanguageCodes: string[] = [];
   @Input() availableVoiceoverLanguageAccentDescriptions: {
@@ -77,7 +75,10 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
   @Input() isNewLessonLabelVisible: boolean = false;
   @Input() isComingSoonSectionCard: boolean = false;
   @Input() navigatedLessonNumber: number | null = null;
-  @Output() startLessonClick = new EventEmitter<number>();
+  @Output() startLessonClick = new EventEmitter<{
+    lessonNumber: number;
+    startUrl: string;
+  }>();
 
   resolvedThumbnailUrl: string = '';
   selectedTextLanguageCode: string | null = null;
@@ -136,13 +137,6 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
     }
   }
 
-  get showCheckpointBar(): boolean {
-    return (
-      this.lessonProgressStatus !== 'coming_soon' &&
-      this.totalCheckpointsCount > 0
-    );
-  }
-
   get isComingSoonLesson(): boolean {
     return this.lessonProgressStatus === 'coming_soon';
   }
@@ -162,19 +156,17 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.startLessonClick.emit(this.lessonNumber);
+    const resolvedUrl = this.selectedTextLanguageCode
+      ? this.getLessonStartUrlWithLanguageSelection(
+          this.selectedTextLanguageCode,
+          this.selectedVoiceoverLanguageCode
+        )
+      : this.startUrl;
 
-    if (!this.selectedTextLanguageCode) {
-      this.navigateTo(this.startUrl);
-      return;
-    }
-
-    this.navigateTo(
-      this.getLessonStartUrlWithLanguageSelection(
-        this.selectedTextLanguageCode,
-        this.selectedVoiceoverLanguageCode
-      )
-    );
+    this.startLessonClick.emit({
+      lessonNumber: this.lessonNumber,
+      startUrl: resolvedUrl,
+    });
   }
 
   onPracticeButtonClick(): void {

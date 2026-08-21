@@ -317,8 +317,6 @@ describe('TopicStorySectionComponent', () => {
     practiceUrl: '',
     nodeId: 'node_' + lessonNumber,
     lessonProgressStatus: lessonProgressStatus,
-    totalCheckpointsCount: 0,
-    visitedCheckpointsCount: 0,
     isComingSoon: false,
     isPublished: true,
     isNewLabelVisible: false,
@@ -339,14 +337,6 @@ describe('TopicStorySectionComponent', () => {
     headerBackgroundColor: '',
     headerBorderColor: '',
     arcId: '1',
-  });
-
-  it('should expose story meta text helpers', () => {
-    component.lessonCount = 2;
-    component.practiceCount = 1;
-
-    expect(component.getStoryMetaText()).toBe('2 lessons');
-    expect(component.getStoryMetaAriaLabel()).toBe('2 lessons available');
   });
 
   it('should set study guide url on init', () => {
@@ -510,7 +500,7 @@ describe('TopicStorySectionComponent', () => {
     expect(component.lessonCards[0].lessonProgressStatus).toBe('in_progress');
   });
 
-  it('should load checkpoint counts from chapter progress service on init', async () => {
+  it('should load lesson cards from story summary on init', async () => {
     const storyNodeSpy = createStoryNodeSpy(
       'Node title 1',
       'Node description 1',
@@ -540,46 +530,6 @@ describe('TopicStorySectionComponent', () => {
     await fixture.whenStable();
 
     expect(component.lessonCards.length).toBe(1);
-    expect(component.lessonCards[0].totalCheckpointsCount).toBe(5);
-    expect(component.lessonCards[0].visitedCheckpointsCount).toBe(3);
-  });
-
-  it('should preserve checkpoint counts after non-story input changes', () => {
-    const storyNodeSpy = createStoryNodeSpy(
-      'Node title 1',
-      'Node description 1',
-      'exp_1',
-      'node_1',
-      'thumb.png',
-      {
-        textLanguageCodes: ['en'],
-      }
-    );
-
-    const mockSummary = new ChapterProgressSummary('exp_1', 3, 1, false);
-    chapterProgressLoaderService.getChapterProgressSummary.and.returnValue(
-      mockSummary
-    );
-
-    component.storySummary = createStorySummarySpy(
-      ['Node title 1'],
-      [storyNodeSpy]
-    );
-    component.classroomUrlFragment = 'math';
-    component.topicUrlFragment = 'topic';
-    component.practiceCount = 0;
-
-    component.ngOnInit();
-    expect(component.lessonCards[0].totalCheckpointsCount).toBe(3);
-    expect(component.lessonCards[0].visitedCheckpointsCount).toBe(1);
-
-    component.practiceCount = 1;
-    component.ngOnChanges({
-      practiceCount: new SimpleChange(0, 1, false),
-    });
-
-    expect(component.lessonCards[0].totalCheckpointsCount).toBe(3);
-    expect(component.lessonCards[0].visitedCheckpointsCount).toBe(1);
   });
 
   it('should show adventure-end-test card when lesson cards exist and practice is enabled', () => {
@@ -752,19 +702,6 @@ describe('TopicStorySectionComponent', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('should correctly singularize lesson and practice counts', () => {
-    component.lessonCount = 1;
-    component.practiceCount = 1;
-    expect(component.getLessonCountText()).toBe('1 lesson');
-    expect(component.getPracticeCountText()).toBe('1 practice');
-    expect(component.getStoryMetaAriaLabel()).toBe('1 lesson available');
-  });
-
-  it('should pluralize practice count text', () => {
-    component.practiceCount = 2;
-    expect(component.getPracticeCountText()).toBe('2 practices');
-  });
-
   it('should construct practice card url when arcs and fragments are present', () => {
     const storyNodeSpy = createStoryNodeSpy(
       'Node title 1',
@@ -844,34 +781,40 @@ describe('TopicStorySectionComponent', () => {
   });
 
   it('should return correct practice title for each adventure index', () => {
-    expect(component.getPracticeTitle(0)).toBe('Adventure 1 Review & Test');
-    expect(component.getPracticeTitle(1)).toBe('Adventure 2 Review & Test');
-    expect(component.getPracticeTitle(2)).toBe('Adventure 3 Review & Test');
+    component.visibleAdventureGroups = [
+      createAdventureGroup('Fractions', [createLessonCard(1, 'not_started')]),
+      createAdventureGroup('Decimals', [createLessonCard(2, 'not_started')]),
+      createAdventureGroup('Percentages', [createLessonCard(3, 'not_started')]),
+    ];
+
+    expect(component.getPracticeTitle(0)).toBe('Practice: Fractions');
+    expect(component.getPracticeTitle(1)).toBe('Practice: Decimals');
+    expect(component.getPracticeTitle(2)).toBe('Practice: Percentages');
   });
 
   it('should return correct practice description with unlock message for non-last adventures', () => {
     component.visibleAdventureGroups = [
-      createAdventureGroup('Adventure 1', [createLessonCard(1, 'not_started')]),
-      createAdventureGroup('Adventure 2', [createLessonCard(2, 'not_started')]),
+      createAdventureGroup('Fractions', [createLessonCard(1, 'not_started')]),
+      createAdventureGroup('Decimals', [createLessonCard(2, 'not_started')]),
     ];
 
     expect(component.getPracticeDescription(0)).toBe(
-      'Test what you have learned in Adventure 1 to unlock Adventure 2.'
+      'Test what you have learned in Fractions to unlock the next adventure.'
     );
     expect(component.getPracticeDescription(1)).toBe(
-      'Test what you have learned in Adventure 2.'
+      'Test what you have learned in Decimals.'
     );
   });
 
   it('should return correct practice description without unlock for last adventure', () => {
     component.visibleAdventureGroups = [
-      createAdventureGroup('Adventure 1', [createLessonCard(1, 'not_started')]),
-      createAdventureGroup('Adventure 2', [createLessonCard(2, 'not_started')]),
-      createAdventureGroup('Adventure 3', [createLessonCard(3, 'not_started')]),
+      createAdventureGroup('Fractions', [createLessonCard(1, 'not_started')]),
+      createAdventureGroup('Decimals', [createLessonCard(2, 'not_started')]),
+      createAdventureGroup('Percentages', [createLessonCard(3, 'not_started')]),
     ];
 
     expect(component.getPracticeDescription(2)).toBe(
-      'Test what you have learned in Adventure 3.'
+      'Test what you have learned in Percentages.'
     );
   });
 
@@ -1044,7 +987,6 @@ describe('TopicStorySectionComponent', () => {
     await fixture.whenStable();
 
     expect(component.lessonCards.length).toBe(1);
-    expect(component.lessonCards[0].totalCheckpointsCount).toBe(0);
   });
 
   it('should handle an empty node number when loading chapter progress', fakeAsync(() => {
@@ -1116,13 +1058,6 @@ describe('TopicStorySectionComponent', () => {
     component.ngOnInit();
 
     expect(component.getAdventureCompletionText(0)).toBe('1 of 2 completed');
-  });
-
-  it('should return practiceCount text without practice when practiceCount is 0', () => {
-    component.lessonCount = 3;
-    component.practiceCount = 0;
-    expect(component.getStoryMetaText()).toBe('3 lessons');
-    expect(component.getStoryMetaAriaLabel()).toBe('3 lessons available');
   });
 
   it('should mark lesson as coming_soon when exploration id is null', () => {
@@ -1513,7 +1448,7 @@ describe('TopicStorySectionComponent', () => {
 
     spyOn(document, 'getElementById').and.returnValue(null);
 
-    component.onNavigationLessonSelected({lessonNumber: 2, adventureIndex: 1});
+    component.onLessonStartClick({lessonNumber: 2, startUrl: '/start'});
 
     expect(component.showArcSkipConfirmationModal).toBe(true);
     expect(localStorageService.updateSkippedAdventures).not.toHaveBeenCalled();
@@ -1605,6 +1540,23 @@ describe('TopicStorySectionComponent', () => {
     tick(400);
   }));
 
+  it('should not show modal when clicking lesson in navigation bar', fakeAsync(() => {
+    component.visibleAdventureGroups = [
+      createAdventureGroup('Adventure 1', [createLessonCard(1, 'not_started')]),
+      createAdventureGroup('Adventure 2', [createLessonCard(2, 'not_started')]),
+    ];
+
+    spyOn(document, 'getElementById').and.returnValue(null);
+
+    component.onNavigationLessonSelected({lessonNumber: 2, adventureIndex: 1});
+
+    expect(component.showArcSkipConfirmationModal).toBe(false);
+    expect(component.activeLessonNumber).toBe(2);
+    expect(component.navigatedLessonNumber).toBe(2);
+
+    tick(400);
+  }));
+
   it('should persist un-skipping when a skipped adventure is expanded', () => {
     component.skippedAdventureIndices = new Set([0]);
 
@@ -1623,7 +1575,7 @@ describe('TopicStorySectionComponent', () => {
       createAdventureGroup('Adventure 2', [createLessonCard(2, 'not_started')]),
     ];
 
-    component.onNavigationLessonSelected({lessonNumber: 2, adventureIndex: 1});
+    component.onLessonStartClick({lessonNumber: 2, startUrl: '/start'});
 
     expect(component.showArcSkipConfirmationModal).toBe(true);
     expect(component.getArcSkipConfirmationMessage()).toBe(
@@ -1642,7 +1594,7 @@ describe('TopicStorySectionComponent', () => {
       createAdventureGroup('Adventure 3', [createLessonCard(3, 'not_started')]),
     ];
 
-    component.onNavigationLessonSelected({lessonNumber: 3, adventureIndex: 2});
+    component.onLessonStartClick({lessonNumber: 3, startUrl: '/start'});
 
     expect(component.getArcSkipConfirmationMessage()).toBe(
       'I18N_TOPIC_VIEWER_ARC_SKIP_CONFIRMATION_MESSAGE'
@@ -1661,7 +1613,7 @@ describe('TopicStorySectionComponent', () => {
       createAdventureGroup('Adventure 4', [createLessonCard(4, 'not_started')]),
     ];
 
-    component.onNavigationLessonSelected({lessonNumber: 4, adventureIndex: 3});
+    component.onLessonStartClick({lessonNumber: 4, startUrl: '/start'});
 
     expect(component.getArcSkipConfirmationMessage()).toBe(
       'I18N_TOPIC_VIEWER_ARC_SKIP_CONFIRMATION_MESSAGE'
@@ -1679,7 +1631,7 @@ describe('TopicStorySectionComponent', () => {
       createAdventureGroup('Adventure 3', [createLessonCard(3, 'not_started')]),
     ];
 
-    component.onNavigationLessonSelected({lessonNumber: 3, adventureIndex: 2});
+    component.onLessonStartClick({lessonNumber: 3, startUrl: '/start'});
 
     expect(component.getArcSkipConfirmationMessage()).toBe(
       'I18N_TOPIC_VIEWER_ARC_SKIP_CONFIRMATION_MESSAGE'
@@ -1700,7 +1652,7 @@ describe('TopicStorySectionComponent', () => {
       createAdventureGroup('Adventure 2', [createLessonCard(2, 'not_started')]),
     ];
 
-    component.onNavigationLessonSelected({lessonNumber: 2, adventureIndex: 1});
+    component.onLessonStartClick({lessonNumber: 2, startUrl: '/start'});
     expect(component.showArcSkipConfirmationModal).toBe(true);
 
     component.visibleAdventureGroups[0].lessonCards[0].lessonProgressStatus =
@@ -1873,14 +1825,13 @@ describe('TopicStorySectionComponent', () => {
       practiceUrl: '',
       nodeId: 'node_1',
       lessonProgressStatus: 'completed' as const,
-      totalCheckpointsCount: 0,
-      visitedCheckpointsCount: 0,
       isComingSoon: false,
       isPublished: true,
       isNewLabelVisible: false,
       availableTextLanguageCodes: [],
       availableVoiceoverLanguageCodes: [],
       availableVoiceoverLanguageAccentDescriptions: {},
+      lessonNumber: 1,
     };
 
     component.availableLessonCards = [
@@ -1917,14 +1868,13 @@ describe('TopicStorySectionComponent', () => {
       practiceUrl: '',
       nodeId: 'node_1',
       lessonProgressStatus: 'completed' as const,
-      totalCheckpointsCount: 0,
-      visitedCheckpointsCount: 0,
       isComingSoon: false,
       isPublished: true,
       isNewLabelVisible: false,
       availableTextLanguageCodes: [],
       availableVoiceoverLanguageCodes: [],
       availableVoiceoverLanguageAccentDescriptions: {},
+      lessonNumber: 1,
     };
 
     component.visibleAdventureGroups = [
@@ -2380,8 +2330,6 @@ describe('TopicStorySectionComponent', () => {
     await fixture.whenStable();
 
     expect(component.lessonCards[0].lessonProgressStatus).toBe('completed');
-    expect(component.lessonCards[0].totalCheckpointsCount).toBe(5);
-    expect(component.lessonCards[0].visitedCheckpointsCount).toBe(5);
   });
 
   it('should build lesson practice url with fragments', () => {
@@ -3308,7 +3256,7 @@ describe('TopicStorySectionComponent', () => {
 
     component.ngOnInit();
 
-    component.onLessonStartClick(2);
+    component.onLessonStartClick({lessonNumber: 2, startUrl: '/explore/2'});
 
     expect(component.isAdventureSkipped(0)).toBe(true);
     expect(localStorageService.updateSkippedAdventures).toHaveBeenCalledWith(
@@ -3345,7 +3293,7 @@ describe('TopicStorySectionComponent', () => {
 
     localStorageService.updateSkippedAdventures.calls.reset();
 
-    component.onLessonStartClick(1);
+    component.onLessonStartClick({lessonNumber: 1, startUrl: '/explore/1'});
 
     expect(component.isAdventureSkipped(0)).toBe(false);
     expect(localStorageService.updateSkippedAdventures).not.toHaveBeenCalled();

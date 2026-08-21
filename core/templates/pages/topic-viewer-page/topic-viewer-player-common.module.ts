@@ -30,6 +30,7 @@ import {AdventureEndTestCardComponent} from './topic-story-section/adventure-end
 import {AdventureCircleBadgeComponent} from './topic-story-section/adventure-circle-badge.component';
 import {AdventureNavigationComponent} from './topic-story-section/adventure-navigation.component';
 import {MasteryChallengeCardComponent} from './topic-story-section/mastery-challenge-card.component';
+import {MasteryChallengeLockedModalComponent} from './topic-story-section/mastery-challenge-locked-modal.component';
 import {ArcSkipConfirmationModalComponent} from './topic-story-section/arc-skip-confirmation-modal.component';
 import {AdventureMasteredModalComponent} from './topic-story-section/adventure-mastered-modal.component';
 import {TopicHeaderComponent} from './topic-header/topic-header.component';
@@ -49,6 +50,7 @@ import {SharedComponentsModule} from 'components/shared-component.module';
     AdventureCircleBadgeComponent,
     AdventureNavigationComponent,
     MasteryChallengeCardComponent,
+    MasteryChallengeLockedModalComponent,
     ArcSkipConfirmationModalComponent,
     AdventureMasteredModalComponent,
     TopicHeaderComponent,
@@ -64,6 +66,7 @@ import {SharedComponentsModule} from 'components/shared-component.module';
     AdventureCircleBadgeComponent,
     AdventureNavigationComponent,
     MasteryChallengeCardComponent,
+    MasteryChallengeLockedModalComponent,
     ArcSkipConfirmationModalComponent,
     AdventureMasteredModalComponent,
     TopicHeaderComponent,
@@ -79,6 +82,7 @@ import {SharedComponentsModule} from 'components/shared-component.module';
     AdventureCircleBadgeComponent,
     AdventureNavigationComponent,
     MasteryChallengeCardComponent,
+    MasteryChallengeLockedModalComponent,
     ArcSkipConfirmationModalComponent,
     AdventureMasteredModalComponent,
     TopicHeaderComponent,

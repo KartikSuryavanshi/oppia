@@ -58,12 +58,12 @@ export class AdventureNavigationComponent
 {
   @Input() adventureGroups: AdventureNavigationGroup[] = [];
   @Input() activeLessonNumber: number | null = null;
-  // True when this component is rendered inside the topic editor's preview
-  // tab, where the fixed editor header bar adds height to the header stack.
   @Input() isInTopicEditorPreview: boolean = false;
+  @Input() masteryChallengeUrl: string = '';
   @Output() lessonSelected =
     new EventEmitter<AdventureNavigationLessonSelection>();
   @Output() practiceSelected = new EventEmitter<string>();
+  @Output() masteryChallengeClicked = new EventEmitter<void>();
 
   @ViewChild('scrollWrapper') scrollWrapper!: ElementRef<HTMLElement>;
 
@@ -72,6 +72,8 @@ export class AdventureNavigationComponent
   hasHorizontalOverflow: boolean = false;
 
   private scrollCheckTimeouts: ReturnType<typeof setTimeout>[] = [];
+
+  constructor() {}
 
   ngAfterViewInit(): void {
     // Defer checks to allow DOM to fully render.
@@ -167,5 +169,9 @@ export class AdventureNavigationComponent
 
   getPracticeBadgeIconName(isPracticeCompleted: boolean): string {
     return isPracticeCompleted ? 'check' : 'edit';
+  }
+
+  onMasteryClick(): void {
+    this.masteryChallengeClicked.emit();
   }
 }

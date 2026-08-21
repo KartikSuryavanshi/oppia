@@ -7,7 +7,7 @@
 //      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
+// distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
@@ -16,7 +16,7 @@
  * @fileoverview Unit tests for MasteryChallengeCardComponent.
  */
 
-import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
+import {TestBed, waitForAsync} from '@angular/core/testing';
 
 import {MockTranslateModule} from 'tests/unit-test-utils';
 import {MasteryChallengeCardComponent} from './mastery-challenge-card.component';
@@ -27,9 +27,6 @@ class MockWindowRef {
     location: {
       assign: (url: string) => {},
     },
-    setTimeout: (callback: () => void, timeout: number): number =>
-      window.setTimeout(callback, timeout),
-    clearTimeout: (timeoutId: number): void => window.clearTimeout(timeoutId),
   };
 }
 
@@ -58,7 +55,11 @@ describe('MasteryChallengeCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should navigate when action URL is provided', () => {
+  it('should default to locked state', () => {
+    expect(component.isUnlocked).toBeFalse();
+  });
+
+  it('should navigate when action URL is provided and unlocked', () => {
     spyOn(windowRef.nativeWindow.location, 'assign');
     component.actionUrl = '/practice/session/1';
     component.isUnlocked = true;
@@ -68,6 +69,38 @@ describe('MasteryChallengeCardComponent', () => {
     expect(windowRef.nativeWindow.location.assign).toHaveBeenCalledWith(
       '/practice/session/1'
     );
+  });
+
+  it('should navigate when clicked while locked (skip topic)', () => {
+    spyOn(windowRef.nativeWindow.location, 'assign');
+    component.actionUrl = '/practice/session/1';
+    component.isUnlocked = false;
+
+    component.onChallengeButtonClick();
+
+    expect(windowRef.nativeWindow.location.assign).toHaveBeenCalledWith(
+      '/practice/session/1'
+    );
+  });
+
+  it('should emit masteryClicked when clicked while locked', () => {
+    spyOn(component.masteryClicked, 'emit');
+    component.actionUrl = '/practice/session/1';
+    component.isUnlocked = false;
+
+    component.onChallengeButtonClick();
+
+    expect(component.masteryClicked.emit).toHaveBeenCalled();
+  });
+
+  it('should not emit masteryClicked when clicked while unlocked', () => {
+    spyOn(component.masteryClicked, 'emit');
+    component.actionUrl = '/practice/session/1';
+    component.isUnlocked = true;
+
+    component.onChallengeButtonClick();
+
+    expect(component.masteryClicked.emit).not.toHaveBeenCalled();
   });
 
   it('should not navigate when action URL is empty', () => {
@@ -109,46 +142,40 @@ describe('MasteryChallengeCardComponent', () => {
     expect(component.isActionDisabled()).toBeFalse();
   });
 
-  it('should show helper tooltip for 5 seconds for a locked challenge', fakeAsync(() => {
-    spyOn(windowRef.nativeWindow.location, 'assign');
-    component.actionUrl = '/practice/session/1';
+  it('should show tooltip on mouse enter when locked', () => {
     component.isUnlocked = false;
 
-    component.onChallengeButtonClick();
+    component.onCardMouseEnter();
 
     expect(component.showLockedTooltip).toBeTrue();
-    expect(windowRef.nativeWindow.location.assign).not.toHaveBeenCalled();
+  });
 
-    tick(4999);
-    expect(component.showLockedTooltip).toBeTrue();
+  it('should not show tooltip on mouse enter when unlocked', () => {
+    component.isUnlocked = true;
 
-    tick(1);
+    component.onCardMouseEnter();
+
     expect(component.showLockedTooltip).toBeFalse();
-  }));
+  });
 
-  it('should reset helper tooltip timer when clicked again while locked', fakeAsync(() => {
+  it('should hide tooltip on mouse leave', () => {
     component.isUnlocked = false;
+    component.showLockedTooltip = true;
 
-    component.onChallengeButtonClick();
-    tick(3000);
+    component.onCardMouseLeave();
 
-    component.onChallengeButtonClick();
-    tick(3000);
-    expect(component.showLockedTooltip).toBeTrue();
-
-    tick(2000);
     expect(component.showLockedTooltip).toBeFalse();
-  }));
+  });
 
-  it('should keep tooltip visible after destroy clears the timer', fakeAsync(() => {
-    component.isUnlocked = false;
+  it('should return display title with topic name when topicName is set', () => {
+    component.topicName = 'Fractions';
 
-    component.onChallengeButtonClick();
-    expect(component.showLockedTooltip).toBeTrue();
+    expect(component.displayTitle).toBe('Mastery Challenge: Fractions');
+  });
 
-    component.ngOnDestroy();
-    tick(5000);
+  it('should return default display title when topicName is empty', () => {
+    component.topicName = '';
 
-    expect(component.showLockedTooltip).toBeTrue();
-  }));
+    expect(component.displayTitle).toBe('Mastery Challenge');
+  });
 });

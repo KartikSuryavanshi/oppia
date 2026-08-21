@@ -16,7 +16,7 @@
  * @fileoverview Mastery challenge card displayed at the end of a story section.
  */
 
-import {Component, Input, OnDestroy} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {WindowRef} from 'services/contextual/window-ref.service';
 
 import './mastery-challenge-card.component.css';
@@ -28,24 +28,37 @@ import './mastery-challenge-card.component.css';
 })
 export class MasteryChallengeCardComponent implements OnDestroy {
   @Input() actionUrl: string = '#';
-  @Input() isUnlocked: boolean = true;
+  @Input() isUnlocked: boolean = false;
+  @Input() topicName: string = '';
+  @Output() masteryClicked = new EventEmitter<void>();
 
   showLockedTooltip: boolean = false;
-  private helperTooltipTimeoutId: number | null = null;
 
   constructor(private windowRef: WindowRef) {}
 
-  ngOnDestroy(): void {
-    this.clearHelperTooltipTimeout();
+  get displayTitle(): string {
+    return this.topicName
+      ? `Mastery Challenge: ${this.topicName}`
+      : 'Mastery Challenge';
   }
+
+  ngOnDestroy(): void {}
 
   onChallengeButtonClick(): void {
     if (!this.isUnlocked) {
-      this.showHelperTooltip();
-      return;
+      this.masteryClicked.emit();
     }
-
     this.navigateToAction();
+  }
+
+  onCardMouseEnter(): void {
+    if (!this.isUnlocked) {
+      this.showLockedTooltip = true;
+    }
+  }
+
+  onCardMouseLeave(): void {
+    this.showLockedTooltip = false;
   }
 
   navigateToAction(): void {
@@ -60,21 +73,5 @@ export class MasteryChallengeCardComponent implements OnDestroy {
 
   isActionDisabled(): boolean {
     return this.isUnlocked && !this.hasActionUrl();
-  }
-
-  private showHelperTooltip(): void {
-    this.showLockedTooltip = true;
-    this.clearHelperTooltipTimeout();
-    this.helperTooltipTimeoutId = this.windowRef.nativeWindow.setTimeout(() => {
-      this.showLockedTooltip = false;
-      this.helperTooltipTimeoutId = null;
-    }, 5000);
-  }
-
-  private clearHelperTooltipTimeout(): void {
-    if (this.helperTooltipTimeoutId !== null) {
-      this.windowRef.nativeWindow.clearTimeout(this.helperTooltipTimeoutId);
-      this.helperTooltipTimeoutId = null;
-    }
   }
 }

@@ -30,6 +30,7 @@ import {TranslateService} from '@ngx-translate/core';
 
 import {StoryNode} from 'domain/story/story-node.model';
 import {StorySummary} from 'domain/story/story-summary.model';
+import {QuestionBackendApiService} from 'domain/question/question-backend-api.service';
 import {UrlInterpolationService} from 'domain/utilities/url-interpolation.service';
 import {TopicSessionFallbackLanguageService} from 'pages/topic-viewer-page/services/topic-session-fallback-language.service';
 import {UrlService} from 'services/contextual/url.service';
@@ -65,6 +66,7 @@ describe('TopicStorySectionComponent', () => {
   let topicSessionFallbackLanguageService: jasmine.SpyObj<TopicSessionFallbackLanguageService>;
   let chapterLabelVisibilityService: jasmine.SpyObj<ChapterLabelVisibilityService>;
   let localStorageService: jasmine.SpyObj<LocalStorageService>;
+  let questionBackendApiService: jasmine.SpyObj<QuestionBackendApiService>;
   let platformFeatureService: {
     status: {
       SerialChapterLaunchLearnerView: {
@@ -127,6 +129,13 @@ describe('TopicStorySectionComponent', () => {
     ]);
     localStorageService.getSkippedAdventures.and.returnValue([]);
     localStorageService.getMasteredAdventures.and.returnValue([]);
+    questionBackendApiService = jasmine.createSpyObj(
+      'QuestionBackendApiService',
+      ['fetchTotalQuestionCountForSkillIdsAsync']
+    );
+    questionBackendApiService.fetchTotalQuestionCountForSkillIdsAsync.and.resolveTo(
+      0
+    );
     platformFeatureService = {
       status: {
         SerialChapterLaunchLearnerView: {
@@ -162,6 +171,10 @@ describe('TopicStorySectionComponent', () => {
         {
           provide: LocalStorageService,
           useValue: localStorageService,
+        },
+        {
+          provide: QuestionBackendApiService,
+          useValue: questionBackendApiService,
         },
         {
           provide: PlatformFeatureService,
@@ -271,6 +284,7 @@ describe('TopicStorySectionComponent', () => {
     options: {
       status?: string | null;
       textLanguageCodes?: string[];
+      acquiredSkillIds?: string[];
     } = {}
   ): jasmine.SpyObj<StoryNode> => {
     const storyNodeSpy = jasmine.createSpyObj('StoryNode', [
@@ -280,6 +294,7 @@ describe('TopicStorySectionComponent', () => {
       'getExplorationId',
       'getId',
       'getStatus',
+      'getAcquiredSkillIds',
       'getAvailableTextLanguageCodes',
       'getAvailableVoiceoverLanguageCodes',
       'getAvailableVoiceoverLanguageAccentDescriptions',
@@ -290,6 +305,9 @@ describe('TopicStorySectionComponent', () => {
     storyNodeSpy.getExplorationId.and.returnValue(explorationId);
     storyNodeSpy.getId.and.returnValue(nodeId);
     storyNodeSpy.getStatus.and.returnValue(options.status);
+    storyNodeSpy.getAcquiredSkillIds.and.returnValue(
+      options.acquiredSkillIds ?? []
+    );
     storyNodeSpy.getAvailableTextLanguageCodes.and.returnValue(
       options.textLanguageCodes ?? []
     );
@@ -315,6 +333,8 @@ describe('TopicStorySectionComponent', () => {
     thumbnailUrl: '',
     startUrl: '',
     practiceUrl: '',
+    skillIds: [],
+    hasPracticeQuestions: false,
     nodeId: 'node_' + lessonNumber,
     lessonProgressStatus: lessonProgressStatus,
     isComingSoon: false,
@@ -337,6 +357,7 @@ describe('TopicStorySectionComponent', () => {
     headerBackgroundColor: '',
     headerBorderColor: '',
     arcId: '1',
+    hasPracticeQuestions: false,
   });
 
   it('should set study guide url on init', () => {
@@ -558,6 +579,70 @@ describe('TopicStorySectionComponent', () => {
 
     expect(component.lessonCards.length).toBe(1);
     expect(component.isPracticeCardVisible).toBe(true);
+  });
+
+  it('should enable lesson and adventure practice when questions exist', async () => {
+    const storyNodeSpy = createStoryNodeSpy(
+      'Node title 1',
+      'Node description 1',
+      'exp_1',
+      'node_1',
+      'thumb.png',
+      {acquiredSkillIds: ['skill_1']}
+    );
+    questionBackendApiService.fetchTotalQuestionCountForSkillIdsAsync.and.resolveTo(
+      2
+    );
+    component.storySummary = createStorySummarySpy(
+      ['Node title 1'],
+      [storyNodeSpy],
+      [
+        {
+          id: 'arc_1',
+          title: 'Adventure 1',
+          description: 'First adventure',
+          node_ids: ['node_1'],
+        },
+      ]
+    );
+
+    component.ngOnInit();
+    await fixture.whenStable();
+
+    expect(component.lessonCards[0].hasPracticeQuestions).toBeTrue();
+    expect(component.adventureGroups[0].hasPracticeQuestions).toBeTrue();
+  });
+
+  it('should keep practice disabled when the question check fails', async () => {
+    const storyNodeSpy = createStoryNodeSpy(
+      'Node title 1',
+      'Node description 1',
+      'exp_1',
+      'node_1',
+      'thumb.png',
+      {acquiredSkillIds: ['skill_1']}
+    );
+    questionBackendApiService.fetchTotalQuestionCountForSkillIdsAsync.and.rejectWith(
+      new Error('Request failed')
+    );
+    component.storySummary = createStorySummarySpy(
+      ['Node title 1'],
+      [storyNodeSpy],
+      [
+        {
+          id: 'arc_1',
+          title: 'Adventure 1',
+          description: 'First adventure',
+          node_ids: ['node_1'],
+        },
+      ]
+    );
+
+    component.ngOnInit();
+    await fixture.whenStable();
+
+    expect(component.lessonCards[0].hasPracticeQuestions).toBeFalse();
+    expect(component.adventureGroups[0].hasPracticeQuestions).toBeFalse();
   });
 
   it('should create practice card only when there are zero lessons', () => {
@@ -787,9 +872,9 @@ describe('TopicStorySectionComponent', () => {
       createAdventureGroup('Percentages', [createLessonCard(3, 'not_started')]),
     ];
 
-    expect(component.getPracticeTitle(0)).toBe('Practice: Fractions');
-    expect(component.getPracticeTitle(1)).toBe('Practice: Decimals');
-    expect(component.getPracticeTitle(2)).toBe('Practice: Percentages');
+    expect(component.getPracticeTitle(0)).toBe('Fractions');
+    expect(component.getPracticeTitle(1)).toBe('Decimals');
+    expect(component.getPracticeTitle(2)).toBe('Percentages');
   });
 
   it('should return correct practice description with unlock message for non-last adventures', () => {
@@ -1808,11 +1893,13 @@ describe('TopicStorySectionComponent', () => {
     expect(component.isAdventureExpanded(0)).toBe(false);
   });
 
-  it('should return isPracticeCardVisible from shouldShowAdventureEndTestCard', () => {
-    component.isPracticeCardVisible = true;
+  it('should show an adventure end test card when the adventure has lessons', () => {
+    component.visibleAdventureGroups = [
+      createAdventureGroup('Adventure 1', [createLessonCard(1, 'not_started')]),
+    ];
     expect(component.shouldShowAdventureEndTestCard(0)).toBe(true);
 
-    component.isPracticeCardVisible = false;
+    component.visibleAdventureGroups[0].lessonCards = [];
     expect(component.shouldShowAdventureEndTestCard(0)).toBe(false);
   });
 
@@ -1823,6 +1910,8 @@ describe('TopicStorySectionComponent', () => {
       thumbnailUrl: '',
       startUrl: '/explore/1',
       practiceUrl: '',
+      skillIds: [],
+      hasPracticeQuestions: false,
       nodeId: 'node_1',
       lessonProgressStatus: 'completed' as const,
       isComingSoon: false,
@@ -2043,15 +2132,16 @@ describe('TopicStorySectionComponent', () => {
     expect(component.lessonCards[0].startUrl).toBe('#');
   });
 
-  it('should not call populateFromInputs on ngOnChanges when only practiceSubtopicIds changes', () => {
-    const initialTitle = component.storyTitle;
+  it('should update practice card when practiceSubtopicIds changes', () => {
     component.practiceSubtopicIds = [1];
 
     component.ngOnChanges({
       practiceSubtopicIds: new SimpleChange([], [1], false),
     });
 
-    expect(component.storyTitle).toBe(initialTitle);
+    expect(component.practiceCard.practiceUrl).toContain(
+      'selected_subtopic_ids=[1]'
+    );
   });
 
   it('should handle getActiveLessonNumber when visitedChapterTitles is null', () => {

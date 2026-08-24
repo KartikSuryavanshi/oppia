@@ -872,9 +872,9 @@ describe('TopicStorySectionComponent', () => {
       createAdventureGroup('Percentages', [createLessonCard(3, 'not_started')]),
     ];
 
-    expect(component.getPracticeTitle(0)).toBe('Fractions');
-    expect(component.getPracticeTitle(1)).toBe('Decimals');
-    expect(component.getPracticeTitle(2)).toBe('Percentages');
+    expect(component.getPracticeTitle(0)).toBe('Fractions Review & Test');
+    expect(component.getPracticeTitle(1)).toBe('Decimals Review & Test');
+    expect(component.getPracticeTitle(2)).toBe('Percentages Review & Test');
   });
 
   it('should return correct practice description with unlock message for non-last adventures', () => {

@@ -41,6 +41,9 @@ import {ChapterLabelVisibilityService} from 'services/chapter-label-visibility.s
 import {I18nLanguageCodeService} from 'services/i18n-language-code.service';
 import {UrlService} from 'services/contextual/url.service';
 import {ChapterProgressLoaderService} from 'services/chapter-progress-loader.service';
+import {WindowRef} from 'services/contextual/window-ref.service';
+import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
+import {MasteryChallengeLockedModalComponent} from './mastery-challenge-locked-modal.component';
 
 import constants from 'assets/constants';
 
@@ -63,8 +66,7 @@ interface LessonCardData {
     | 'in_progress'
     | 'completed'
     | 'coming_soon';
-  totalCheckpointsCount: number;
-  visitedCheckpointsCount: number;
+  hasPracticeQuestions: boolean;
   isComingSoon: boolean;
   isPublished: boolean;
   isNewLabelVisible: boolean;
@@ -82,6 +84,7 @@ interface AdventureGroupData {
   headerBackgroundColor: string;
   headerBorderColor: string;
   arcId: string;
+  hasPracticeQuestions: boolean;
 }
 
 interface PracticeCardData {
@@ -90,14 +93,18 @@ interface PracticeCardData {
   thumbnailUrl: string;
   studyUrl: string;
   practiceUrl: string;
+  hasPracticeQuestions: boolean;
 }
 
 interface AdventureNavigationGroupData {
   lessons: {
     lessonNumber: number;
+    isCompleted: boolean;
   }[];
   accentColor: string;
   showPractice: boolean;
+  arcId: string;
+  isPracticeCompleted: boolean;
 }
 
 @Component({
@@ -117,6 +124,8 @@ export class TopicStorySectionComponent
 
   @Input() practiceCount: number = 0;
   @Input() lessonCount: number = 0;
+  @Input() isInTopicEditorPreview: boolean = false;
+  @Input() topicName: string = '';
 
   oppiaAvatarImageUrl: string = '';
   studyGuideUrl: string = '#';
@@ -137,8 +146,10 @@ export class TopicStorySectionComponent
   };
   masteryChallengeUrl: string = '#';
   isPracticeCardVisible: boolean = false;
+  isMasteryUnlocked: boolean = false;
   _expandedAdventureIndices: Set<number> = new Set();
   navigatedLessonNumber: number | null = null;
+  private pendingStartUrl: string = '';
 
   @ViewChildren('lessonCardWrapper')
   lessonCardWrappers!: QueryList<ElementRef<HTMLElement>>;
@@ -159,9 +170,14 @@ export class TopicStorySectionComponent
     }
   }
 
-  onNavigationLessonSelected(lessonNumber: number): void {
+  onNavigationLessonSelected(selection: {
+    lessonNumber: number;
+    startUrl: string;
+  }): void {
+    const lessonNumber = selection.lessonNumber;
     this.activeLessonNumber = lessonNumber;
     this.navigatedLessonNumber = lessonNumber;
+    this.pendingStartUrl = selection.startUrl;
 
     // Expand the adventure that contains this lesson.
     const adventureIndex = this.visibleAdventureGroups.findIndex(group =>
@@ -193,6 +209,36 @@ export class TopicStorySectionComponent
     }, 300);
   }
 
+  onLessonStartClick(selection: {
+    lessonNumber: number;
+    startUrl: string;
+  }): void {
+    const lessonNumber = selection.lessonNumber;
+    const startUrl = selection.startUrl;
+    this.activeLessonNumber = lessonNumber;
+    this.navigatedLessonNumber = lessonNumber;
+
+    if (startUrl) {
+      this.windowRef.nativeWindow.location.assign(startUrl);
+    }
+  }
+
+  onMasteryChallengeClicked(): void {
+    const modalRef: NgbModalRef = this.ngbModal.open(
+      MasteryChallengeLockedModalComponent,
+      {
+        backdrop: true,
+        windowClass: 'mastery-locked-modal',
+      }
+    );
+    modalRef.result.then(
+      () => {
+        this.isMasteryUnlocked = true;
+      },
+      () => {}
+    );
+  }
+
   private getLessonCardElement(lessonNumber: number): HTMLElement | null {
     const wrappers = this.lessonCardWrappers?.toArray() ?? [];
     const match = wrappers.find(wrapper => {
@@ -220,7 +266,9 @@ export class TopicStorySectionComponent
     private i18nLanguageCodeService: I18nLanguageCodeService,
     private chapterProgressLoaderService: ChapterProgressLoaderService,
     private topicSessionFallbackLanguageService: TopicSessionFallbackLanguageService,
-    private chapterLabelVisibilityService: ChapterLabelVisibilityService
+    private chapterLabelVisibilityService: ChapterLabelVisibilityService,
+    private windowRef: WindowRef,
+    private ngbModal: NgbModal
   ) {}
 
   ngOnInit(): void {
@@ -270,14 +318,6 @@ export class TopicStorySectionComponent
     return this.practiceCount === 1
       ? this.practiceCount + ' practice'
       : this.practiceCount + ' practices';
-  }
-
-  getStoryMetaText(): string {
-    return this.getLessonCountText();
-  }
-
-  getStoryMetaAriaLabel(): string {
-    return this.getLessonCountText() + ' available';
   }
 
   shouldShowAdventureEndTestCard(adventureIndex: number): boolean {
@@ -375,8 +415,11 @@ export class TopicStorySectionComponent
               ? '#'
               : this.getLessonPracticeUrl(node.getId().split('_').pop() || ''),
           lessonProgressStatus,
-          totalCheckpointsCount: totalCheckpoints,
-          visitedCheckpointsCount: visitedCheckpoints,
+          hasPracticeQuestions: Boolean(
+            lessonProgressStatus !== 'coming_soon' &&
+              this.getLessonPracticeUrl(node.getId().split('_').pop() || '') !==
+                '#'
+          ),
           nodeId: node.getId(),
           isComingSoon: lessonProgressStatus === 'coming_soon',
           isPublished: this.isChapterPublished(node),
@@ -424,6 +467,9 @@ export class TopicStorySectionComponent
         headerBackgroundColor: paletteColor.headerBg,
         headerBorderColor: paletteColor.headerBorder,
         arcId: arcNumber,
+        hasPracticeQuestions: adventureLessonCards.some(
+          card => card.practiceUrl && card.practiceUrl !== '#'
+        ),
       };
     });
   }
@@ -509,6 +555,7 @@ export class TopicStorySectionComponent
       thumbnailUrl: this.getFallbackLessonThumbnailUrl(),
       studyUrl: this.studyGuideUrl,
       practiceUrl: firstArcId ? this.getEndOfArcUrl(firstArcId) : '#',
+      hasPracticeQuestions: Boolean(firstArcId),
     };
   }
 
@@ -635,10 +682,13 @@ export class TopicStorySectionComponent
           lessons: visibleLessons.map(card => {
             return {
               lessonNumber: card.lessonNumber,
+              isCompleted: card.lessonProgressStatus === 'completed',
             };
           }),
           accentColor: group.accentColor,
           showPractice: visibleLessons.length > 0,
+          arcId: group.arcId,
+          isPracticeCompleted: false,
         };
       })
       .filter(group => group.lessons.length > 0);

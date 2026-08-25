@@ -30,15 +30,18 @@
 .topic-lesson-card-thumbnail {
   align-self: stretch;
   flex: 0 0 auto;
-  height: auto;
+  height: 248px;
+  max-height: 248px;
   overflow: hidden;
   width: 212px;
 }
 
 .topic-lesson-card-image {
+  background-color: #8ebbb6;
   display: block;
   height: 100%;
-  object-fit: cover;
+  max-height: 248px;
+  object-fit: contain;
   object-position: center;
   width: 100%;
 }
@@ -519,4 +522,16 @@
   .topic-lesson-card-fallback-info-icon {
     align-self: flex-start;
   }
+}
+
+.topic-lesson-card-secondary-button:disabled {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.topic-lesson-card-practice-button-wrapper {
+  display: inline-flex;
 }

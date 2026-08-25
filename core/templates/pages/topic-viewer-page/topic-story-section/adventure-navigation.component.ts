@@ -32,12 +32,20 @@ import {
 
 import './adventure-navigation.component.css';
 
+export interface AdventureNavigationLessonSelection {
+  lessonNumber: number;
+  startUrl: string;
+}
+
 interface AdventureNavigationGroup {
   lessons: {
     lessonNumber: number;
+    isCompleted: boolean;
   }[];
   accentColor: string;
   showPractice: boolean;
+  arcId: string;
+  isPracticeCompleted: boolean;
 }
 
 @Component({
@@ -50,8 +58,12 @@ export class AdventureNavigationComponent
 {
   @Input() adventureGroups: AdventureNavigationGroup[] = [];
   @Input() activeLessonNumber: number | null = null;
-  @Output() lessonSelected = new EventEmitter<number>();
-  @Output() practiceSelected = new EventEmitter<number>();
+  @Input() isInTopicEditorPreview: boolean = false;
+  @Input() masteryChallengeUrl: string = '';
+  @Output() lessonSelected =
+    new EventEmitter<AdventureNavigationLessonSelection>();
+  @Output() practiceSelected = new EventEmitter<string>();
+  @Output() masteryChallengeClicked = new EventEmitter<void>();
 
   @ViewChild('scrollWrapper') scrollWrapper!: ElementRef<HTMLElement>;
 
@@ -62,7 +74,6 @@ export class AdventureNavigationComponent
   private scrollCheckTimeouts: ReturnType<typeof setTimeout>[] = [];
 
   ngAfterViewInit(): void {
-    // Defer checks to allow DOM to fully render.
     this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 50));
     this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 200));
     this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 500));
@@ -70,7 +81,6 @@ export class AdventureNavigationComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.adventureGroups) {
-      // When adventureGroups changes, schedule arrow updates.
       this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 100));
       this.scrollCheckTimeouts.push(setTimeout(() => this.updateArrows(), 300));
     }
@@ -101,7 +111,6 @@ export class AdventureNavigationComponent
     this.hasHorizontalOverflow = hasOverflow;
 
     if (!hasOverflow) {
-      // No overflow, hide both arrows.
       this.showLeftArrow = false;
       this.showRightArrow = false;
       return;
@@ -131,7 +140,6 @@ export class AdventureNavigationComponent
   }
 
   isActiveLesson(lessonNumber: number): boolean {
-    // Badge is colored when it's the currently selected lesson in navbar.
     if (this.activeLessonNumber === null) {
       return lessonNumber === 1;
     }
@@ -139,10 +147,18 @@ export class AdventureNavigationComponent
   }
 
   onLessonClick(lessonNumber: number): void {
-    this.lessonSelected.emit(lessonNumber);
+    this.lessonSelected.emit({lessonNumber, startUrl: ''});
   }
 
-  onPracticeClick(adventureIndex: number): void {
-    this.practiceSelected.emit(adventureIndex);
+  onPracticeClick(arcId: string): void {
+    this.practiceSelected.emit(arcId);
+  }
+
+  getPracticeBadgeIconName(isPracticeCompleted: boolean): string {
+    return isPracticeCompleted ? 'check' : 'edit';
+  }
+
+  onMasteryClick(): void {
+    this.masteryChallengeClicked.emit();
   }
 }

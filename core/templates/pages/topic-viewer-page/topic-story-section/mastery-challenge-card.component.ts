@@ -16,7 +16,7 @@
  * @fileoverview Mastery challenge card displayed at the end of a story section.
  */
 
-import {Component, Input} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {WindowRef} from 'services/contextual/window-ref.service';
 
 import './mastery-challenge-card.component.css';
@@ -26,14 +26,49 @@ import './mastery-challenge-card.component.css';
   templateUrl: './mastery-challenge-card.component.html',
   styleUrls: ['./mastery-challenge-card.component.css'],
 })
-export class MasteryChallengeCardComponent {
+export class MasteryChallengeCardComponent implements OnDestroy {
   @Input() actionUrl: string = '#';
+  @Input() isUnlocked: boolean = false;
+  @Output() masteryClicked = new EventEmitter<void>();
+
+  showLockedTooltip: boolean = false;
 
   constructor(private windowRef: WindowRef) {}
 
+  get displayTitle(): string {
+    return 'Mastery Challenge';
+  }
+
+  ngOnDestroy(): void {}
+
+  onChallengeButtonClick(): void {
+    if (!this.isUnlocked) {
+      this.masteryClicked.emit();
+    }
+    this.navigateToAction();
+  }
+
+  onCardMouseEnter(): void {
+    if (!this.isUnlocked) {
+      this.showLockedTooltip = true;
+    }
+  }
+
+  onCardMouseLeave(): void {
+    this.showLockedTooltip = false;
+  }
+
   navigateToAction(): void {
-    if (this.actionUrl) {
+    if (this.hasActionUrl()) {
       this.windowRef.nativeWindow.location.assign(this.actionUrl);
     }
+  }
+
+  hasActionUrl(): boolean {
+    return Boolean(this.actionUrl && this.actionUrl !== '#');
+  }
+
+  isActionDisabled(): boolean {
+    return this.isUnlocked && !this.hasActionUrl();
   }
 }

@@ -18,9 +18,11 @@
 
 import {
   Component,
+  EventEmitter,
   Input,
   OnChanges,
   OnInit,
+  Output,
   SimpleChanges,
 } from '@angular/core';
 import {LanguageUtilService} from 'domain/utilities/language-util.service';
@@ -51,6 +53,7 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
   @Input() startUrl: string = '';
   @Input() studyUrl: string = '';
   @Input() practiceUrl: string = '';
+  @Input() hasPracticeQuestions: boolean = false;
   @Input() adventureAccentColor: string = '#00645c';
   @Input() isActiveLesson: boolean = false;
   @Input() lessonProgressStatus:
@@ -58,8 +61,6 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
     | 'in_progress'
     | 'completed'
     | 'coming_soon' = 'not_started';
-  @Input() totalCheckpointsCount: number = 0;
-  @Input() visitedCheckpointsCount: number = 0;
   @Input() availableTextLanguageCodes: string[] = [];
   @Input() availableVoiceoverLanguageCodes: string[] = [];
   @Input() availableVoiceoverLanguageAccentDescriptions: {
@@ -68,6 +69,10 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
   @Input() isNewLessonLabelVisible: boolean = false;
   @Input() isComingSoonSectionCard: boolean = false;
   @Input() navigatedLessonNumber: number | null = null;
+  @Output() startLessonClick = new EventEmitter<{
+    lessonNumber: number;
+    startUrl: string;
+  }>();
 
   resolvedThumbnailUrl: string = '';
   selectedTextLanguageCode: string | null = null;
@@ -111,15 +116,12 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
     }
   }
 
-  get showCheckpointBar(): boolean {
-    return (
-      this.lessonProgressStatus !== LESSON_PROGRESS_STATUS_COMING_SOON &&
-      this.totalCheckpointsCount > 0
-    );
-  }
-
   get isComingSoonLesson(): boolean {
     return this.lessonProgressStatus === LESSON_PROGRESS_STATUS_COMING_SOON;
+  }
+
+  get isCompletedLesson(): boolean {
+    return this.lessonProgressStatus === 'completed';
   }
 
   navigateTo(url: string): void {
@@ -133,24 +135,24 @@ export class TopicLessonCardComponent implements OnInit, OnChanges {
       return;
     }
 
-    if (!this.selectedTextLanguageCode) {
-      this.navigateTo(this.startUrl);
-      return;
-    }
+    const resolvedUrl = this.selectedTextLanguageCode
+      ? this.getLessonStartUrlWithLanguageSelection(
+          this.selectedTextLanguageCode,
+          this.selectedVoiceoverLanguageCode
+        )
+      : this.startUrl;
 
-    this.navigateTo(
-      this.getLessonStartUrlWithLanguageSelection(
-        this.selectedTextLanguageCode,
-        this.selectedVoiceoverLanguageCode
-      )
-    );
+    this.startLessonClick.emit({
+      lessonNumber: this.lessonNumber,
+      startUrl: resolvedUrl,
+    });
   }
 
   onPracticeButtonClick(): void {
-    if (this.isComingSoonLesson) {
+    if (!this.hasPracticeQuestions) {
       return;
     }
-    this.navigateTo(this.practiceUrl || this.startUrl);
+    this.navigateTo(this.practiceUrl);
   }
 
   onStudyButtonClick(): void {

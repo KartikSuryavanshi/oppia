@@ -18,9 +18,6 @@
     <div class="story-card-header">
       <div class="story-card-header-left">
         <h3 class="story-title"><span class="story-label">Story: </span>"{{ storyTitle }}"</h3>
-        <p class="story-meta" [attr.aria-label]="getStoryMetaAriaLabel()">
-          {{ getStoryMetaText() }}
-        </p>
       </div>
       <div class="story-card-header-right">
         <a class="study-skills-cta" [href]="studyGuideUrl" [attr.aria-label]="'I18N_TOPIC_VIEWER_STUDY_SKILLS_CTA_ARIA_LABEL' | translate: {storyTitle: storyTitle || 'this story'}">
@@ -37,8 +34,11 @@
       <topic-adventure-navigation
         [adventureGroups]="adventureNavigationGroups"
         [activeLessonNumber]="activeLessonNumber"
+        [isInTopicEditorPreview]="isInTopicEditorPreview"
+        [masteryChallengeUrl]="masteryChallengeUrl"
         (lessonSelected)="onNavigationLessonSelected($event)"
-        (practiceSelected)="onNavigationPracticeSelected($event)">
+        (practiceSelected)="onNavigationPracticeSelected($event)"
+        (masteryChallengeClicked)="onMasteryChallengeClicked()">
       </topic-adventure-navigation>
 
       <ng-container *ngIf="adventureGroups.length > 0; else flatLessonList">
@@ -77,17 +77,17 @@
                 [startUrl]="lessonCard.startUrl"
                 [studyUrl]="studyGuideUrl"
                 [practiceUrl]="lessonCard.practiceUrl"
+                [hasPracticeQuestions]="lessonCard.hasPracticeQuestions"
                 [lessonNumber]="lessonCard.lessonNumber"
                 [adventureAccentColor]="adventureGroup.accentColor"
                 [isActiveLesson]="lessonCard.lessonNumber === activeLessonNumber"
                 [lessonProgressStatus]="lessonCard.lessonProgressStatus"
-                [totalCheckpointsCount]="lessonCard.totalCheckpointsCount"
-                [visitedCheckpointsCount]="lessonCard.visitedCheckpointsCount"
                 [availableTextLanguageCodes]="lessonCard.availableTextLanguageCodes"
                 [availableVoiceoverLanguageCodes]="lessonCard.availableVoiceoverLanguageCodes"
                 [availableVoiceoverLanguageAccentDescriptions]="lessonCard.availableVoiceoverLanguageAccentDescriptions"
                 [isNewLessonLabelVisible]="lessonCard.isNewLabelVisible"
-                [navigatedLessonNumber]="navigatedLessonNumber">
+                [navigatedLessonNumber]="navigatedLessonNumber"
+                (startLessonClick)="onLessonStartClick($event)">
               </topic-lesson-card>
             </div>
 
@@ -102,7 +102,8 @@
                 [studyUrl]="practiceCard.studyUrl"
                 [cardBackgroundColor]="adventureGroup.headerBackgroundColor"
                 [cardAccentColor]="adventureGroup.accentColor"
-                [practiceUrl]="getEndOfArcUrl(adventureGroup.arcId)">
+                [practiceUrl]="getEndOfArcUrl(adventureGroup.arcId)"
+                [hasPracticeQuestions]="adventureGroup.hasPracticeQuestions">
               </topic-adventure-end-test-card>
             </div>
           </div>
@@ -121,17 +122,17 @@
             [startUrl]="lessonCard.startUrl"
             [studyUrl]="studyGuideUrl"
             [practiceUrl]="lessonCard.practiceUrl"
+            [hasPracticeQuestions]="lessonCard.hasPracticeQuestions"
             [lessonNumber]="lessonCard.lessonNumber"
             [adventureAccentColor]="'#00645c'"
             [isActiveLesson]="lessonCard.lessonNumber === activeLessonNumber"
             [lessonProgressStatus]="lessonCard.lessonProgressStatus"
-            [totalCheckpointsCount]="lessonCard.totalCheckpointsCount"
-            [visitedCheckpointsCount]="lessonCard.visitedCheckpointsCount"
             [availableTextLanguageCodes]="lessonCard.availableTextLanguageCodes"
             [availableVoiceoverLanguageCodes]="lessonCard.availableVoiceoverLanguageCodes"
             [availableVoiceoverLanguageAccentDescriptions]="lessonCard.availableVoiceoverLanguageAccentDescriptions"
             [isNewLessonLabelVisible]="lessonCard.isNewLabelVisible"
-            [navigatedLessonNumber]="navigatedLessonNumber">
+            [navigatedLessonNumber]="navigatedLessonNumber"
+            (startLessonClick)="onLessonStartClick($event)">
           </topic-lesson-card>
         </div>
 
@@ -146,7 +147,8 @@
             [studyUrl]="practiceCard.studyUrl"
             [cardBackgroundColor]="'#ecf7f6'"
             [cardAccentColor]="'#0b776d'"
-            [practiceUrl]="practiceCard.practiceUrl">
+            [practiceUrl]="practiceCard.practiceUrl"
+            [hasPracticeQuestions]="practiceCard.hasPracticeQuestions">
           </topic-adventure-end-test-card>
         </div>
       </ng-template>
@@ -180,12 +182,11 @@
             [startUrl]="lessonCard.startUrl"
             [studyUrl]="studyGuideUrl"
             [practiceUrl]="lessonCard.practiceUrl"
+            [hasPracticeQuestions]="lessonCard.hasPracticeQuestions"
             [lessonNumber]="lessonCard.lessonNumber"
             [adventureAccentColor]="'#6b7280'"
             [isActiveLesson]="false"
             [lessonProgressStatus]="lessonCard.lessonProgressStatus"
-            [totalCheckpointsCount]="lessonCard.totalCheckpointsCount"
-            [visitedCheckpointsCount]="lessonCard.visitedCheckpointsCount"
             [availableTextLanguageCodes]="lessonCard.availableTextLanguageCodes"
             [availableVoiceoverLanguageCodes]="lessonCard.availableVoiceoverLanguageCodes"
             [availableVoiceoverLanguageAccentDescriptions]="lessonCard.availableVoiceoverLanguageAccentDescriptions"

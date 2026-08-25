@@ -56,15 +56,56 @@ describe('MasteryChallengeCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should navigate when action URL is provided', () => {
+  it('should default to locked state', () => {
+    expect(component.isUnlocked).toBeFalse();
+  });
+
+  it('should return mastery challenge as the display title', () => {
+    expect(component.displayTitle).toBe('Mastery Challenge');
+  });
+
+  it('should navigate when action URL is provided and unlocked', () => {
     spyOn(windowRef.nativeWindow.location, 'assign');
     component.actionUrl = '/practice/session/1';
+    component.isUnlocked = true;
 
-    component.navigateToAction();
+    component.onChallengeButtonClick();
 
     expect(windowRef.nativeWindow.location.assign).toHaveBeenCalledWith(
       '/practice/session/1'
     );
+  });
+
+  it('should navigate when clicked while locked', () => {
+    spyOn(windowRef.nativeWindow.location, 'assign');
+    component.actionUrl = '/practice/session/1';
+    component.isUnlocked = false;
+
+    component.onChallengeButtonClick();
+
+    expect(windowRef.nativeWindow.location.assign).toHaveBeenCalledWith(
+      '/practice/session/1'
+    );
+  });
+
+  it('should emit masteryClicked when clicked while locked', () => {
+    spyOn(component.masteryClicked, 'emit');
+    component.actionUrl = '/practice/session/1';
+    component.isUnlocked = false;
+
+    component.onChallengeButtonClick();
+
+    expect(component.masteryClicked.emit).toHaveBeenCalled();
+  });
+
+  it('should not emit masteryClicked when clicked while unlocked', () => {
+    spyOn(component.masteryClicked, 'emit');
+    component.actionUrl = '/practice/session/1';
+    component.isUnlocked = true;
+
+    component.onChallengeButtonClick();
+
+    expect(component.masteryClicked.emit).not.toHaveBeenCalled();
   });
 
   it('should not navigate when action URL is empty', () => {
@@ -74,5 +115,49 @@ describe('MasteryChallengeCardComponent', () => {
     component.navigateToAction();
 
     expect(windowRef.nativeWindow.location.assign).not.toHaveBeenCalled();
+  });
+
+  it('should not navigate when action URL is the default placeholder', () => {
+    spyOn(windowRef.nativeWindow.location, 'assign');
+    component.actionUrl = '#';
+
+    component.navigateToAction();
+
+    expect(windowRef.nativeWindow.location.assign).not.toHaveBeenCalled();
+  });
+
+  it('should not disable the button when an action URL is available', () => {
+    component.actionUrl = '/practice/session/1';
+
+    component.isUnlocked = false;
+    expect(component.isActionDisabled()).toBeFalse();
+
+    component.isUnlocked = true;
+    expect(component.isActionDisabled()).toBeFalse();
+  });
+
+  it('should show tooltip on mouse enter when locked', () => {
+    component.isUnlocked = false;
+
+    component.onCardMouseEnter();
+
+    expect(component.showLockedTooltip).toBeTrue();
+  });
+
+  it('should not show tooltip on mouse enter when unlocked', () => {
+    component.isUnlocked = true;
+
+    component.onCardMouseEnter();
+
+    expect(component.showLockedTooltip).toBeFalse();
+  });
+
+  it('should hide tooltip on mouse leave', () => {
+    component.isUnlocked = false;
+    component.showLockedTooltip = true;
+
+    component.onCardMouseLeave();
+
+    expect(component.showLockedTooltip).toBeFalse();
   });
 });

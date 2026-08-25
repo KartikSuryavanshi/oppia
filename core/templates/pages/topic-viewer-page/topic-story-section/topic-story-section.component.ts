@@ -143,6 +143,7 @@ export class TopicStorySectionComponent
     thumbnailUrl: '',
     studyUrl: '#',
     practiceUrl: '#',
+    hasPracticeQuestions: false,
   };
   masteryChallengeUrl: string = '#';
   isPracticeCardVisible: boolean = false;
